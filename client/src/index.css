@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Jashna core */
+  --color-jashna-navy: #10243e;
+  --color-jashna-navy-dark: #09182b;
+
+  /* New premium palette */
+  --color-jashna-maroon: #641f2d;
+  --color-jashna-maroon-dark: #42131e;
+  --color-jashna-maroon-light: #8b4352;
+
+  /* Premium accent */
+  --color-jashna-gold: #c6a15b;
+  --color-jashna-gold-light: #ddc58e;
+
+  /* Editorial backgrounds */
+  --color-jashna-ivory: #f7f4ed;
+  --color-jashna-stone: #e9e5dc;
+
+  /* Typography */
+  --color-jashna-charcoal: #18191b;
+  --color-jashna-muted: #68717d;
+
+  /* Fonts */
+  --font-display: "Playfair Display", serif;
+  --font-body: "DM Sans", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "DM Sans", sans-serif;
+  background: #f7f4ed;
+  color: #18191b;
+}
+
+::selection {
+  background: #641f2d;
+  color: #f7f4ed;
+}
