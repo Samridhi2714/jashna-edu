@@ -45,22 +45,27 @@ const FOCUS =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E73B0]";
 
 /* =========================================================
-   IELTS NUDGE  (home page only)
+   IELTS NUDGE  (home page only, tablets + desktops)
 
    1. Right after the home page opens, a dotted blue→teal path
       quickly shoots out of the IELTS nav link (or the menu
-      button on phones / tablets).
+      button on tablets).
    2. It lands on a small outlined CLOUD that pops in with the
       text "Are you looking for IELTS?" and a "Explore" button
       → /ielts.
    3. The cloud floats gently, then fades away after ~4.5s.
+
+   On phones (narrower than NUDGE_MIN_WIDTH) the pop-up is NOT
+   shown, because it covered the hero heading. IELTS is still
+   available in the menu on phones.
 ========================================================= */
 
 const NUDGE_START_DELAY = 300; // ms after the home page opens
 const NUDGE_SHOW_MS = 4500; // total time on screen
 const NUDGE_PATH_SECONDS = 0.35; // time the dotted path takes to draw
 const NUDGE_ONCE_PER_SESSION = false; // true = show only once per browser session
-const NUDGE_MAX_WIDTH = 270; // cloud width in px (was 380)
+const NUDGE_MAX_WIDTH = 270; // cloud width in px
+const NUDGE_MIN_WIDTH = 768; // below this screen width the pop-up is hidden
 
 /* cloud outline, drawn in a "26 26 286 168" viewBox */
 const CLOUD_PATH =
@@ -68,6 +73,8 @@ const CLOUD_PATH =
 const CLOUD_RATIO = 168 / 286; // height / width
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+const isSmallScreen = () => window.innerWidth < NUDGE_MIN_WIDTH;
 
 function measureNudge() {
   const vw = window.innerWidth;
@@ -109,9 +116,9 @@ function IeltsNudge() {
   const [visible, setVisible] = useState(false);
   const [geo, setGeo] = useState(null);
 
-  /* show → hide timers (home page only) */
+  /* show → hide timers (home page only, not on phones) */
   useEffect(() => {
-    if (!isHome) {
+    if (!isHome || isSmallScreen()) {
       setVisible(false);
       return undefined;
     }
@@ -125,6 +132,9 @@ function IeltsNudge() {
     }
 
     const showTimer = setTimeout(() => {
+      /* screen may have been resized during the delay */
+      if (isSmallScreen()) return;
+
       setGeo(measureNudge());
       setVisible(true);
       try {
@@ -148,7 +158,15 @@ function IeltsNudge() {
   /* keep the path glued to the nav link if the window is resized */
   useEffect(() => {
     if (!visible) return undefined;
-    const onResize = () => setGeo(measureNudge());
+
+    const onResize = () => {
+      if (isSmallScreen()) {
+        setVisible(false);
+        return;
+      }
+      setGeo(measureNudge());
+    };
+
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, [visible]);
@@ -634,7 +652,7 @@ function Navbar() {
         </div>
       </div>
 
-      {/* IELTS pop-up (home page only, auto-hides) */}
+      {/* IELTS pop-up (home page only, tablets + desktops, auto-hides) */}
       <IeltsNudge />
     </header>
   );

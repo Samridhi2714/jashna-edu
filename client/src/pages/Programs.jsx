@@ -49,7 +49,8 @@ const TIMES = "[&_*]:![font-family:Times_New_Roman,Times,serif]";
 ========================================================= */
 
 const SEO = {
-  title: "English Programs: Spoken English, IELTS, Interview & Business English | Jashna",
+  title:
+    "English Programs: Spoken English, IELTS, Interview & Business English | Jashna",
   description:
     "Explore Jashna's English programs for spoken English and fluency, public speaking, IELTS preparation, interview skills, business English and teacher training. Personalised, practical, real-world learning.",
 };
@@ -133,12 +134,36 @@ const goalOf = (program) =>
   goals.find((g) => g.programs.includes(program?.title));
 
 const categoryHighlights = {
-  Communication: ["Fluency & clarity", "Confident expression", "Real conversations"],
-  Career: ["Interview communication", "Professional presence", "Workplace confidence"],
-  Academic: ["Language accuracy", "Exam-focused practice", "Academic communication"],
-  Professional: ["Clear communication", "Professional vocabulary", "Practical workplace use"],
-  "English Development": ["Everyday communication", "Vocabulary development", "Language confidence"],
-  Teaching: ["Classroom communication", "Teaching methodology", "Professional growth"],
+  Communication: [
+    "Fluency & clarity",
+    "Confident expression",
+    "Real conversations",
+  ],
+  Career: [
+    "Interview communication",
+    "Professional presence",
+    "Workplace confidence",
+  ],
+  Academic: [
+    "Language accuracy",
+    "Exam-focused practice",
+    "Academic communication",
+  ],
+  Professional: [
+    "Clear communication",
+    "Professional vocabulary",
+    "Practical workplace use",
+  ],
+  "English Development": [
+    "Everyday communication",
+    "Vocabulary development",
+    "Language confidence",
+  ],
+  Teaching: [
+    "Classroom communication",
+    "Teaching methodology",
+    "Professional growth",
+  ],
 };
 
 const heroPhrases = [
@@ -199,15 +224,32 @@ const ieltsModules = [
 ];
 
 const ieltsBands = [
-  { value: "6.0", focus: "Build a solid base and remove the errors that keep repeating." },
-  { value: "6.5", focus: "Sharpen accuracy and widen your range across all four skills." },
-  { value: "7.0", focus: "Add precision, complexity and consistent timing under pressure." },
-  { value: "7.5", focus: "Polish coherence, vocabulary and examiner-ready delivery." },
-  { value: "8.0+", focus: "Refine nuance, speed and a flawless exam-day strategy." },
+  {
+    value: "6.0",
+    focus: "Build a solid base and remove the errors that keep repeating.",
+  },
+  {
+    value: "6.5",
+    focus: "Sharpen accuracy and widen your range across all four skills.",
+  },
+  {
+    value: "7.0",
+    focus: "Add precision, complexity and consistent timing under pressure.",
+  },
+  {
+    value: "7.5",
+    focus: "Polish coherence, vocabulary and examiner-ready delivery.",
+  },
+  {
+    value: "8.0+",
+    focus: "Refine nuance, speed and a flawless exam-day strategy.",
+  },
 ];
 
 const goTo = (id) =>
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document
+    .getElementById(id)
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
 
 /* shared class strings */
 const WRAP = "mx-auto w-full max-w-[1480px] px-5 sm:px-8 lg:px-12";
@@ -261,12 +303,14 @@ function Programs() {
     });
   }, [programs, categoryFilter, query]);
 
-  const goalPrograms = (goal) => programs.filter((p) => goalOf(p)?.id === goal.id);
+  const goalPrograms = (goal) =>
+    programs.filter((p) => goalOf(p)?.id === goal.id);
 
   const highlights =
     selectedProgram?.highlights?.length > 0
       ? selectedProgram.highlights
-      : categoryHighlights[selectedProgram?.category] || categoryHighlights.Communication;
+      : categoryHighlights[selectedProgram?.category] ||
+        categoryHighlights.Communication;
 
   const SelectedIcon = iconMap[selectedProgram?.category] || Sparkles;
 
@@ -302,7 +346,10 @@ function Programs() {
     if (window.innerWidth < 1024) {
       // small screens: land straight on the poster/stage
       setTimeout(() => {
-        detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        detailRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 80);
     } else {
       goTo("explore-programs");
@@ -313,7 +360,9 @@ function Programs() {
     const list = visiblePrograms.length ? visiblePrograms : programs;
     if (!list.length) return;
     const current = list.findIndex((p) => p.id === selectedProgram?.id);
-    selectProgram(list[(current + direction + list.length) % list.length], { scroll: false });
+    selectProgram(list[(current + direction + list.length) % list.length], {
+      scroll: false,
+    });
   };
 
   const stepRef = useRef(step);
@@ -348,7 +397,10 @@ function Programs() {
       link.setAttribute("rel", "canonical");
       document.head.appendChild(link);
     }
-    link.setAttribute("href", window.location.origin + window.location.pathname);
+    link.setAttribute(
+      "href",
+      window.location.origin + window.location.pathname,
+    );
   }, []);
 
   // SEO: structured data listing every live program
@@ -383,7 +435,10 @@ function Programs() {
 
   // rotating hero phrase
   useEffect(() => {
-    const id = setInterval(() => setPhraseIndex((i) => (i + 1) % heroPhrases.length), 2800);
+    const id = setInterval(
+      () => setPhraseIndex((i) => (i + 1) % heroPhrases.length),
+      2800,
+    );
     return () => clearInterval(id);
   }, []);
 
@@ -412,7 +467,8 @@ function Programs() {
   useEffect(() => {
     if (!programs.length) return;
     [1, -1].forEach((d) => {
-      const p = programs[(selectedIndex + d + programs.length) % programs.length];
+      const p =
+        programs[(selectedIndex + d + programs.length) % programs.length];
       if (p?.image?.url) new Image().src = p.image.url;
     });
   }, [programs, selectedIndex]);
@@ -420,7 +476,9 @@ function Programs() {
   /* ---------- render ---------- */
 
   return (
-    <main className={`relative min-h-screen overflow-x-clip bg-[#F3F6FB] text-[#0E1A2B] ${TIMES}`}>
+    <main
+      className={`relative min-h-screen overflow-x-clip bg-[#F3F6FB] text-[#0E1A2B] ${TIMES}`}
+    >
       <style>{`
         @keyframes pg-shine { to { background-position: 200% center; } }
         @keyframes pg-marquee { to { transform: translateX(-50%); } }
@@ -472,7 +530,7 @@ function Programs() {
             >
               <p className="inline-flex items-center gap-2.5 rounded-full border border-[#0E1A2B]/10 bg-white/75 px-4 py-2 text-base font-bold text-[#0B7F70] shadow-sm backdrop-blur">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-[#12B5A0]" />
-                Jashna English programs
+                Jashna English Programs
               </p>
 
               <h1 className="mt-6 text-[2.6rem] font-bold leading-[1.04] tracking-tight text-[#0E1A2B] sm:text-6xl xl:text-[4.6rem]">
@@ -482,7 +540,10 @@ function Programs() {
 
               <div className="mt-3 text-xl font-medium text-[#0E1A2B]/65 sm:text-2xl">
                 <span aria-hidden>I want to</span>
-                <div aria-hidden className="relative mt-1 h-10 w-full max-w-md overflow-hidden sm:h-12">
+                <div
+                  aria-hidden
+                  className="relative mt-1 h-10 w-full max-w-md overflow-hidden sm:h-12"
+                >
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={phraseIndex}
@@ -496,7 +557,9 @@ function Programs() {
                     </motion.span>
                   </AnimatePresence>
                 </div>
-                <span className="sr-only">Programs to help you {heroPhrases.join(", ")}</span>
+                <span className="sr-only">
+                  Programs to help you {heroPhrases.join(", ")}
+                </span>
               </div>
 
               <motion.span
@@ -507,12 +570,14 @@ function Programs() {
               />
 
               <p className="mt-7 max-w-xl text-lg font-medium leading-8 text-[#0E1A2B]/75 sm:text-xl sm:leading-9">
-                Practical courses in <strong className="text-[#0E1A2B]">spoken English</strong>,{" "}
+                Practical courses in{" "}
+                <strong className="text-[#0E1A2B]">spoken English</strong>,{" "}
                 <strong className="text-[#0E1A2B]">IELTS preparation</strong>,{" "}
                 <strong className="text-[#0E1A2B]">interview skills</strong>,{" "}
                 <strong className="text-[#0E1A2B]">business English</strong> and{" "}
-                <strong className="text-[#0E1A2B]">teacher training</strong>. Pick the direction you
-                want to grow in and we'll match you with the right learning path.
+                <strong className="text-[#0E1A2B]">teacher training</strong>.
+                Pick the direction you want to grow in and we'll match you with
+                the right learning path.
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
@@ -527,12 +592,15 @@ function Programs() {
                   className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#0E1A2B] px-8 py-4 text-lg font-bold text-white shadow-[0_16px_40px_rgba(14,26,43,0.25)] transition-colors hover:bg-[#2F6BFF]"
                 >
                   Explore programs
-                  <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+                  <ArrowRight
+                    size={18}
+                    className="transition-transform duration-300 group-hover:translate-x-1"
+                  />
                 </motion.a>
 
                 <motion.a
                   href={getWhatsAppLink(
-                    "Hello Dr.Shivam Sir, I would like to book a free consultation for the English programs at Jashna Edu."
+                    "Hello Dr.Shivam Sir, I would like to book a free consultation for the English programs at Jashna Edu.",
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -557,24 +625,30 @@ function Programs() {
               <div className="mt-10 grid max-w-md grid-cols-3 border-t border-[#0E1A2B]/15 pt-7">
                 <HeroStat value={programs.length} label="Programs" />
                 <HeroStat value={goals.length} label="Directions" bordered />
-                <HeroStat value={Math.max(categories.length - 1, 0)} label="Categories" bordered />
+                <HeroStat
+                  value={Math.max(categories.length - 1, 0)}
+                  label="Categories"
+                  bordered
+                />
               </div>
             </motion.div>
 
-            {/* RIGHT — direction picker */}
+            {/* RIGHT — direction picker (hidden on phones, shown from tablet up) */}
             <motion.nav
               aria-label="Choose your learning direction"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}
-              className="min-w-0 rounded-[32px] border border-white/80 bg-white/60 p-5 shadow-[0_30px_80px_rgba(47,107,255,0.15)] backdrop-blur-xl sm:p-7"
+              className="hidden min-w-0 rounded-[32px] border border-white/80 bg-white/60 p-5 shadow-[0_30px_80px_rgba(47,107,255,0.15)] backdrop-blur-xl sm:p-7 md:block"
             >
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#12B5A0] text-white shadow-md">
                   <Target size={20} />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-base font-bold text-[#0B7F70]">Find your direction</p>
+                  <p className="text-base font-bold text-[#0B7F70]">
+                    Find your direction
+                  </p>
                   <h2 className="text-2xl font-bold leading-tight text-[#0E1A2B] sm:text-3xl">
                     What are you working towards?
                   </h2>
@@ -603,15 +677,24 @@ function Programs() {
                     >
                       <span
                         className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                          active ? "bg-white/20 text-white" : "bg-[#2F6BFF]/10 text-[#2F6BFF]"
+                          active
+                            ? "bg-white/20 text-white"
+                            : "bg-[#2F6BFF]/10 text-[#2F6BFF]"
                         }`}
                       >
                         <GoalIcon size={19} />
                       </span>
-                      <span className="mt-3 text-xl font-bold leading-6">{goal.short}</span>
-                      <span className={`mt-1.5 flex items-center gap-1 text-base font-medium ${active ? "text-white/90" : "text-[#0E1A2B]/55"}`}>
+                      <span className="mt-3 text-xl font-bold leading-6">
+                        {goal.short}
+                      </span>
+                      <span
+                        className={`mt-1.5 flex items-center gap-1 text-base font-medium ${active ? "text-white/90" : "text-[#0E1A2B]/55"}`}
+                      >
                         {count} {count === 1 ? "program" : "programs"}
-                        <ChevronRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+                        <ChevronRight
+                          size={15}
+                          className="transition-transform duration-300 group-hover:translate-x-1"
+                        />
                       </span>
                     </motion.button>
                   );
@@ -642,9 +725,12 @@ function Programs() {
                         {p.shortTitle || p.title}
                       </button>
                     ))}
-                    {programs.length > 0 && goalPrograms(selectedGoal).length === 0 && (
-                      <span className="text-base text-[#0E1A2B]/55">Programs coming soon.</span>
-                    )}
+                    {programs.length > 0 &&
+                      goalPrograms(selectedGoal).length === 0 && (
+                        <span className="text-base text-[#0E1A2B]/55">
+                          Programs coming soon.
+                        </span>
+                      )}
                   </div>
                 </motion.div>
               </AnimatePresence>
@@ -692,7 +778,10 @@ function Programs() {
           02 — PROGRAM EXPLORER (redesigned)
       ===================================================== */}
 
-      <section id="explore-programs" className="relative scroll-mt-20 overflow-hidden py-20 lg:py-28">
+      <section
+        id="explore-programs"
+        className="relative scroll-mt-20 overflow-hidden py-20 lg:py-28"
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute -left-40 top-24 h-[28rem] w-[28rem] rounded-full bg-[#215e93]/10 blur-[120px]"
@@ -706,7 +795,9 @@ function Programs() {
           <Reveal>
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div>
-                <p className={`${LABEL} text-[#2a9d8f]`}>You don't need to know which course</p>
+                <p className={`${LABEL} text-[#2a9d8f]`}>
+                  You don't need to know which course
+                </p>
                 <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
                   Find the program{" "}
                   <span className="bg-gradient-to-r from-[#215e93] via-[#2a9d8f] to-[#84e245] bg-clip-text text-transparent">
@@ -715,8 +806,8 @@ function Programs() {
                 </h2>
               </div>
               <p className="max-w-md text-lg font-medium leading-7 text-[#0E1A2B]/65 md:text-right">
-                Select a program to see it. Use the arrow keys or the arrows on the picture to
-                browse.
+                Select a program to see it. Use the arrow keys or the arrows on
+                the picture to browse.
               </p>
             </div>
           </Reveal>
@@ -746,7 +837,10 @@ function Programs() {
 
             <label className="relative block w-full lg:w-72">
               <span className="sr-only">Search programs</span>
-              <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#0E1A2B]/40" />
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#0E1A2B]/40"
+              />
               <input
                 type="text"
                 value={query}
@@ -764,7 +858,9 @@ function Programs() {
             {/* list */}
             <div className="min-w-0 rounded-[28px] border border-[#0E1A2B]/10 bg-white/70 p-4 shadow-[0_14px_40px_rgba(14,26,43,0.06)] backdrop-blur sm:p-5">
               <div className="mb-4 flex items-center justify-between px-1">
-                <span className={`${LABEL} text-[#0E1A2B]/55`}>All programs</span>
+                <span className={`${LABEL} text-[#0E1A2B]/55`}>
+                  All programs
+                </span>
                 <span className="rounded-full bg-[#215e93]/10 px-2.5 py-0.5 text-base font-bold text-[#215e93]">
                   {String(visiblePrograms.length).padStart(2, "0")}
                 </span>
@@ -773,7 +869,10 @@ function Programs() {
               <div className="relative max-h-[70vh] overflow-y-auto pr-1 lg:max-h-[calc(100vh-16rem)]">
                 {loading &&
                   Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="mb-2 h-[60px] animate-pulse rounded-2xl bg-[#0E1A2B]/[0.06]" />
+                    <div
+                      key={i}
+                      className="mb-2 h-[60px] animate-pulse rounded-2xl bg-[#0E1A2B]/[0.06]"
+                    />
                   ))}
 
                 {!loading && visiblePrograms.length === 0 && (
@@ -785,7 +884,8 @@ function Programs() {
                 {visiblePrograms.map((program) => {
                   const Icon = iconMap[program.category] || Sparkles;
                   const isActive = selectedProgram?.id === program.id;
-                  const number = programs.findIndex((p) => p.id === program.id) + 1;
+                  const number =
+                    programs.findIndex((p) => p.id === program.id) + 1;
 
                   return (
                     <motion.button
@@ -819,7 +919,9 @@ function Programs() {
                       ) : (
                         <span
                           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-bold ${
-                            isActive ? "bg-[#215e93] text-white" : "bg-[#0E1A2B]/[0.06] text-[#0E1A2B]/45"
+                            isActive
+                              ? "bg-[#215e93] text-white"
+                              : "bg-[#0E1A2B]/[0.06] text-[#0E1A2B]/45"
                           }`}
                         >
                           {String(number).padStart(2, "0")}
@@ -838,7 +940,9 @@ function Programs() {
                       <Icon
                         size={17}
                         className={`shrink-0 transition-colors ${
-                          isActive ? "text-[#2a9d8f]" : "text-[#0E1A2B]/25 group-hover:text-[#2a9d8f]"
+                          isActive
+                            ? "text-[#2a9d8f]"
+                            : "text-[#0E1A2B]/25 group-hover:text-[#2a9d8f]"
                         }`}
                       />
                     </motion.button>
@@ -848,7 +952,10 @@ function Programs() {
             </div>
 
             {/* stage */}
-            <div ref={detailRef} className="min-w-0 scroll-mt-24 lg:sticky lg:top-24">
+            <div
+              ref={detailRef}
+              className="min-w-0 scroll-mt-24 lg:sticky lg:top-24"
+            >
               <AnimatePresence mode="wait">
                 {!selectedProgram ? (
                   <motion.div
@@ -911,16 +1018,20 @@ function Programs() {
               <div>
                 <p className={`${LABEL} text-[#0B7F70]`}>The Jashna method</p>
                 <h2 className="mt-4 max-w-2xl text-4xl font-bold leading-[1.08] tracking-tight text-[#0E1A2B] sm:text-5xl lg:text-6xl">
-                  Learning should move <span className="text-[#2F6BFF]">with you.</span>
+                  Learning should move{" "}
+                  <span className="text-[#2F6BFF]">with you.</span>
                 </h2>
                 <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-[#0E1A2B]/70 sm:text-xl">
-                  We don't begin with a fixed formula. We begin with the learner, understand the
-                  gap, and turn learning into something you can actually use.
+                  We don't begin with a fixed formula. We begin with the
+                  learner, understand the gap, and turn learning into something
+                  you can actually use.
                 </p>
               </div>
 
               <div className="flex items-center gap-5 rounded-[28px] border border-white/80 bg-white/70 p-6 shadow-[0_20px_50px_rgba(14,26,43,0.08)] backdrop-blur sm:p-7">
-                <span className="pg-shine text-7xl font-bold leading-none sm:text-8xl">05</span>
+                <span className="pg-shine text-7xl font-bold leading-none sm:text-8xl">
+                  05
+                </span>
                 <div className="min-w-0">
                   <p className="text-xl font-bold text-[#0E1A2B] sm:text-2xl">
                     steps from where you are to where you want to be
@@ -938,18 +1049,49 @@ function Programs() {
               aria-hidden
               className="pointer-events-none absolute left-[10%] right-[10%] top-7 hidden h-[3px] rounded-full bg-gradient-to-r from-[#2F6BFF]/40 via-[#12B5A0]/40 to-[#FFB020]/60 lg:block"
             />
-            <MethodStep index={0} Icon={ClipboardCheck} number="01" title="Assess" description="Understand your current ability, challenges and goals." />
-            <MethodStep index={1} Icon={SlidersHorizontal} number="02" title="Personalise" description="Build a learning path around what you actually need." />
-            <MethodStep index={2} Icon={Mic2} number="03" title="Practise" description="Work with realistic situations instead of learning English in isolation." />
-            <MethodStep index={3} Icon={MessageSquareText} number="04" title="Refine" description="Receive feedback, correction and guidance to improve." />
-            <MethodStep index={4} Icon={Rocket} number="05" title="Apply" description="Take your new skills into conversations, classrooms, interviews and workplaces." last />
+            <MethodStep
+              index={0}
+              Icon={ClipboardCheck}
+              number="01"
+              title="Assess"
+              description="Understand your current ability, challenges and goals."
+            />
+            <MethodStep
+              index={1}
+              Icon={SlidersHorizontal}
+              number="02"
+              title="Personalise"
+              description="Build a learning path around what you actually need."
+            />
+            <MethodStep
+              index={2}
+              Icon={Mic2}
+              number="03"
+              title="Practise"
+              description="Work with realistic situations instead of learning English in isolation."
+            />
+            <MethodStep
+              index={3}
+              Icon={MessageSquareText}
+              number="04"
+              title="Refine"
+              description="Receive feedback, correction and guidance to improve."
+            />
+            <MethodStep
+              index={4}
+              Icon={Rocket}
+              number="05"
+              title="Apply"
+              description="Take your new skills into conversations, classrooms, interviews and workplaces."
+              last
+            />
           </ol>
 
           <Reveal delay={0.1}>
             <div className="mt-12 flex flex-col items-start justify-between gap-5 rounded-[28px] border border-[#0E1A2B]/10 bg-white/70 p-6 backdrop-blur sm:flex-row sm:items-center sm:p-8">
               <p className="max-w-2xl text-xl font-bold leading-8 text-[#0E1A2B]">
-                Every learner starts at a different point. That's why step one is always an
-                assessment, not a syllabus.
+                Every learner starts at a different point. That's why step one
+                is always an assessment, not a syllabus.
               </p>
               <motion.a
                 href="/assessment"
@@ -958,7 +1100,10 @@ function Programs() {
                 className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-[#0E1A2B] px-6 py-3.5 text-base font-bold text-white transition-colors hover:bg-[#2F6BFF]"
               >
                 Start with an assessment
-                <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+                <ArrowUpRight
+                  size={16}
+                  className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
+                />
               </motion.a>
             </div>
           </Reveal>
@@ -975,20 +1120,31 @@ function Programs() {
           05 — FINAL CTA
       ===================================================== */}
 
-      <section id="consultation" className="relative scroll-mt-20 pb-20 lg:pb-28">
+      <section
+        id="consultation"
+        className="relative scroll-mt-20 pb-20 lg:pb-28"
+      >
         <Reveal>
           <div className={WRAP}>
             <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#2F6BFF] via-[#1F8FD6] to-[#12B5A0] px-6 py-16 text-center text-white shadow-[0_30px_80px_rgba(47,107,255,0.3)] sm:px-12 lg:rounded-[48px] lg:py-24">
               <motion.div
                 aria-hidden
                 animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-                transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 14,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
                 className="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-white/20 blur-3xl"
               />
               <motion.div
                 aria-hidden
                 animate={{ x: [0, -25, 0], y: [0, 25, 0] }}
-                transition={{ duration: 17, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 17,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
                 className="pointer-events-none absolute -bottom-28 -left-16 h-80 w-80 rounded-full bg-[#FFC043]/35 blur-3xl"
               />
 
@@ -996,16 +1152,19 @@ function Programs() {
                 <p className={`${LABEL} text-white/90`}>Your next step</p>
                 <h2 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
                   Start with where you are.
-                  <span className="block pb-2 text-[#FFE9A8]">Grow from there.</span>
+                  <span className="block pb-2 text-[#FFE9A8]">
+                    Grow from there.
+                  </span>
                 </h2>
                 <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-white/90 sm:text-xl">
-                  Tell us what you want to improve, where you're starting from and where you want
-                  to go. We'll help you find the right program.
+                  Tell us what you want to improve, where you're starting from
+                  and where you want to go. We'll help you find the right
+                  program.
                 </p>
 
                 <motion.a
                   href={getWhatsAppLink(
-                    "Hello Dr.Shivam Sir, I would like to book a free consultation and find the right program at Jashna Edu."
+                    "Hello Dr.Shivam Sir, I would like to book a free consultation and find the right program at Jashna Edu.",
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1014,7 +1173,10 @@ function Programs() {
                   className="group mt-9 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-lg font-bold text-[#2F6BFF] shadow-[0_12px_35px_rgba(0,0,0,0.15)] transition-colors duration-300 hover:bg-[#FFE9A8]"
                 >
                   Book a consultation
-                  <ArrowUpRight size={18} className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+                  <ArrowUpRight
+                    size={18}
+                    className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
+                  />
                 </motion.a>
               </div>
             </div>
@@ -1056,8 +1218,18 @@ function Programs() {
             </button>
 
             {[
-              { label: "Previous program", dir: -1, Icon: ArrowLeft, pos: "left-3 sm:left-8" },
-              { label: "Next program", dir: 1, Icon: ArrowRight, pos: "right-3 sm:right-8" },
+              {
+                label: "Previous program",
+                dir: -1,
+                Icon: ArrowLeft,
+                pos: "left-3 sm:left-8",
+              },
+              {
+                label: "Next program",
+                dir: 1,
+                Icon: ArrowRight,
+                pos: "right-3 sm:right-8",
+              },
             ].map(({ label, dir, Icon, pos }) => (
               <button
                 key={label}
@@ -1121,7 +1293,9 @@ function HeroStat({ value, label, bordered = false }) {
   }, [value]);
 
   return (
-    <div className={`px-3 text-left first:pl-0 sm:px-5 ${bordered ? "border-l border-[#0E1A2B]/15" : ""}`}>
+    <div
+      className={`px-3 text-left first:pl-0 sm:px-5 ${bordered ? "border-l border-[#0E1A2B]/15" : ""}`}
+    >
       <p className="text-4xl font-bold leading-none text-[#0E1A2B] sm:text-5xl">
         {String(display).padStart(2, "0")}
       </p>
@@ -1137,7 +1311,16 @@ function HeroStat({ value, label, bordered = false }) {
    No image: a branded art pane replaces the poster.
 ========================================================= */
 
-function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext, onEnlarge }) {
+function ProgramStage({
+  program,
+  index,
+  total,
+  Icon,
+  highlights,
+  onPrev,
+  onNext,
+  onEnlarge,
+}) {
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -1146,7 +1329,7 @@ function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext,
   const progress = ((index + 1) / Math.max(total, 1)) * 100;
 
   const whatsappLink = getWhatsAppLink(
-    `Hello Dr.Shivam Sir, I would like to discuss the "${program.title}" program at Jashna Edu.`
+    `Hello Dr.Shivam Sir, I would like to discuss the "${program.title}" program at Jashna Edu.`,
   );
 
   const circleBtn =
@@ -1244,16 +1427,31 @@ function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext,
         )}
 
         {/* browse arrows */}
-        <motion.button type="button" onClick={onPrev} aria-label="Previous program" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className={`${circleBtn} left-3 sm:left-4`}>
+        <motion.button
+          type="button"
+          onClick={onPrev}
+          aria-label="Previous program"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className={`${circleBtn} left-3 sm:left-4`}
+        >
           <ArrowLeft size={19} />
         </motion.button>
-        <motion.button type="button" onClick={onNext} aria-label="Next program" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className={`${circleBtn} right-3 sm:right-4`}>
+        <motion.button
+          type="button"
+          onClick={onNext}
+          aria-label="Next program"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className={`${circleBtn} right-3 sm:right-4`}
+        >
           <ArrowRight size={19} />
         </motion.button>
 
         {/* counter */}
         <span className="pointer-events-none absolute left-3 top-3 z-20 rounded-full bg-white/90 px-3.5 py-1 text-sm font-bold text-[#0E1A2B] shadow backdrop-blur sm:left-4 sm:top-4">
-          {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          {String(index + 1).padStart(2, "0")} /{" "}
+          {String(total).padStart(2, "0")}
         </span>
       </div>
 
@@ -1279,7 +1477,9 @@ function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext,
                 <Icon size={22} />
               </span>
               <div className="min-w-0">
-                <p className="truncate text-lg font-bold text-[#215e93]">{program.category}</p>
+                <p className="truncate text-lg font-bold text-[#215e93]">
+                  {program.category}
+                </p>
                 <p className="text-base font-medium text-[#0E1A2B]/50">
                   Program {index + 1} of {total}
                 </p>
@@ -1287,10 +1487,22 @@ function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext,
             </div>
 
             <div className="flex shrink-0 items-center gap-2 xl:hidden">
-              <motion.button type="button" onClick={onPrev} aria-label="Previous program" whileTap={{ scale: 0.9 }} className={navBtn}>
+              <motion.button
+                type="button"
+                onClick={onPrev}
+                aria-label="Previous program"
+                whileTap={{ scale: 0.9 }}
+                className={navBtn}
+              >
                 <ArrowLeft size={17} />
               </motion.button>
-              <motion.button type="button" onClick={onNext} aria-label="Next program" whileTap={{ scale: 0.9 }} className={navBtn}>
+              <motion.button
+                type="button"
+                onClick={onNext}
+                aria-label="Next program"
+                whileTap={{ scale: 0.9 }}
+                className={navBtn}
+              >
                 <ArrowRight size={17} />
               </motion.button>
             </div>
@@ -1336,8 +1548,12 @@ function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext,
 
           {program.audience && (
             <div className="mt-6">
-              <p className="text-base font-bold text-[#0E1A2B]/45">Designed for</p>
-              <p className="mt-1 text-lg font-medium text-[#0E1A2B]/75">{program.audience}</p>
+              <p className="text-base font-bold text-[#0E1A2B]/45">
+                Designed for
+              </p>
+              <p className="mt-1 text-lg font-medium text-[#0E1A2B]/75">
+                {program.audience}
+              </p>
             </div>
           )}
 
@@ -1352,7 +1568,10 @@ function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext,
                 className="group/cta inline-flex shrink-0 items-center gap-2 rounded-full bg-[#215e93] px-6 py-3.5 text-base font-bold text-white shadow-[0_14px_30px_rgba(33,94,147,0.3)] transition-colors hover:bg-[#2a9d8f]"
               >
                 Discuss this program
-                <ArrowUpRight size={16} className="transition-transform duration-300 group-hover/cta:-translate-y-1 group-hover/cta:translate-x-1" />
+                <ArrowUpRight
+                  size={16}
+                  className="transition-transform duration-300 group-hover/cta:-translate-y-1 group-hover/cta:translate-x-1"
+                />
               </motion.a>
 
               {isIelts && (
@@ -1368,10 +1587,22 @@ function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext,
               )}
 
               <div className="ml-auto hidden items-center gap-2 xl:flex">
-                <motion.button type="button" onClick={onPrev} aria-label="Previous program" whileTap={{ scale: 0.9 }} className={navBtn}>
+                <motion.button
+                  type="button"
+                  onClick={onPrev}
+                  aria-label="Previous program"
+                  whileTap={{ scale: 0.9 }}
+                  className={navBtn}
+                >
                   <ArrowLeft size={17} />
                 </motion.button>
-                <motion.button type="button" onClick={onNext} aria-label="Next program" whileTap={{ scale: 0.9 }} className={navBtn}>
+                <motion.button
+                  type="button"
+                  onClick={onNext}
+                  aria-label="Next program"
+                  whileTap={{ scale: 0.9 }}
+                  className={navBtn}
+                >
                   <ArrowRight size={17} />
                 </motion.button>
               </div>
@@ -1396,7 +1627,14 @@ function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext,
    METHOD STEP (light)
 ========================================================= */
 
-function MethodStep({ index = 0, Icon, number, title, description, last = false }) {
+function MethodStep({
+  index = 0,
+  Icon,
+  number,
+  title,
+  description,
+  last = false,
+}) {
   return (
     <motion.li
       initial={{ opacity: 0, y: 28 }}
@@ -1432,7 +1670,9 @@ function MethodStep({ index = 0, Icon, number, title, description, last = false 
         </span>
 
         <h3 className="relative pr-12 text-2xl font-bold">{title}</h3>
-        <p className={`relative mt-2 text-base font-medium leading-7 ${last ? "text-white/90" : "text-[#0E1A2B]/70"}`}>
+        <p
+          className={`relative mt-2 text-base font-medium leading-7 ${last ? "text-white/90" : "text-[#0E1A2B]/70"}`}
+        >
           {description}
         </p>
       </div>
@@ -1450,7 +1690,8 @@ function IeltsSpotlight() {
   const [moduleId, setModuleId] = useState("listening");
   const [bandIndex, setBandIndex] = useState(2);
 
-  const activeModule = ieltsModules.find((m) => m.id === moduleId) || ieltsModules[0];
+  const activeModule =
+    ieltsModules.find((m) => m.id === moduleId) || ieltsModules[0];
   const band = ieltsBands[bandIndex];
 
   const RADIUS = 54;
@@ -1458,7 +1699,10 @@ function IeltsSpotlight() {
   const ringProgress = (bandIndex + 1) / ieltsBands.length;
 
   return (
-    <section id="ielts-spotlight" className="relative scroll-mt-20 py-20 lg:py-28">
+    <section
+      id="ielts-spotlight"
+      className="relative scroll-mt-20 py-20 lg:py-28"
+    >
       <div className={WRAP}>
         <Reveal>
           <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#215e93] via-[#1a4c78] to-[#12324f] p-6 text-white shadow-[0_30px_80px_rgba(33,94,147,0.35)] sm:p-10 lg:rounded-[48px] lg:p-14">
@@ -1496,12 +1740,15 @@ function IeltsSpotlight() {
 
                 <h2 className="mt-6 text-4xl font-bold leading-[1.06] tracking-tight sm:text-5xl lg:text-6xl">
                   Don't just practise IELTS.
-                  <span className="pg-shine-brand block pb-2">Train for your band.</span>
+                  <span className="pg-shine-brand block pb-2">
+                    Train for your band.
+                  </span>
                 </h2>
 
                 <p className="mt-5 max-w-xl text-lg font-medium leading-8 text-white/85 sm:text-xl">
-                  Our IELTS preparation begins with a diagnostic of where you stand, then builds a
-                  plan around the band you need across Listening, Reading, Writing and Speaking.
+                  Our IELTS preparation begins with a diagnostic of where you
+                  stand, then builds a plan around the band you need across
+                  Listening, Reading, Writing and Speaking.
                 </p>
 
                 <ul className="mt-7 grid max-w-xl gap-3 sm:grid-cols-2">
@@ -1511,7 +1758,10 @@ function IeltsSpotlight() {
                     "Timed mock tests",
                     "Examiner-style speaking practice",
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-3 text-lg font-bold">
+                    <li
+                      key={item}
+                      className="flex items-center gap-3 text-lg font-bold"
+                    >
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#84e245] text-[#0E1A2B]">
                         <Check size={15} strokeWidth={3} />
                       </span>
@@ -1528,7 +1778,10 @@ function IeltsSpotlight() {
                     className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#84e245] px-8 py-4 text-lg font-bold text-[#0E1A2B] shadow-[0_16px_40px_rgba(132,226,69,0.35)] transition-colors duration-300 hover:bg-white"
                   >
                     Explore the IELTS course
-                    <ArrowUpRight size={19} className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+                    <ArrowUpRight
+                      size={19}
+                      className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
+                    />
                   </motion.a>
                   <span className="text-base font-bold text-white/70">
                     Listening · Reading · Writing · Speaking
@@ -1538,7 +1791,9 @@ function IeltsSpotlight() {
 
               {/* RIGHT — interactive band planner */}
               <div className="min-w-0 rounded-[30px] border border-white/20 bg-white/10 p-5 shadow-[0_24px_60px_rgba(0,0,0,0.2)] backdrop-blur-xl sm:p-7">
-                <p className={`${LABEL} text-[#d6ffb0]`}>Pick your target band</p>
+                <p className={`${LABEL} text-[#d6ffb0]`}>
+                  Pick your target band
+                </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {ieltsBands.map((b, i) => {
@@ -1564,14 +1819,31 @@ function IeltsSpotlight() {
 
                 <div className="mt-6 flex items-center gap-5 sm:gap-7">
                   <div className="relative h-[132px] w-[132px] shrink-0">
-                    <svg viewBox="0 0 132 132" className="h-full w-full" aria-hidden>
+                    <svg
+                      viewBox="0 0 132 132"
+                      className="h-full w-full"
+                      aria-hidden
+                    >
                       <defs>
-                        <linearGradient id="ielts-ring" x1="0" y1="0" x2="1" y2="1">
+                        <linearGradient
+                          id="ielts-ring"
+                          x1="0"
+                          y1="0"
+                          x2="1"
+                          y2="1"
+                        >
                           <stop offset="0%" stopColor="#84e245" />
                           <stop offset="100%" stopColor="#2a9d8f" />
                         </linearGradient>
                       </defs>
-                      <circle cx="66" cy="66" r={RADIUS} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="10" />
+                      <circle
+                        cx="66"
+                        cy="66"
+                        r={RADIUS}
+                        fill="none"
+                        stroke="rgba(255,255,255,0.15)"
+                        strokeWidth="10"
+                      />
                       <motion.circle
                         cx="66"
                         cy="66"
@@ -1582,7 +1854,9 @@ function IeltsSpotlight() {
                         strokeLinecap="round"
                         strokeDasharray={CIRCUMFERENCE}
                         initial={{ strokeDashoffset: CIRCUMFERENCE }}
-                        animate={{ strokeDashoffset: CIRCUMFERENCE * (1 - ringProgress) }}
+                        animate={{
+                          strokeDashoffset: CIRCUMFERENCE * (1 - ringProgress),
+                        }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         transform="rotate(-90 66 66)"
                       />
@@ -1600,7 +1874,9 @@ function IeltsSpotlight() {
                           {band.value}
                         </motion.span>
                       </AnimatePresence>
-                      <span className="mt-1 text-sm font-bold uppercase tracking-wider text-white/70">Band</span>
+                      <span className="mt-1 text-sm font-bold uppercase tracking-wider text-white/70">
+                        Band
+                      </span>
                     </div>
                   </div>
 
@@ -1620,7 +1896,9 @@ function IeltsSpotlight() {
 
                 <div className="my-6 h-px bg-white/15" />
 
-                <p className={`${LABEL} text-[#d6ffb0]`}>Four modules, one plan</p>
+                <p className={`${LABEL} text-[#d6ffb0]`}>
+                  Four modules, one plan
+                </p>
 
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {ieltsModules.map((m) => {
@@ -1656,11 +1934,19 @@ function IeltsSpotlight() {
                     transition={{ duration: 0.25 }}
                     className="mt-4 rounded-2xl bg-white/10 p-5"
                   >
-                    <p className="text-xl font-bold leading-7">{activeModule.tagline}</p>
+                    <p className="text-xl font-bold leading-7">
+                      {activeModule.tagline}
+                    </p>
                     <ul className="mt-3 grid gap-2">
                       {activeModule.points.map((point) => (
-                        <li key={point} className="flex items-start gap-2.5 text-base font-medium leading-6 text-white/85">
-                          <ChevronRight size={17} className="mt-1 shrink-0 text-[#84e245]" />
+                        <li
+                          key={point}
+                          className="flex items-start gap-2.5 text-base font-medium leading-6 text-white/85"
+                        >
+                          <ChevronRight
+                            size={17}
+                            className="mt-1 shrink-0 text-[#84e245]"
+                          />
                           {point}
                         </li>
                       ))}

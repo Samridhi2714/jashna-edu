@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
+  useMotionTemplate,
   useMotionValue,
   useSpring,
-  useTransform,
 } from "framer-motion";
 import {
   Sprout,
@@ -18,9 +18,9 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Quote,
 } from "lucide-react";
 
-import treeImage from "../assets/images/tree.webp";
 import logoImage from "../assets/images/logo.webp";
 
 import growthAssessment from "../assets/images/growth-assessment.webp";
@@ -33,15 +33,12 @@ import growthTransformation from "../assets/images/growth-transformation.webp";
 /* Times New Roman everywhere inside this section (and the lightbox) */
 const TIMES = "[&_*]:![font-family:Times_New_Roman,Times,serif]";
 
-/* Shared text colours (kept from the original theme) */
+/* Shared text colours */
 const INK = "#2B2233";
 const BODY = "#4A4452";
 
 /* =========================================================
    DATA
-   `side` decides which column a card sits in on desktop.
-   photoPosition = % position of the small photo inside the
-   tree box (box is 600 x 930 ratio).
 ========================================================= */
 
 const growthStages = [
@@ -61,8 +58,6 @@ const growthStages = [
     caption: "Every transformation begins with understanding where you stand.",
     quote: "Start where you are.",
     quoteSmall: "Awareness creates direction.",
-    side: "left",
-    photoPosition: { left: "13%", top: "20%" },
     colors: {
       background: "#FFF1EC",
       border: "#E9B8A7",
@@ -88,8 +83,6 @@ const growthStages = [
     caption: "A stronger foundation makes every next step easier.",
     quote: "Grow from within.",
     quoteSmall: "Strong roots. Clear voice.",
-    side: "right",
-    photoPosition: { left: "70%", top: "23%" },
     colors: {
       background: "#EEF6E9",
       border: "#B7CDAA",
@@ -115,8 +108,6 @@ const growthStages = [
     caption: "Practice turns knowledge into something you can actually use.",
     quote: "Practice makes it yours.",
     quoteSmall: "Learn. Try. Improve.",
-    side: "left",
-    photoPosition: { left: "11%", top: "47%" },
     colors: {
       background: "#F1EEFA",
       border: "#C9BCE4",
@@ -142,8 +133,6 @@ const growthStages = [
     caption: "Confidence grows when your skills become natural through practice.",
     quote: "Own your voice.",
     quoteSmall: "Clarity creates confidence.",
-    side: "right",
-    photoPosition: { left: "70%", top: "49%" },
     colors: {
       background: "#F5EDF8",
       border: "#D2B9D9",
@@ -166,8 +155,6 @@ const growthStages = [
       "Your skills matter most when they create impact beyond the classroom.",
     quote: "Make your skills matter.",
     quoteSmall: "Real conversations. Real growth.",
-    side: "left",
-    photoPosition: { left: "30%", top: "74%" },
     colors: {
       background: "#EEF4F8",
       border: "#B7C9D7",
@@ -194,8 +181,6 @@ const growthStages = [
       "Growth is not the end of the journey — it is the beginning of what comes next.",
     quote: "Become who you can be.",
     quoteSmall: "Your next chapter starts here.",
-    side: "right",
-    photoPosition: { left: "66%", top: "76%" },
     colors: {
       background: "#FFF7E5",
       border: "#E5C98C",
@@ -207,30 +192,22 @@ const growthStages = [
   },
 ];
 
-/* Desktop grid placement: left column = 1, right column = 3 */
-const desktopPlacement = [
-  "col-start-1 row-start-1",
-  "col-start-3 row-start-1",
-  "col-start-1 row-start-2",
-  "col-start-3 row-start-2",
-  "col-start-1 row-start-3",
-  "col-start-3 row-start-3",
-];
+const DEFAULT_WASH = "rgba(213,173,87,0.10)";
+
+/* =========================================================
+   MAIN
+========================================================= */
 
 export default function JashnaGrowth() {
   const [activeStage, setActiveStage] = useState(null);
   const [openIndex, setOpenIndex] = useState(null);
-
-  const desktopRef = useRef(null);
-  const cardRefs = useRef([]);
-  const photoRefs = useRef([]);
 
   const isOpen = openIndex !== null;
   const total = growthStages.length;
 
   /* lightbox: Esc closes, arrow keys move between stages, page scroll locked */
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return undefined;
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") setOpenIndex(null);
@@ -247,37 +224,33 @@ export default function JashnaGrowth() {
     };
   }, [isOpen, total]);
 
-  const scrollToCard = (i) =>
+  const scrollToCard = (i) => {
+    setActiveStage(i);
     document
       .getElementById(`growth-card-${i}`)
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const wash =
+    activeStage !== null ? growthStages[activeStage].colors.glow : DEFAULT_WASH;
 
   return (
     <div className={TIMES}>
       <section
         id="growth"
-        className="relative overflow-hidden bg-[#FCFAF6] pb-10 pt-20 lg:pt-18"
+        className="relative overflow-hidden bg-[#FCFAF6] pb-16 pt-20 lg:pb-24 lg:pt-24"
       >
-        {/* BACKGROUND GLOWS */}
+        {/* BACKGROUND: soft glow that takes the colour of the hovered stage */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <motion.div
-            className="absolute left-[-180px] top-[180px] h-[420px] w-[420px] rounded-full blur-3xl"
+          <div
+            className="absolute inset-0 transition-[background] duration-700"
             style={{
-              background:
-                "radial-gradient(circle, rgba(226,150,140,0.14), transparent 68%)",
+              background: `radial-gradient(60% 45% at 50% 58%, ${wash}, transparent 70%)`,
             }}
-            animate={{ scale: [1, 1.08, 1], opacity: [0.45, 0.7, 0.45] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           />
-          <motion.div
-            className="absolute bottom-[100px] right-[-150px] h-[430px] w-[430px] rounded-full blur-3xl"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(140,160,120,0.14), transparent 68%)",
-            }}
-            animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.65, 0.4] }}
-            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <div className="absolute -left-40 top-24 h-[420px] w-[420px] rounded-full bg-[#E2968C]/15 blur-3xl" />
+          <div className="absolute -right-40 bottom-24 h-[430px] w-[430px] rounded-full bg-[#8CA078]/15 blur-3xl" />
+          <div className="absolute left-1/2 top-1/3 h-[380px] w-[380px] -translate-x-1/2 rounded-full bg-[#9A6AA8]/10 blur-3xl" />
         </div>
 
         {/* HEADING */}
@@ -291,7 +264,7 @@ export default function JashnaGrowth() {
           >
             <span className="h-px w-8 bg-[#C0675B]/60 sm:w-12" />
             <span className="text-xs font-bold tracking-[0.28em] text-[#A85A50] sm:text-sm">
-              THE JASHNA GROWTH TREE
+              THE JASHNA GROWTH JOURNEY
             </span>
             <span className="h-px w-8 bg-[#6E9A62]/60 sm:w-12" />
           </motion.div>
@@ -321,94 +294,32 @@ export default function JashnaGrowth() {
           </motion.p>
         </div>
 
-        {/* =====================================================
-            DESKTOP (1440px and up) — 3 column grid, tree in centre
-            --card = circle size. It follows the screen width AND
-            height (whichever is smaller), between 290px and 380px,
-            so the layout is compact on 80–90% zoom and still fits
-            on shorter laptop screens.
-        ====================================================== */}
-        <div
-          ref={desktopRef}
-          className="relative mx-auto mt-4 hidden w-full max-w-[1760px] grid-cols-[var(--card)_minmax(0,1fr)_var(--card)] grid-rows-[repeat(3,var(--card))] gap-x-8 gap-y-8 px-10 py-8 [--card:clamp(290px,min(19vw,34vh),380px)] min-[1440px]:grid"
-        >
-          <GrowthConnectionLines
-            containerRef={desktopRef}
-            cardRefs={cardRefs}
-            photoRefs={photoRefs}
-            activeStage={activeStage}
-          />
+        {/* JOURNEY RAIL */}
+        <JourneyRail
+          activeStage={activeStage}
+          setActiveStage={setActiveStage}
+          onSelect={scrollToCard}
+        />
 
-          {/* TREE (centre column) — height follows the 3 card rows */}
-          <div className="relative z-20 col-start-2 row-span-3 row-start-1 flex min-h-0 min-w-0 items-center justify-center">
-            <TreeVisual
-              activeStage={activeStage}
-              setActiveStage={setActiveStage}
-              onSelect={setOpenIndex}
-              photoRefs={photoRefs}
-            />
-            <TreeParticles />
-          </div>
-
-          {/* CIRCULAR CARDS */}
-          {growthStages.map((stage, index) => (
-            <GrowthCard
-              key={stage.id}
-              stage={stage}
-              index={index}
-              activeStage={activeStage}
-              setActiveStage={setActiveStage}
-              onSelect={setOpenIndex}
-              cardRef={(el) => (cardRefs.current[index] = el)}
-              placement={desktopPlacement[index]}
-            />
-          ))}
-        </div>
-
-        {/* =====================================================
-            TABLET + MOBILE (below 1440px) — tree hidden, image cards
-        ====================================================== */}
-        <div className="relative min-[1440px]:hidden">
-          {/* quick jump chips */}
-          <nav aria-label="Growth stages" className="mx-auto mt-8 max-w-5xl px-5">
-            <ul className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] md:flex-wrap md:justify-center md:overflow-visible [&::-webkit-scrollbar]:hidden">
-              {growthStages.map((s, i) => (
-                <li key={s.id} className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => scrollToCard(i)}
-                    className="flex items-center gap-2 rounded-full border bg-white px-3 py-2 text-sm font-bold tracking-[0.1em] shadow-sm transition-transform active:scale-95"
-                    style={{ borderColor: s.colors.border, color: s.colors.dark }}
-                  >
-                    <span
-                      className="flex h-6 w-6 items-center justify-center rounded-full text-xs text-white"
-                      style={{ backgroundColor: s.colors.accent }}
-                    >
-                      {i + 1}
-                    </span>
-                    {s.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="relative mx-auto mt-12 max-w-xl px-5 md:max-w-5xl md:px-8">
-            {/* dotted path joining the cards on phones */}
-            <span
-              aria-hidden
-              className="absolute bottom-8 left-1/2 top-8 border-l-2 border-dashed border-[#D9C9AE] md:hidden"
-            />
-            <div className="relative grid grid-cols-1 gap-14 md:grid-cols-2 md:gap-x-8 md:gap-y-14">
-              {growthStages.map((stage, index) => (
-                <MobileGrowthCard
-                  key={stage.id}
+        {/* CARDS */}
+        <div className="relative z-10 mx-auto mt-14 max-w-[1500px] px-5 sm:px-8 lg:px-10">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2 xl:grid-cols-3 xl:gap-y-14">
+            {growthStages.map((stage, index) => (
+              <div
+                key={stage.id}
+                /* staggered look on large screens: middle column sits lower */
+                className={index % 3 === 1 ? "xl:translate-y-12" : ""}
+              >
+                <GrowthCard
                   stage={stage}
                   index={index}
-                  onOpenPhoto={() => setOpenIndex(index)}
+                  active={activeStage === index}
+                  dimmed={activeStage !== null && activeStage !== index}
+                  setActiveStage={setActiveStage}
+                  onOpen={() => setOpenIndex(index)}
                 />
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -418,7 +329,7 @@ export default function JashnaGrowth() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="relative z-10 mx-auto mt-14 max-w-3xl px-6 min-[1440px]:mt-4"
+          className="relative z-10 mx-auto mt-16 max-w-3xl px-6 xl:mt-28"
         >
           <div className="relative overflow-hidden rounded-[2rem] border border-[#E8DFD0] bg-white/70 px-7 py-8 text-center shadow-[0_18px_55px_rgba(49,43,34,0.06)] backdrop-blur-sm sm:px-12">
             <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-[#C0675B] via-[#9A6AA8] to-[#6E9A62]" />
@@ -448,522 +359,294 @@ export default function JashnaGrowth() {
 }
 
 /* =========================================================
-   TREE + SMALL PHOTOS
-   The box keeps the 600:930 ratio. Its HEIGHT now fills the
-   centre column (= the height of the 3 card rows) and the
-   width follows from the ratio, so photos stay on the same
-   branches and line up with the circles at any screen size.
+   JOURNEY RAIL
+   A coloured path joining the 6 stages. Hover = highlights the
+   matching card, click = scrolls to it.
 ========================================================= */
 
-const TREE_MASK =
-  "radial-gradient(ellipse 70% 75% at 50% 50%, #000 62%, transparent 100%)";
-
-function TreeVisual({ activeStage, setActiveStage, onSelect, photoRefs }) {
+function JourneyRail({ activeStage, setActiveStage, onSelect }) {
   return (
-    <div
-      className="relative mx-auto aspect-[600/930] max-w-full"
-      style={{ height: "100%" }}
+    <nav
+      aria-label="Growth stages"
+      className="relative z-10 mx-auto mt-10 max-w-5xl px-5 sm:px-8"
     >
-      {/* tree glow */}
-      <motion.div
-        className="pointer-events-none absolute inset-x-[6%] inset-y-[16%] rounded-full blur-3xl"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(213,173,87,0.20), rgba(252,250,246,0) 68%)",
-        }}
-        animate={{ scale: [0.96, 1.04, 0.96], opacity: [0.5, 0.75, 0.5] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      />
+      <div className="relative flex items-start justify-between">
+        {/* the path */}
+        <span
+          aria-hidden
+          className="absolute left-6 right-6 top-6 h-[3px] rounded-full bg-gradient-to-r from-[#D77B61] via-[#8C7AB5] via-60% to-[#C69A3A] opacity-40"
+        />
 
-      <motion.img
-        src={treeImage}
-        alt="The Jashna Growth Tree"
-        className="relative z-10 h-full w-full object-contain"
-        style={{ WebkitMaskImage: TREE_MASK, maskImage: TREE_MASK }}
-        initial={{ opacity: 0, scale: 0.96 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
-        animate={{ y: [0, -5, 0] }}
-        transition={{
-          opacity: { duration: 1 },
-          scale: { duration: 1 },
-          y: { duration: 5.5, repeat: Infinity, ease: "easeInOut" },
-        }}
-      />
+        {growthStages.map((stage, i) => {
+          const Icon = stage.icon;
+          const active = activeStage === i;
 
-      {growthStages.map((stage, index) => {
-        const isActive = activeStage === index;
-        const Icon = stage.icon;
-
-        return (
-          /* static wrapper = stable anchor for the connection lines */
-          <div
-            key={stage.id}
-            ref={(el) => {
-              if (photoRefs) photoRefs.current[index] = el;
-            }}
-            className="absolute z-30"
-            style={{
-              left: stage.photoPosition.left,
-              top: stage.photoPosition.top,
-              width: "17%",
-              aspectRatio: "1 / 1",
-              transform: "translate(-50%, -50%)",
-            }}
-          >
+          return (
             <motion.button
+              key={stage.id}
               type="button"
-              aria-label={`Open ${stage.title}`}
-              onMouseEnter={() => setActiveStage(index)}
+              onClick={() => onSelect(i)}
+              onMouseEnter={() => setActiveStage(i)}
               onMouseLeave={() => setActiveStage(null)}
-              onFocus={() => setActiveStage(index)}
+              onFocus={() => setActiveStage(i)}
               onBlur={() => setActiveStage(null)}
-              onClick={() => onSelect(index)}
-              className="group relative block h-full w-full"
-              animate={{ y: [0, -4, 0] }}
-              transition={{
-                duration: 4.5 + index * 0.25,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: index * 0.25,
-              }}
+              aria-label={`Go to ${stage.title}`}
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: i * 0.07 }}
+              whileTap={{ scale: 0.92 }}
+              className="group relative z-10 flex w-12 flex-col items-center gap-2 sm:w-24"
             >
-              <motion.div
-                className="absolute inset-[-14px] rounded-full blur-md"
-                style={{ background: stage.colors.glow }}
-                animate={{
-                  opacity: isActive ? 0.95 : 0.45,
-                  scale: isActive ? 1.2 : 1,
-                }}
-                transition={{ duration: 0.35 }}
-              />
-
-              <motion.div
-                className="relative flex h-full w-full items-center justify-center rounded-full p-[4px]"
+              <span
+                className="flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-md transition-all duration-300"
                 style={{
-                  background: `conic-gradient(from 0deg, ${stage.colors.accent}, #ffffff, ${stage.colors.accent}, #ffffff, ${stage.colors.accent})`,
-                }}
-                animate={{ rotate: 360, scale: isActive ? 1.13 : 1 }}
-                transition={{
-                  rotate: {
-                    duration: isActive ? 4 : 8,
-                    repeat: Infinity,
-                    ease: "linear",
-                  },
-                  scale: { duration: 0.35 },
+                  borderColor: stage.colors.accent,
+                  backgroundColor: active ? stage.colors.accent : "#ffffff",
+                  color: active ? "#ffffff" : stage.colors.accent,
+                  transform: active ? "scale(1.18)" : "scale(1)",
+                  boxShadow: active
+                    ? `0 12px 28px ${stage.colors.glow}`
+                    : "0 6px 14px rgba(42,35,28,0.08)",
                 }}
               >
-                <div className="h-full w-full overflow-hidden rounded-full border-[3px] border-[#FCFAF6] bg-white">
-                  <img
-                    src={stage.photo}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              </motion.div>
-
-              <span className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-full bg-[#2B2233]/70 px-2 text-center opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                <span className="flex items-center gap-1 rounded-full border border-white/30 bg-white/15 px-2.5 py-1 text-[12px] font-bold tracking-[0.06em] text-white shadow-lg backdrop-blur-md">
-                  View
-                  <ArrowUpRight size={12} strokeWidth={2.2} />
-                </span>
+                <Icon size={20} strokeWidth={1.9} />
               </span>
 
-              <motion.span
-                className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#FCFAF6]"
-                style={{
-                  backgroundColor: stage.colors.background,
-                  color: stage.colors.dark,
-                }}
-                animate={{ scale: isActive ? 1.12 : 1 }}
+              <span
+                className="hidden text-center text-[11px] font-bold tracking-[0.14em] transition-colors duration-300 sm:block"
+                style={{ color: active ? stage.colors.dark : "#8A8190" }}
               >
-                <Icon size={14} strokeWidth={1.8} />
-              </motion.span>
+                {stage.label}
+              </span>
             </motion.button>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
 
 /* =========================================================
-   DESKTOP CIRCULAR GROWTH CARD
-   Size comes from --card (290px → 380px).
-   The circle now shows ONLY: icon, stage label, title and the
-   3 key points. The full description is in the opened card.
-   Text uses container-query units (cqw) of the circle's content
-   width, with readable minimums (title 20px, points 14.5px).
+   GROWTH CARD
+   - 3D tilt that follows the mouse
+   - soft coloured spotlight that follows the cursor
+   - photo zooms and a light sweep passes over it on hover
+   - click anywhere on the card (or "View story") to open it
+   Only hover effects animate, so nothing runs while idle.
 ========================================================= */
 
-function GrowthCard({
-  stage,
-  index,
-  activeStage,
-  setActiveStage,
-  onSelect,
-  cardRef,
-  placement,
-}) {
+function GrowthCard({ stage, index, active, dimmed, setActiveStage, onOpen }) {
   const Icon = stage.icon;
-  const isActive = activeStage === index;
-  const isLeft = stage.side === "left";
+  const cardRef = useRef(null);
+
+  const rx = useMotionValue(0);
+  const ry = useMotionValue(0);
+  const rotateX = useSpring(rx, { stiffness: 140, damping: 16 });
+  const rotateY = useSpring(ry, { stiffness: 140, damping: 16 });
+
+  const gx = useMotionValue(50);
+  const gy = useMotionValue(30);
+  const spotlight = useMotionTemplate`radial-gradient(360px circle at ${gx}% ${gy}%, ${stage.colors.glow}, transparent 62%)`;
+
+  const handleMove = (e) => {
+    const r = cardRef.current?.getBoundingClientRect();
+    if (!r) return;
+
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+
+    ry.set((px - 0.5) * 8);
+    rx.set(-(py - 0.5) * 8);
+    gx.set(px * 100);
+    gy.set(py * 100);
+  };
+
+  const handleLeave = () => {
+    rx.set(0);
+    ry.set(0);
+    gx.set(50);
+    gy.set(30);
+    setActiveStage(null);
+  };
 
   return (
-    <div
-      ref={cardRef}
-      className={`relative z-40 h-[var(--card)] w-[var(--card)] ${placement} ${
-        isLeft ? "justify-self-start" : "justify-self-end"
-      }`}
+    <motion.div
+      initial={{ opacity: 0, y: 44 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.65, delay: (index % 3) * 0.1, ease: "easeOut" }}
     >
-      <motion.div
-        className="absolute inset-0"
-        initial={{ opacity: 0, scale: 0.86 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true, amount: 0.15 }}
-        transition={{
-          duration: 0.75,
-          delay: 0.15 + index * 0.08,
-          type: "spring",
-          stiffness: 80,
+      <motion.article
+        id={`growth-card-${index}`}
+        ref={cardRef}
+        role="button"
+        tabIndex={0}
+        aria-label={`Open ${stage.title}`}
+        onClick={onOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen();
+          }
         }}
-        animate={{ y: [0, -5, 0] }}
-        whileHover={{ scale: 1.03, y: -6 }}
+        onMouseMove={handleMove}
         onMouseEnter={() => setActiveStage(index)}
-        onMouseLeave={() => setActiveStage(null)}
+        onMouseLeave={handleLeave}
+        onFocus={() => setActiveStage(index)}
+        onBlur={() => setActiveStage(null)}
+        whileTap={{ scale: 0.985 }}
+        animate={{ opacity: dimmed ? 0.82 : 1 }}
+        style={{
+          rotateX,
+          rotateY,
+          transformPerspective: 1100,
+          background: stage.colors.background,
+          borderColor: active ? stage.colors.accent : stage.colors.border,
+          boxShadow: active
+            ? `0 30px 70px ${stage.colors.glow}`
+            : `0 16px 40px ${stage.colors.glow}`,
+          "--tw-ring-color": stage.colors.accent,
+        }}
+        className="group relative flex h-full scroll-mt-28 cursor-pointer flex-col overflow-hidden rounded-[2rem] border-2 outline-none transition-[border-color,box-shadow] duration-300 focus-visible:ring-4"
       >
-        {/* rotating main ring */}
+        {/* cursor spotlight */}
         <motion.div
-          className="absolute inset-[-7px] rounded-full"
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{ background: spotlight }}
+        />
+
+        {/* accent bar */}
+        <span
+          aria-hidden
+          className="absolute inset-x-0 top-0 z-30 h-1.5"
           style={{
-            background: `conic-gradient(from 0deg, ${stage.colors.accent}, transparent 23%, transparent 50%, ${stage.colors.accent}, transparent 76%, ${stage.colors.accent})`,
-            opacity: isActive ? 0.95 : 0.65,
-          }}
-          animate={{ rotate: 360 }}
-          transition={{
-            duration: isActive ? 7 : 12,
-            repeat: Infinity,
-            ease: "linear",
+            background: `linear-gradient(90deg, ${stage.colors.accent}, ${stage.colors.sticker}, ${stage.colors.accent})`,
           }}
         />
 
-        {/* dashed ring */}
-        <motion.div
-          className="absolute inset-[-13px] rounded-full border border-dashed"
-          style={{ borderColor: stage.colors.border }}
-          animate={{ rotate: -360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
-
-        {/* main circle (clickable) */}
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label={`Open ${stage.title}`}
-          onClick={() => onSelect(index)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onSelect(index);
-            }
-          }}
-          onFocus={() => setActiveStage(index)}
-          onBlur={() => setActiveStage(null)}
-          className="relative flex h-full w-full cursor-pointer flex-col items-center justify-center rounded-full border-[1.5px] outline-none focus-visible:ring-4"
-          style={{
-            containerType: "inline-size",
-            padding: "9% 11%",
-            background: `radial-gradient(circle at 35% 25%, #ffffff 0%, ${stage.colors.background} 65%, ${stage.colors.background} 100%)`,
-            borderColor: stage.colors.border,
-            boxShadow: isActive
-              ? `0 22px 60px ${stage.colors.glow}`
-              : "0 15px 42px rgba(42,35,28,0.08)",
-            "--tw-ring-color": stage.colors.border,
-          }}
-        >
-          <div
-            className="pointer-events-none absolute right-[12%] top-[9%] h-14 w-14 rounded-full blur-xl"
-            style={{ background: stage.colors.accent, opacity: 0.13 }}
+        {/* PHOTO */}
+        <div className="relative h-60 shrink-0 overflow-hidden sm:h-64">
+          <img
+            src={stage.photo}
+            alt={stage.title}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
           />
 
-          {/* number chip (top) */}
+          {/* colour wash from the bottom */}
           <div
-            className="absolute left-1/2 top-[-15px] -translate-x-1/2 rounded-full border bg-[#FCFAF6] px-4 py-1 text-[13px] font-bold tracking-[0.25em]"
+            aria-hidden
+            className="absolute inset-0"
             style={{
-              borderColor: stage.colors.border,
-              color: stage.colors.dark,
+              background: `linear-gradient(to top, ${stage.colors.dark}D9 0%, ${stage.colors.dark}33 45%, transparent 75%)`,
             }}
+          />
+
+          {/* light sweep */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/35 to-transparent opacity-0 transition-all duration-1000 group-hover:left-[120%] group-hover:opacity-100"
+          />
+
+          {/* big faded number */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute right-4 top-1 select-none text-[5.5rem] font-bold leading-none text-white/25"
           >
             {stage.id}
-          </div>
-
-          {/* "view story" chip (bottom) */}
-          <span
-            className="absolute bottom-[-15px] left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1 text-[13px] font-bold tracking-[0.06em] shadow-md transition-colors duration-300"
-            style={{
-              borderColor: stage.colors.border,
-              backgroundColor: isActive ? stage.colors.accent : "#FCFAF6",
-              color: isActive ? "#ffffff" : stage.colors.dark,
-            }}
-          >
-            View story
-            <ArrowUpRight size={14} strokeWidth={2.4} />
           </span>
 
-          {/* icon */}
-          <motion.div
-            className="flex shrink-0 items-center justify-center rounded-full border bg-white"
-            style={{
-              width: "clamp(42px, 15cqw, 54px)",
-              height: "clamp(42px, 15cqw, 54px)",
-              borderColor: stage.colors.border,
-              color: stage.colors.dark,
-              boxShadow: `0 8px 20px ${stage.colors.glow}`,
-            }}
-            animate={{ rotate: isActive ? [0, -5, 5, 0] : 0 }}
-            transition={{ duration: 0.55 }}
-          >
-            <Icon size={22} strokeWidth={1.7} />
-          </motion.div>
-
-          {/* label */}
+          {/* icon badge */}
           <span
-            className="mt-2.5 font-bold tracking-[0.22em]"
-            style={{
-              color: stage.colors.accent,
-              fontSize: "clamp(12px, 4.2cqw, 15px)",
-            }}
+            className="absolute left-4 top-5 flex h-12 w-12 items-center justify-center rounded-full border-2 bg-white shadow-lg transition-transform duration-500 group-hover:rotate-[360deg]"
+            style={{ borderColor: stage.colors.accent, color: stage.colors.dark }}
           >
-            {stage.label}
+            <Icon size={21} strokeWidth={1.8} />
           </span>
 
-          {/* title — fixed 2-line height so every circle lines up */}
+          {/* label chip */}
+          <span
+            className="absolute bottom-4 left-4 rounded-full border border-white/50 bg-white/90 px-3.5 py-1.5 text-xs font-bold tracking-[0.2em] shadow-md backdrop-blur"
+            style={{ color: stage.colors.dark }}
+          >
+            {stage.id} · {stage.label}
+          </span>
+        </div>
+
+        {/* BODY */}
+        <div className="relative z-10 flex flex-1 flex-col p-6 sm:p-7">
           <h3
-            className="mt-1.5 flex max-w-full items-center justify-center text-center font-bold leading-[1.1]"
-            style={{
-              color: stage.colors.dark,
-              fontSize: "clamp(21px, 8.6cqw, 29px)",
-              minHeight: "2.2em",
-            }}
+            className="text-[1.7rem] font-bold leading-[1.12] sm:text-[1.85rem]"
+            style={{ color: stage.colors.dark }}
           >
             {stage.title}
           </h3>
 
-          {/* key points only (description lives in the opened card) */}
-          <ul className="mt-3 w-full space-y-2">
-            {stage.points.map((point) => (
+          <p
+            className="mt-3 text-[1.05rem] font-medium leading-7"
+            style={{ color: BODY }}
+          >
+            {stage.description}
+          </p>
+
+          <ul className="mt-5 space-y-2.5">
+            {stage.points.map((point, i) => (
               <li
                 key={point}
-                className="flex items-center gap-2.5 font-semibold leading-tight"
-                style={{
-                  color: BODY,
-                  fontSize: "clamp(14.5px, 5.7cqw, 18px)",
-                }}
+                className="flex items-center gap-3 text-[1.05rem] font-semibold transition-transform duration-300 group-hover:translate-x-1"
+                style={{ color: BODY, transitionDelay: `${i * 60}ms` }}
               >
                 <span
-                  className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border bg-white"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border bg-white transition-colors duration-300 group-hover:text-white"
                   style={{
                     borderColor: stage.colors.border,
                     color: stage.colors.accent,
+                    backgroundColor: active ? stage.colors.accent : "#ffffff",
                   }}
                 >
-                  <Check size={12} strokeWidth={2.6} />
+                  <Check
+                    size={13}
+                    strokeWidth={2.8}
+                    color={active ? "#ffffff" : stage.colors.accent}
+                  />
                 </span>
-                <span>{point}</span>
+                {point}
               </li>
             ))}
           </ul>
-        </div>
 
-        <QuoteSticker stage={stage} index={index} isLeft={isLeft} />
-      </motion.div>
-    </div>
-  );
-}
-
-/* =========================================================
-   QUOTE STICKER (sits on the side that faces the tree)
-========================================================= */
-
-function QuoteSticker({ stage, index, isLeft }) {
-  const rotations = [-8, 6, -5, 7, -7, 5];
-
-  return (
-    <motion.div
-      className={`pointer-events-none absolute -top-[20px] z-20 w-[132px] ${
-        isLeft ? "-right-[30px]" : "-left-[30px]"
-      }`}
-      initial={{ opacity: 0, scale: 0.7, rotate: rotations[index] - 8 }}
-      whileInView={{ opacity: 1, scale: 1, rotate: rotations[index] }}
-      viewport={{ once: true }}
-      animate={{
-        y: [0, -5, 0],
-        rotate: [rotations[index], rotations[index] + 2, rotations[index]],
-      }}
-      transition={{
-        opacity: { duration: 0.5, delay: 0.4 + index * 0.1 },
-        scale: { duration: 0.5, delay: 0.4 + index * 0.1, type: "spring" },
-        y: { duration: 3.8 + index * 0.2, repeat: Infinity, ease: "easeInOut" },
-        rotate: {
-          duration: 4.5 + index * 0.15,
-          repeat: Infinity,
-          ease: "easeInOut",
-        },
-      }}
-    >
-      <div
-        className="absolute -top-2 left-1/2 h-3 w-8 -translate-x-1/2 rotate-[-4deg] opacity-70"
-        style={{ backgroundColor: "#F6EBD5" }}
-      />
-
-      <div
-        className="relative rounded-[13px] px-3 py-3 text-center"
-        style={{
-          backgroundColor: stage.colors.sticker,
-          color: stage.colors.dark,
-          boxShadow: `4px 7px 18px ${stage.colors.glow}`,
-          clipPath: "polygon(4% 10%,94% 4%,100% 88%,87% 97%,12% 92%,0 78%)",
-        }}
-      >
-        <div className="text-[16px] font-bold leading-[1.08]">
-          “{stage.quote}”
-        </div>
-        <div className="mt-1 text-[12.5px] font-semibold leading-[1.2] opacity-90">
-          {stage.quoteSmall}
-        </div>
-        <motion.div
-          className="mx-auto mt-2 h-[2px] w-8 rounded-full"
-          style={{ backgroundColor: stage.colors.dark }}
-          animate={{ width: [25, 38, 25] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
-    </motion.div>
-  );
-}
-
-/* =========================================================
-   MOBILE / TABLET CARD
-   photo on top, then label, title, text, points and quote
-========================================================= */
-
-function MobileGrowthCard({ stage, index, onOpenPhoto }) {
-  const Icon = stage.icon;
-  const tilt = index % 2 === 0 ? -2 : 2;
-
-  return (
-    <motion.article
-      id={`growth-card-${index}`}
-      initial={{ opacity: 0, y: 35 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.12 }}
-      transition={{ duration: 0.65, delay: (index % 2) * 0.06 }}
-      className="relative flex h-full scroll-mt-24 flex-col rounded-[2rem] border"
-      style={{
-        background: stage.colors.background,
-        borderColor: stage.colors.border,
-        boxShadow: `0 18px 45px ${stage.colors.glow}`,
-      }}
-    >
-      {/* number chip sits on the top edge */}
-      <div
-        className="absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full border bg-[#FCFAF6] px-4 py-1 text-sm font-bold tracking-[0.22em]"
-        style={{ borderColor: stage.colors.border, color: stage.colors.dark }}
-      >
-        {stage.id}
-      </div>
-
-      {/* PHOTO */}
-      <button
-        type="button"
-        onClick={onOpenPhoto}
-        aria-label={`Open ${stage.title}`}
-        className="group relative block h-56 w-full overflow-hidden rounded-t-[2rem] sm:h-64"
-      >
-        <img
-          src={stage.photo}
-          alt={stage.title}
-          loading="lazy"
-          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-        />
-        <span className="absolute inset-0 bg-gradient-to-t from-[#2B2233]/55 via-transparent to-[#2B2233]/10" />
-
-        <span
-          className="absolute left-4 top-6 flex h-11 w-11 items-center justify-center rounded-full border bg-white/95 shadow-md"
-          style={{ borderColor: stage.colors.border, color: stage.colors.dark }}
-        >
-          <Icon size={20} strokeWidth={1.7} />
-        </span>
-
-        <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-1.5 text-sm font-bold text-[#2B2233] shadow-md backdrop-blur">
-          View story
-          <ArrowUpRight size={14} />
-        </span>
-      </button>
-
-      {/* BODY */}
-      <div className="flex flex-1 flex-col p-6">
-        <span
-          className="text-sm font-bold tracking-[0.24em]"
-          style={{ color: stage.colors.accent }}
-        >
-          {stage.label}
-        </span>
-        <h3
-          className="mt-1 text-[1.75rem] font-bold leading-tight"
-          style={{ color: stage.colors.dark }}
-        >
-          {stage.title}
-        </h3>
-
-        <p
-          className="mt-3 text-[1.08rem] font-medium leading-7"
-          style={{ color: BODY }}
-        >
-          {stage.description}
-        </p>
-
-        <ul className="mt-4 space-y-2.5">
-          {stage.points.map((point) => (
-            <li
-              key={point}
-              className="flex items-center gap-3 text-[1.05rem] font-semibold"
-              style={{ color: BODY }}
+          {/* quote + action */}
+          <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-7">
+            <div
+              className="max-w-[15rem] -rotate-2 rounded-2xl px-4 py-3 shadow-md transition-transform duration-300 group-hover:rotate-0"
+              style={{
+                backgroundColor: stage.colors.sticker,
+                color: stage.colors.dark,
+                boxShadow: `4px 8px 20px ${stage.colors.glow}`,
+              }}
             >
-              <span
-                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border bg-white"
-                style={{
-                  borderColor: stage.colors.border,
-                  color: stage.colors.accent,
-                }}
-              >
-                <Check size={13} strokeWidth={2.6} />
-              </span>
-              {point}
-            </li>
-          ))}
-        </ul>
+              <p className="flex items-start gap-1.5 text-[1.05rem] font-bold leading-tight">
+                <Quote size={14} className="mt-1 shrink-0 opacity-70" />
+                {stage.quote}
+              </p>
+              <p className="mt-1 text-sm font-medium leading-tight opacity-90">
+                {stage.quoteSmall}
+              </p>
+            </div>
 
-        {/* QUOTE */}
-        <div className="mt-auto pt-6">
-          <div
-            className="inline-block rounded-[14px] px-4 py-3 shadow-md"
-            style={{
-              backgroundColor: stage.colors.sticker,
-              color: stage.colors.dark,
-              transform: `rotate(${tilt}deg)`,
-            }}
-          >
-            <p className="text-[1.05rem] font-bold leading-tight">
-              “{stage.quote}”
-            </p>
-            <p className="mt-1 text-sm font-medium leading-tight opacity-90">
-              {stage.quoteSmall}
-            </p>
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold tracking-[0.06em] text-white shadow-md transition-all duration-300 group-hover:gap-2.5 group-hover:shadow-lg"
+              style={{ backgroundColor: stage.colors.accent }}
+            >
+              View story
+              <ArrowUpRight size={16} strokeWidth={2.5} />
+            </span>
           </div>
         </div>
-      </div>
-    </motion.article>
+      </motion.article>
+    </motion.div>
   );
 }
 
@@ -988,9 +671,7 @@ function JashnaEduLogo() {
    - never taller than the screen (100dvh minus margin)
    - phones / tablets: photo on top, story below, the whole
      card scrolls inside itself
-   - laptops / desktops (lg+): photo left, story right; the
-     story side scrolls inside itself if the screen is short
-   - photo follows the mouse (parallax + soft spotlight)
+   - laptops / desktops (lg+): photo left, story right
    - drag / swipe the photo to change stage
    - arrow keys and Esc work
 ========================================================= */
@@ -1025,29 +706,6 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
     (_, i) => ticked[`${stage.id}-${i}`]
   ).length;
   const allTicked = tickedCount === stage.points.length;
-
-  /* mouse parallax + spotlight on the photo side */
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const spotX = useMotionValue(-300);
-  const spotY = useMotionValue(-300);
-  const spring = { stiffness: 90, damping: 18 };
-  const imgX = useSpring(useTransform(mx, [-0.5, 0.5], [14, -14]), spring);
-  const imgY = useSpring(useTransform(my, [-0.5, 0.5], [14, -14]), spring);
-
-  const handlePointerMove = (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    mx.set((e.clientX - r.left) / r.width - 0.5);
-    my.set((e.clientY - r.top) / r.height - 0.5);
-    spotX.set(e.clientX - r.left - 144);
-    spotY.set(e.clientY - r.top - 144);
-  };
-  const handlePointerLeave = () => {
-    mx.set(0);
-    my.set(0);
-    spotX.set(-300);
-    spotY.set(-300);
-  };
 
   const go = (i) => onNavigate((i + total) % total);
 
@@ -1106,40 +764,26 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
               if (info.offset.x < -70) go(index + 1);
               else if (info.offset.x > 70) go(index - 1);
             }}
-            onMouseMove={handlePointerMove}
-            onMouseLeave={handlePointerLeave}
           >
-            {/* parallax photo */}
-            <motion.div
-              className="absolute inset-0"
-              style={{ x: imgX, y: imgY, scale: 1.12 }}
-            >
-              <AnimatePresence mode="wait" custom={dir}>
-                <motion.img
-                  key={stage.id}
-                  src={stage.photo}
-                  alt={stage.title}
-                  draggable={false}
-                  className="absolute inset-0 h-full w-full select-none object-cover"
-                  custom={dir}
-                  variants={{
-                    enter: (d) => ({ opacity: 0, x: d * 50, scale: 1.08 }),
-                    center: { opacity: 1, x: 0, scale: 1 },
-                    exit: (d) => ({ opacity: 0, x: d * -50 }),
-                  }}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.45 }}
-                />
-              </AnimatePresence>
-            </motion.div>
-
-            {/* soft spotlight following the cursor */}
-            <motion.div
-              className="pointer-events-none absolute left-0 top-0 z-10 h-72 w-72 rounded-full bg-white/25 blur-3xl"
-              style={{ x: spotX, y: spotY }}
-            />
+            <AnimatePresence mode="wait" custom={dir}>
+              <motion.img
+                key={stage.id}
+                src={stage.photo}
+                alt={stage.title}
+                draggable={false}
+                className="absolute inset-0 h-full w-full select-none object-cover"
+                custom={dir}
+                variants={{
+                  enter: (d) => ({ opacity: 0, x: d * 50, scale: 1.08 }),
+                  center: { opacity: 1, x: 0, scale: 1 },
+                  exit: (d) => ({ opacity: 0, x: d * -50 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.45 }}
+              />
+            </AnimatePresence>
 
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1E1626]/85 via-[#1E1626]/10 to-[#1E1626]/20" />
 
@@ -1332,10 +976,7 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
                   })}
                 </ul>
 
-                <p
-                  className="mt-3 text-sm font-medium"
-                  style={{ color: BODY }}
-                >
+                <p className="mt-3 text-sm font-medium" style={{ color: BODY }}>
                   {allTicked
                     ? `All set — ready for ${nextStage.title.toLowerCase()}?`
                     : "Tap each point to tick off the skills you want to build."}
@@ -1438,16 +1079,10 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
                   {index + 1} OF {total}
                 </span>
 
-                <motion.button
+                <button
                   type="button"
                   aria-label="Next stage"
                   onClick={() => go(index + 1)}
-                  animate={allTicked ? { scale: [1, 1.06, 1] } : { scale: 1 }}
-                  transition={
-                    allTicked
-                      ? { duration: 1.4, repeat: Infinity }
-                      : { duration: 0.2 }
-                  }
                   className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-white shadow-md transition-transform hover:scale-105 active:scale-95 sm:px-5"
                   style={{ backgroundColor: stage.colors.accent }}
                 >
@@ -1455,183 +1090,12 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
                     NEXT · {nextStage.label}
                   </span>
                   <ArrowRight size={18} />
-                </motion.button>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </motion.div>
     </motion.div>
-  );
-}
-
-/* =========================================================
-   CONNECTION LINES
-   Measured from the real position of each card and each photo,
-   so they stay attached at every screen width / zoom level.
-========================================================= */
-
-function GrowthConnectionLines({
-  containerRef,
-  cardRefs,
-  photoRefs,
-  activeStage,
-}) {
-  const [paths, setPaths] = useState([]);
-
-  useLayoutEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const compute = () => {
-      const c = container.getBoundingClientRect();
-      if (!c.width) return;
-
-      const next = growthStages.map((stage, i) => {
-        const card = cardRefs.current[i];
-        const photo = photoRefs.current[i];
-        if (!card || !photo) return null;
-
-        const a = card.getBoundingClientRect();
-        const p = photo.getBoundingClientRect();
-        const isLeft = stage.side === "left";
-        const sign = isLeft ? 1 : -1;
-
-        const startX = (isLeft ? a.right + 14 : a.left - 14) - c.left;
-        const startY = a.top + a.height / 2 - c.top;
-
-        const px = p.left + p.width / 2 - c.left;
-        const py = p.top + p.height / 2 - c.top;
-        const reach = p.width / 2 + 8;
-
-        const endX = isLeft ? px - reach : px + reach;
-        const endY = py;
-        const pull = Math.max(40, Math.abs(endX - startX) * 0.5);
-
-        return {
-          d: `M ${startX} ${startY} C ${startX + sign * pull} ${startY}, ${
-            endX - sign * pull
-          } ${endY}, ${endX} ${endY}`,
-          endX,
-          endY,
-        };
-      });
-
-      setPaths(next);
-    };
-
-    compute();
-
-    /* the tree box sizes itself after first paint, so measure once more */
-    const raf = requestAnimationFrame(compute);
-
-    const observer = new ResizeObserver(compute);
-    observer.observe(container);
-    window.addEventListener("resize", compute);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-      window.removeEventListener("resize", compute);
-    };
-  }, [containerRef, cardRefs, photoRefs]);
-
-  return (
-    <svg
-      className="pointer-events-none absolute inset-0 z-[25] h-full w-full"
-      fill="none"
-    >
-      {paths.map((line, index) => {
-        if (!line) return null;
-
-        const color = growthStages[index].colors.accent;
-        const isActive = activeStage === index;
-
-        return (
-          <g key={index}>
-            <path
-              d={line.d}
-              stroke={color}
-              strokeWidth={isActive ? 8 : 4}
-              strokeLinecap="round"
-              opacity={isActive ? 0.18 : 0.08}
-              style={{ filter: "blur(5px)" }}
-            />
-
-            <motion.path
-              d={line.d}
-              stroke={color}
-              strokeWidth={isActive ? 2.2 : 1.5}
-              strokeLinecap="round"
-              strokeDasharray="4 8"
-              opacity={isActive ? 0.9 : 0.55}
-              animate={{ strokeDashoffset: [0, -24] }}
-              transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
-            />
-
-            <circle
-              cx={line.endX}
-              cy={line.endY}
-              r={isActive ? 6.5 : 5}
-              fill={color}
-              opacity={isActive ? 1 : 0.8}
-            />
-            <circle
-              cx={line.endX}
-              cy={line.endY}
-              r={isActive ? 12 : 9}
-              stroke={color}
-              strokeWidth="1"
-              opacity={isActive ? 0.45 : 0.22}
-            />
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-/* =========================================================
-   FLOATING TREE PARTICLES (positioned inside the tree column)
-========================================================= */
-
-function TreeParticles() {
-  const particles = [
-    { left: "42%", top: "12%", size: 4, delay: 0 },
-    { left: "58%", top: "16%", size: 3, delay: 1.2 },
-    { left: "38%", top: "30%", size: 3, delay: 2 },
-    { left: "64%", top: "33%", size: 4, delay: 0.8 },
-    { left: "44%", top: "50%", size: 3, delay: 1.7 },
-    { left: "57%", top: "58%", size: 3, delay: 2.6 },
-    { left: "49%", top: "68%", size: 4, delay: 1 },
-  ];
-
-  return (
-    <>
-      {particles.map((particle, index) => (
-        <motion.span
-          key={index}
-          className="pointer-events-none absolute z-30 rounded-full bg-[#C69A3A]"
-          style={{
-            left: particle.left,
-            top: particle.top,
-            width: particle.size,
-            height: particle.size,
-          }}
-          animate={{
-            y: [0, -14, 0],
-            x: [0, 4, -3, 0],
-            opacity: [0.2, 0.8, 0.2],
-            scale: [0.8, 1.2, 0.8],
-          }}
-          transition={{
-            duration: 4 + index * 0.3,
-            delay: particle.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </>
   );
 }

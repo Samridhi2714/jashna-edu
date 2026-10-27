@@ -470,8 +470,19 @@ function SeoKeywordTrail() {
         aria-hidden="true"
         className="pointer-events-none absolute left-[4%] right-[4%] top-[45%] hidden h-12 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#338DFD]/[0.06] via-[#49C4A5]/[0.08] to-[#338DFD]/[0.06] blur-2xl xl:block"
       />
-
-      <ul className="relative z-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-8 xl:flex-nowrap xl:items-start xl:justify-between xl:gap-x-4">
+      {/* MOBILE: simple pills */}
+    <ul className="relative z-10 flex flex-wrap justify-center gap-2 sm:hidden">
+      {keywords.map((keyword, i) => (
+        <li
+          key={keyword.label}
+          className="rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.08em] text-white shadow-md"
+          style={{ backgroundColor: CLOUD_PALETTE[i % CLOUD_PALETTE.length] }}
+        >
+          {keyword.label}
+        </li>
+      ))}
+    </ul>
+      <ul className="relative z-10 hidden sm:flex flex-wrap items-center justify-center gap-x-5 gap-y-8 xl:flex-nowrap xl:items-start xl:justify-between xl:gap-x-4">
         {keywords.map((keyword, index) => (
           <li key={keyword.label} className={keyword.stagger}>
             <CloudBubble
