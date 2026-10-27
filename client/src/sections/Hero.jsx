@@ -42,8 +42,7 @@ const HERO_VIDEO_ID = "sKwIdAG7Zi4";
 
 const HERO_VIDEO_URL = `https://www.youtube.com/embed/${HERO_VIDEO_ID}`;
 
-const HERO_EMBED_URL =
-  `${HERO_VIDEO_URL}?autoplay=1&mute=1&loop=1&playlist=${HERO_VIDEO_ID}&controls=1&playsinline=1&rel=0`;
+const HERO_EMBED_URL = `${HERO_VIDEO_URL}?autoplay=1&mute=1&loop=1&playlist=${HERO_VIDEO_ID}&controls=1&playsinline=1&rel=0`;
 
 const HERO_WATCH_URL = `https://www.youtube.com/watch?v=${HERO_VIDEO_ID}`;
 
@@ -208,7 +207,6 @@ function Hero() {
               style={{ color: "#1B3A8F" }}
             >
               <Sparkles size={14} className="shrink-0 text-[#0FA37F]" />
-
               Top Spoken English &amp; Professional Skills Organization
             </motion.p>
 
@@ -265,16 +263,12 @@ function Hero() {
               style={{ color: BODY }}
             >
               Develop stronger English language skills for academic,
-              professional, and everyday success through expert-led training
-              in <strong style={{ color: INK }}>spoken English</strong>,{" "}
+              professional, and everyday success through expert-led training in{" "}
+              <strong style={{ color: INK }}>spoken English</strong>,{" "}
               <strong style={{ color: INK }}>IELTS</strong>,{" "}
               <strong style={{ color: INK }}>public speaking</strong>,{" "}
-              <strong style={{ color: INK }}>interview preparation</strong>,
-              and{" "}
-              <strong style={{ color: INK }}>
-                workplace communication
-              </strong>
-              .
+              <strong style={{ color: INK }}>interview preparation</strong>, and{" "}
+              <strong style={{ color: INK }}>workplace communication</strong>.
             </motion.p>
 
             {/* CTA BUTTONS */}
@@ -287,7 +281,7 @@ function Hero() {
             >
               <motion.a
                 href={getWhatsAppLink(
-                  "Hello Dr.Shivam Sir, I would like to book a free consultation for the English communication program at Jashna Edu."
+                  "Hello Dr.Shivam Sir, I would like to book a free consultation for the English communication program at Jashna Edu.",
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -298,9 +292,7 @@ function Hero() {
               >
                 <span className="pointer-events-none absolute inset-y-0 -left-14 w-10 rotate-12 bg-white/35 blur-sm transition-all duration-700 group-hover:left-[115%]" />
 
-                <span className="relative z-10">
-                  Book a Consultation
-                </span>
+                <span className="relative z-10">Book a Consultation</span>
 
                 <ArrowUpRight
                   size={17}
@@ -316,7 +308,6 @@ function Hero() {
                 className="group inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#1E3FD8]/70 bg-white/70 px-7 py-3 text-[15px] font-semibold text-[#1E3FD8] backdrop-blur-sm transition-all duration-300 hover:border-[#1E3FD8] hover:bg-[#1E3FD8] hover:text-white hover:shadow-[0_10px_26px_rgba(30,63,216,0.25)]"
               >
                 Explore Programs
-
                 <ArrowRight
                   size={17}
                   className="transition-transform duration-300 group-hover:translate-x-1.5"
@@ -428,12 +419,7 @@ function TiltCard({ children }) {
    SEO KEYWORD CLOUDS
 ========================================================= */
 
-const CLOUD_PALETTE = [
-  "#1F6FEB",
-  "#0F9D82",
-  "#B8861B",
-  "#6D5BE8",
-];
+const CLOUD_PALETTE = ["#1F6FEB", "#0F9D82", "#B8861B", "#6D5BE8"];
 
 const CLOUD_HOLD_SECONDS = 2.5;
 const CLOUD_FADE = 0.05;
@@ -610,10 +596,7 @@ function CloudBubble({ label, offset, index }) {
 function TrustItem({ text }) {
   return (
     <li className="flex items-center gap-2">
-      <CheckCircle2
-        size={18}
-        className="shrink-0 text-[#0FA37F]"
-      />
+      <CheckCircle2 size={18} className="shrink-0 text-[#0FA37F]" />
 
       {text}
     </li>
@@ -626,6 +609,7 @@ function TrustItem({ text }) {
 ========================================================= */
 
 function HeroVideo({ isPlaying, onVideoAction }) {
+  const [play, setPlay] = useState(false);
   return (
     <div className="relative mx-auto w-full px-1 py-7 sm:px-3 sm:py-8 lg:py-9">
       {/* BRAND GLOW */}
@@ -651,15 +635,33 @@ function HeroVideo({ isPlaying, onVideoAction }) {
           {/* VIDEO */}
 
           <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#07152B]">
-            <iframe
-              src={HERO_EMBED_URL}
-              title="Jashna Edu — English Communication and Learning"
-              className="absolute inset-0 h-full w-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              loading="eager"
-            />
+            {play ? (
+              <iframe
+                src={HERO_EMBED_URL}
+                title="Jashna Edu — English Communication and Learning"
+                className="absolute inset-0 h-full w-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPlay(true)}
+                aria-label="Play Jashna Edu video"
+                className="group absolute inset-0 h-full w-full"
+              >
+                <img
+                  src={`https://img.youtube.com/vi/${HERO_VIDEO_ID}/hqdefault.jpg`}
+                  alt="Jashna Edu video thumbnail"
+                  className="h-full w-full object-cover"
+                  fetchPriority="high"
+                />
+                <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1E3FD8] shadow-xl transition-transform duration-300 group-hover:scale-110">
+                  <Play size={26} className="ml-1" fill="currentColor" />
+                </span>
+              </button>
+            )}
           </div>
 
           {/* CINEMATIC OVERLAY */}
@@ -786,13 +788,7 @@ function HeroVideo({ isPlaying, onVideoAction }) {
    FLOATING BUBBLE
 ========================================================= */
 
-function FloatingBubble({
-  icon,
-  label,
-  className,
-  color,
-  delay,
-}) {
+function FloatingBubble({ icon, label, className, color, delay }) {
   const colorStyles = {
     blue: {
       border: "border-[#338DFD]/40",
