@@ -684,6 +684,29 @@ function ArticleModal({ resource, onClose }) {
                     )}
                   </div>
                 )}
+
+                {resource.sourceUrl && (
+                  <div className="mt-10 border border-[#299fd1]/25 bg-white p-6 sm:p-8">
+                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#299fd1]">
+                      Original source
+                    </p>
+                    <p className="mt-3 text-[15px] font-medium leading-7 text-[#52677c]">
+                      This page presents a summary for learning purposes. Open the original paper to read the authors’ full research and context.
+                    </p>
+                    <a
+                      href={resource.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group mt-5 inline-flex items-center gap-3 bg-[#102d4a] px-5 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-white transition-colors hover:bg-[#299fd1]"
+                    >
+                      {resource.sourceLabel || "Read Original Research Paper"}
+                      <ArrowUpRight
+                        size={16}
+                        className="transition-transform group-hover:-translate-y-1 group-hover:translate-x-1"
+                      />
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -776,37 +799,6 @@ export default function Resources() {
             <div className="pointer-events-none absolute right-[-3%] top-[-35px] hidden select-none font-display text-[180px] font-semibold leading-none tracking-[-0.08em] text-[#14304f]/[0.035] xl:block">
               THINK
             </div>
-
-            {/* EYEBROW */}
-
-            <motion.div
-              initial={{
-                opacity: 0,
-                x: -20,
-              }}
-              animate={{
-                opacity: 1,
-                x: 0,
-              }}
-              transition={{
-                duration: 0.5,
-              }}
-              className="relative mb-8 flex items-center gap-3"
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#102d4a] text-white">
-                <Sparkles size={13} />
-              </span>
-
-              <span className="text-[15px] font-black uppercase tracking-[0.25em] text-[#102d4a]">
-                Jashna Knowledge Hub
-              </span>
-
-              <span className="hidden h-px w-16 bg-[#14304f]/20 sm:block" />
-
-              <span className="hidden text-[13px] font-black uppercase tracking-[0.18em] text-[#14304f] sm:block">
-                2026
-              </span>
-            </motion.div>
 
             {/* TITLE */}
 

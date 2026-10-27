@@ -4,6 +4,37 @@ import { ArrowUpRight, Quote, Star, X } from "lucide-react";
 
 import testimonialsData from "../../data/testimonials";
 
+/* Scoped styles: mobile / tablet portrait marquee (hidden on lg+) */
+const styles = `
+@keyframes th-ltr {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes th-rtl {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+.th-track {
+  width: max-content;
+  animation: th-ltr var(--th-duration, 48s) linear infinite;
+  will-change: transform;
+}
+.th-track-rev { animation-name: th-rtl; }
+.th-marquee:hover .th-track,
+.th-marquee:active .th-track,
+.th-marquee:focus-within .th-track {
+  animation-play-state: paused;
+}
+.th-marquee {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+          mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .th-track { animation: none; }
+  .th-marquee { overflow-x: auto; }
+}
+`;
+
 function TestimonialsHero() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedOrigin, setSelectedOrigin] = useState({ x: 0, y: 0 });
@@ -133,15 +164,29 @@ function TestimonialsHero() {
     setSelectedStudent(null);
   };
 
+  /* Mobile / tablet: two marquee rows (even / odd students).
+     Each row is repeated 3x to make one "half", then the half is
+     rendered twice so the -50% loop is seamless on any width. */
+  const topFaces = testimonialsData.slice(0, 12);
+  const mobileRows = [
+    topFaces.filter((_, i) => i % 2 === 0),
+    topFaces.filter((_, i) => i % 2 === 1),
+  ].map((row) => {
+    const half = [...row, ...row, ...row];
+    return [...half, ...half];
+  });
+
   return (
     <section
       className="
         relative min-h-[92vh] overflow-hidden
-        px-5 pb-24 pt-44
-        sm:px-8 sm:pt-48
+        px-5 pb-14 pt-36
+        sm:px-8 sm:pb-24 sm:pt-48
         lg:px-10 lg:pb-32 lg:pt-48
       "
     >
+      <style>{styles}</style>
+
       {/* =====================================================
           MAIN COLORFUL BACKGROUND — KEPT FROM ORIGINAL
       ====================================================== */}
@@ -155,8 +200,9 @@ function TestimonialsHero() {
       <div
         className="
           pointer-events-none absolute left-1/2 top-[45%]
-          h-[620px] w-[620px] -translate-x-1/2 -translate-y-1/2
+          h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2
           rounded-full bg-white/[0.50] blur-[90px]
+          sm:h-[620px] sm:w-[620px]
         "
       />
 
@@ -229,7 +275,7 @@ function TestimonialsHero() {
       </motion.div>
 
       {/* =====================================================
-          STUDENT PORTRAITS
+          STUDENT PORTRAITS (DESKTOP)
       ====================================================== */}
       <div className="pointer-events-none absolute inset-0 z-[5]">
         {testimonialsData.slice(0, 12).map((student, index) => {
@@ -376,8 +422,9 @@ function TestimonialsHero() {
       ====================================================== */}
       <div
         className="
-          relative z-10 mx-auto flex min-h-[64vh] max-w-6xl
-          translate-y-7 flex-col items-center justify-center text-center
+          relative z-10 mx-auto flex max-w-6xl
+          flex-col items-center justify-center text-center
+          sm:min-h-[64vh] sm:translate-y-7
           lg:translate-y-10
         "
       >
@@ -385,15 +432,15 @@ function TestimonialsHero() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65 }}
-          className="mb-7 flex items-center justify-center gap-3"
+          className="mb-6 flex items-center justify-center gap-3 sm:mb-7"
         >
-          <span className="h-px w-9 bg-gradient-to-r from-transparent to-[#338DFD]/60" />
+          <span className="hidden h-px w-9 bg-gradient-to-r from-transparent to-[#338DFD]/60 sm:block" />
 
-          <span className="rounded-full border border-[#338DFD]/20 bg-white/60 px-4 py-2 text-[9px] font-bold uppercase tracking-[0.28em] text-[#276FD1] shadow-[0_8px_25px_rgba(51,141,253,0.07)] backdrop-blur-xl">
+          <span className="rounded-full border border-[#338DFD]/20 bg-white/60 px-4 py-2 text-center text-[9px] font-bold uppercase tracking-[0.2em] text-[#276FD1] shadow-[0_8px_25px_rgba(51,141,253,0.07)] backdrop-blur-xl sm:tracking-[0.28em]">
             Jashna Edu Student Testimonials
           </span>
 
-          <span className="h-px w-9 bg-gradient-to-r from-[#49C4A5]/60 to-transparent" />
+          <span className="hidden h-px w-9 bg-gradient-to-r from-[#49C4A5]/60 to-transparent sm:block" />
         </motion.div>
 
         <motion.h1
@@ -405,8 +452,9 @@ function TestimonialsHero() {
             ease: [0.22, 1, 0.36, 1],
           }}
           className="
-            max-w-6xl font-display text-[clamp(3rem,7.2vw,7rem)]
-            font-bold leading-[0.9] tracking-[-0.065em] text-[#10141C]
+            max-w-6xl font-display text-[clamp(2.4rem,10.5vw,3.4rem)]
+            font-bold leading-[0.95] tracking-[-0.06em] text-[#10141C]
+            sm:text-[clamp(3rem,7.2vw,7rem)] sm:leading-[0.9] sm:tracking-[-0.065em]
           "
         >
           Trusted by Learners
@@ -420,7 +468,7 @@ function TestimonialsHero() {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25 }}
-          className="mt-7 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-base font-semibold tracking-[-0.01em] text-[#182235]/85 sm:text-lg lg:text-xl"
+          className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[15px] font-semibold tracking-[-0.01em] text-[#182235]/85 sm:mt-7 sm:gap-x-3 sm:text-lg lg:text-xl"
         >
           <span>Different Ages.</span>
           <span className="text-[#338DFD]">Different Ambitions.</span>
@@ -431,7 +479,7 @@ function TestimonialsHero() {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.38 }}
-          className="mt-6 max-w-2xl text-sm leading-7 text-[#182235]/65 sm:text-base sm:leading-8"
+          className="mt-5 max-w-2xl text-sm leading-7 text-[#182235]/70 sm:mt-6 sm:text-base sm:leading-8 sm:text-[#182235]/65"
         >
           Meet learners from different academic, professional and personal
           backgrounds who are developing the confidence to communicate,
@@ -442,7 +490,7 @@ function TestimonialsHero() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.52 }}
-          className="mt-9 flex flex-wrap items-center justify-center gap-2"
+          className="mt-7 flex flex-wrap items-center justify-center gap-2 sm:mt-9"
         >
           {["School", "College", "IELTS", "Professionals", "Career Growth"].map(
             (item) => (
@@ -483,7 +531,7 @@ function TestimonialsHero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="absolute bottom-[-18px] left-1/2 flex -translate-x-1/2 flex-col items-center gap-2"
+          className="absolute bottom-[-18px] left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 lg:flex"
         >
           <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-[#182235]/35">
             Meet the voices
@@ -498,12 +546,80 @@ function TestimonialsHero() {
       </div>
 
       {/* =====================================================
+          STUDENT PORTRAITS (MOBILE + TABLET)
+          Two slow marquee rows moving in opposite directions.
+          Pauses on touch / hover. Tap a face to open the card.
+      ====================================================== */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.7 }}
+        className="relative z-10 -mx-5 mt-12 sm:-mx-8 sm:mt-16 lg:hidden"
+      >
+        <div className="mb-5 flex items-center justify-center gap-3 px-5">
+          <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#338DFD]/50" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#182235]/55">
+            Tap a face to hear their story
+          </span>
+          <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#49C4A5]/60" />
+        </div>
+
+        <div className="space-y-5">
+          {mobileRows.map((row, rowIndex) => (
+            <div
+              key={rowIndex}
+              className="th-marquee relative w-full overflow-hidden py-3"
+            >
+              <div
+                className={`th-track flex ${rowIndex === 1 ? "th-track-rev" : ""}`}
+                style={{ "--th-duration": rowIndex === 1 ? "56s" : "48s" }}
+              >
+                {row.map((student, i) => {
+                  const isClone = i >= row.length / 2;
+
+                  return (
+                    <div
+                      key={`${student.id}-${rowIndex}-${i}`}
+                      className="shrink-0 pr-5"
+                      aria-hidden={isClone ? "true" : undefined}
+                    >
+                      <button
+                        type="button"
+                        tabIndex={isClone ? -1 : 0}
+                        aria-label={`Open testimonial from ${student.name}`}
+                        onClick={(event) => openTestimonial(student, event)}
+                        className="group relative block h-[88px] w-[88px] transition-transform duration-300 active:scale-95 sm:h-[104px] sm:w-[104px]"
+                        style={{
+                          transform: `rotate(${(i + rowIndex) % 2 === 0 ? -4 : 4}deg)`,
+                        }}
+                      >
+                        <span className="pointer-events-none absolute -inset-[3px] rounded-[26px] bg-[conic-gradient(from_0deg,#338DFD,#7C6CFF,#49C4A5,#F7C65D,#338DFD)] opacity-90" />
+
+                        <span className="relative block h-full w-full overflow-hidden rounded-[23px] border-[3px] border-white bg-white shadow-[0_12px_30px_rgba(16,36,62,0.18)]">
+                          <img
+                            src={student.image}
+                            alt={`${student.name} - Jashna Edu student testimonial`}
+                            loading="lazy"
+                            className="h-full w-full object-cover"
+                          />
+                        </span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* =====================================================
           CENTER TESTIMONIAL CARD
       ====================================================== */}
       <AnimatePresence>
         {selectedStudent && (
           <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-8 sm:px-8"
+            className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto px-4 py-6 sm:items-center sm:px-8 sm:py-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -512,7 +628,7 @@ function TestimonialsHero() {
               type="button"
               aria-label="Close testimonial"
               onClick={closeTestimonial}
-              className="absolute inset-0 cursor-default bg-[#07111F]/50 backdrop-blur-xl"
+              className="fixed inset-0 cursor-default bg-[#07111F]/50 backdrop-blur-xl"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -521,13 +637,13 @@ function TestimonialsHero() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-              className="pointer-events-none absolute h-[440px] w-[440px] rounded-full border border-white/15"
+              className="pointer-events-none fixed left-1/2 top-1/2 hidden h-[440px] w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15 sm:block"
             />
 
             <motion.div
               animate={{ scale: [1, 1.12, 1], rotate: [0, 12, 0] }}
               transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              className="pointer-events-none absolute h-[330px] w-[330px] rounded-full bg-[#338DFD]/20 blur-[80px]"
+              className="pointer-events-none fixed left-1/2 top-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#338DFD]/20 blur-[80px] sm:h-[330px] sm:w-[330px]"
             />
 
             <motion.article
@@ -559,9 +675,9 @@ function TestimonialsHero() {
                 mass: 0.9,
               }}
               className="
-                relative z-10 w-full max-w-[900px] overflow-hidden
-                rounded-[34px] border border-white/60
-                bg-[#081525]/90 p-3
+                relative z-10 my-auto w-full max-w-[900px] overflow-hidden
+                rounded-[28px] border border-white/60
+                bg-[#081525]/90 p-2.5
                 shadow-[0_35px_120px_rgba(0,0,0,0.38)]
                 backdrop-blur-2xl sm:rounded-[42px] sm:p-4
               "
@@ -579,9 +695,9 @@ function TestimonialsHero() {
 
               <div
                 className="
-                  relative overflow-hidden rounded-[29px]
+                  relative overflow-hidden rounded-[23px] sm:rounded-[29px]
                   bg-[radial-gradient(circle_at_15%_10%,rgba(51,141,253,0.32),transparent_30%),radial-gradient(circle_at_90%_15%,rgba(73,196,165,0.28),transparent_30%),radial-gradient(circle_at_50%_100%,rgba(124,108,255,0.24),transparent_45%),linear-gradient(135deg,#0A1728,#101A30)]
-                  px-6 py-8 text-white sm:px-10 sm:py-10
+                  px-5 pb-7 pt-16 text-white sm:px-10 sm:py-10
                 "
               >
                 <div className="pointer-events-none absolute inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:42px_42px]" />
@@ -593,12 +709,12 @@ function TestimonialsHero() {
                   type="button"
                   onClick={closeTestimonial}
                   aria-label="Close testimonial"
-                  className="absolute right-5 top-5 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 backdrop-blur-xl transition hover:bg-white/20 hover:text-white"
+                  className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 backdrop-blur-xl transition hover:bg-white/20 hover:text-white sm:right-5 sm:top-5"
                 >
                   <X size={18} />
                 </button>
 
-                <div className="relative z-10 grid items-center gap-8 md:grid-cols-[250px_1fr]">
+                <div className="relative z-10 grid items-center gap-9 md:grid-cols-[250px_1fr] md:gap-8">
                   <div className="flex justify-center">
                     <motion.div
                       initial={{ scale: 0.65, rotate: -15 }}
@@ -608,7 +724,7 @@ function TestimonialsHero() {
                         type: "spring",
                         stiffness: 180,
                       }}
-                      className="relative h-[190px] w-[190px] sm:h-[220px] sm:w-[220px]"
+                      className="relative h-[150px] w-[150px] sm:h-[220px] sm:w-[220px]"
                     >
                       <div className="absolute -inset-5 rounded-[48px] bg-gradient-to-br from-[#338DFD]/40 via-[#7C6CFF]/30 to-[#49C4A5]/35 blur-2xl" />
 
@@ -622,7 +738,7 @@ function TestimonialsHero() {
                         className="absolute -inset-[6px] rounded-[45px] bg-[conic-gradient(from_0deg,#338DFD,#7C6CFF,#49C4A5,#F7C65D,#338DFD)]"
                       />
 
-                      <div className="relative h-full w-full rotate-45 overflow-hidden rounded-[38px] border-4 border-white bg-white shadow-[0_25px_70px_rgba(0,0,0,0.32)]">
+                      <div className="relative h-full w-full rotate-45 overflow-hidden rounded-[30px] border-4 border-white bg-white shadow-[0_25px_70px_rgba(0,0,0,0.32)] sm:rounded-[38px]">
                         <img
                           src={selectedStudent.image}
                           alt={selectedStudent.name}
@@ -644,13 +760,13 @@ function TestimonialsHero() {
                     </motion.div>
                   </div>
 
-                  <div>
-                    <div className="mb-5 flex items-center gap-3">
+                  <div className="text-center md:text-left">
+                    <div className="mb-5 flex items-center justify-center gap-3 md:justify-start">
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-[#7ED8FF]">
                         <Quote size={18} />
                       </span>
 
-                      <div>
+                      <div className="text-left">
                         <p className="text-[8px] font-bold uppercase tracking-[0.28em] text-white/45">
                           Student voice
                         </p>
@@ -665,11 +781,11 @@ function TestimonialsHero() {
                       </div>
                     </div>
 
-                    <p className="max-w-2xl text-[clamp(1.35rem,2.5vw,2.25rem)] font-semibold leading-[1.15] tracking-[-0.035em] text-white">
+                    <p className="max-w-2xl text-[clamp(1.1rem,5vw,1.5rem)] font-semibold leading-[1.25] tracking-[-0.025em] text-white sm:text-[clamp(1.35rem,2.5vw,2.25rem)] sm:leading-[1.15] sm:tracking-[-0.035em]">
                       “{selectedStudent.review}”
                     </p>
 
-                    <div className="mt-7 flex flex-wrap items-end justify-between gap-4 border-t border-white/10 pt-5">
+                    <div className="mt-6 flex flex-col items-center gap-4 border-t border-white/10 pt-5 sm:mt-7 md:flex-row md:flex-wrap md:items-end md:justify-between">
                       <div>
                         <h3 className="text-xl font-bold tracking-[-0.02em]">
                           {selectedStudent.name}

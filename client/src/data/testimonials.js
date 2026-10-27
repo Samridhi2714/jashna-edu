@@ -7,7 +7,9 @@ import student06 from "../assets/images/Students/Student_06.webp";
 import student07 from "../assets/images/Students/Student_07.webp";
 import student08 from "../assets/images/Students/Student_08.webp";
 import student09 from "../assets/images/Students/Student_09.webp";
-
+import student10 from "../assets/images/Students/Student_10.webp";
+import student11 from "../assets/images/Students/Student_11.webp";
+import student12 from "../assets/images/Students/Student_12.webp";
 const testimonialsData = [
   {
     id: 1,
@@ -66,11 +68,11 @@ const testimonialsData = [
 
   {
     id: 6,
-    name: "Keshav",
+    name: "Rahul Bhadana",
     course: "Spoken English & Professional Speaking",
-    category: "College student",
+    category: "Professional Learner",
     rating: 5,
-    image: student06,
+    image: student12,
     review:
       "The personalised guidance helped me identify the areas where I needed improvement. I now feel more confident during professional interactions.",
   },
@@ -110,33 +112,32 @@ const testimonialsData = [
 
   {
     id: 10,
-    name: "Sana Khan",
+    name: "Rahul Nagpal",
     course: "Spoken English",
-    category: "Adult Learner",
+    category: "Young Professional",
     rating: 5,
-    image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=500&q=80",
+    image: student10,
     review:
       "I became more comfortable expressing my thoughts in English. The environment at Jashna made practising feel much less intimidating.",
   },
 
   {
     id: 11,
-    name: "Yash Agarwal",
+    name: "Sahil",
     course: "Presentation Skills",
-    category: "College Student",
+    category: "Young Professional",
     rating: 5,
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=500&q=80",
+    image: student11,
     review:
       "I learned how to structure my thoughts and communicate them more effectively. The practical presentation exercises were especially useful.",
   },
   {
-  id: 12,
-  name: "Tanya Malhotra",
+  id: 6,
+  name: "Keshav",
   course: "Business English",
   category: "Young Professional",
   rating: 5,
-  image:
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80",
+  image: student06,
   review:
     "Jashna helped me become much more comfortable while communicating in professional situations. The practical conversations made speaking feel natural and confident.",
 },

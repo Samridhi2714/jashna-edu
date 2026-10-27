@@ -1,22 +1,71 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  BookOpen,
   BriefcaseBusiness,
+  CalendarCheck2,
   Check,
+  ClipboardCheck,
+  ChevronRight,
+  Clock,
   GraduationCap,
+  Headphones,
+  Maximize2,
+  MessageSquareText,
   Mic2,
   PenLine,
+  Rocket,
+  Search,
+  SlidersHorizontal,
   Sparkles,
   Target,
   UsersRound,
+  X,
 } from "lucide-react";
 
-import programs from "../data/programs";
+import usePrograms from "../hooks/usePrograms";
+import { getWhatsAppLink } from "../data/contact";
+/* =========================================================
+   DESIGN TOKENS
+   ink   #0E1A2B  deep navy (hero, method)
+   paper #F3F6FB  cool off-white (page)
+   blue  #2F6BFF  primary accent
+   teal  #12B5A0  secondary accent
+   sun   #FFB020  warm highlight
+
+   BRAND THEME (used in explorer + IELTS spotlight)
+   brand blue   #215e93
+   brand teal   #2a9d8f
+   brand green  #84e245
+========================================================= */
+
+const TIMES = "[&_*]:![font-family:Times_New_Roman,Times,serif]";
 
 /* =========================================================
-   ICONS
+   SEO
+========================================================= */
+
+const SEO = {
+  title: "English Programs: Spoken English, IELTS, Interview & Business English | Jashna",
+  description:
+    "Explore Jashna's English programs for spoken English and fluency, public speaking, IELTS preparation, interview skills, business English and teacher training. Personalised, practical, real-world learning.",
+};
+
+const setMeta = (attr, key, content) => {
+  let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+};
+
+/* =========================================================
+   ICONS + GOALS
 ========================================================= */
 
 const iconMap = {
@@ -28,15 +77,12 @@ const iconMap = {
   Teaching: PenLine,
 };
 
-/* =========================================================
-   GOALS
-========================================================= */
-
 const goals = [
   {
     id: "confidence",
-    number: "01",
     title: "Speak with confidence",
+    short: "Speak confidently",
+    icon: Mic2,
     description:
       "Build fluency, clarity and confidence for everyday conversations and public communication.",
     programs: [
@@ -47,10 +93,11 @@ const goals = [
   },
   {
     id: "career",
-    number: "02",
     title: "Grow my career",
+    short: "Career growth",
+    icon: BriefcaseBusiness,
     description:
-      "Develop the communication skills that help you perform better in interviews and professional environments.",
+      "Develop communication skills that help you perform better in interviews and professional environments.",
     programs: [
       "Interview & Career Skills",
       "Business English & Workplace Communication",
@@ -59,1724 +106,776 @@ const goals = [
   },
   {
     id: "academic",
-    number: "03",
     title: "Achieve an academic goal",
+    short: "Academic goals",
+    icon: GraduationCap,
     description:
       "Strengthen your English for examinations, higher education and international opportunities.",
     programs: [
       "IELTS Preparation & Success",
       "English for Competitive Exams",
-      "English as a Foreign Language (EFL)",
+      "English as a Foreign Language",
     ],
   },
   {
     id: "educator",
-    number: "04",
     title: "Become a better educator",
+    short: "Better educator",
+    icon: PenLine,
     description:
       "Upgrade your teaching practice, classroom communication and professional capabilities.",
     programs: ["Teacher Training & Development"],
   },
 ];
 
+const goalOf = (program) =>
+  goals.find((g) => g.id === program?.goalId) ||
+  goals.find((g) => g.programs.includes(program?.title));
+
+const categoryHighlights = {
+  Communication: ["Fluency & clarity", "Confident expression", "Real conversations"],
+  Career: ["Interview communication", "Professional presence", "Workplace confidence"],
+  Academic: ["Language accuracy", "Exam-focused practice", "Academic communication"],
+  Professional: ["Clear communication", "Professional vocabulary", "Practical workplace use"],
+  "English Development": ["Everyday communication", "Vocabulary development", "Language confidence"],
+  Teaching: ["Classroom communication", "Teaching methodology", "Professional growth"],
+};
+
+const heroPhrases = [
+  "speak with confidence.",
+  "ace my next interview.",
+  "reach my IELTS band.",
+  "grow in my career.",
+  "teach with more impact.",
+];
+
+/* IELTS spotlight content */
+
+const ieltsModules = [
+  {
+    id: "listening",
+    label: "Listening",
+    icon: Headphones,
+    tagline: "Train your ear for accents, speed and distractors.",
+    points: [
+      "Strategies for all four sections",
+      "Note-completion and map-labelling practice",
+      "Spotting paraphrased answers and traps",
+    ],
+  },
+  {
+    id: "reading",
+    label: "Reading",
+    icon: BookOpen,
+    tagline: "Read faster, find answers sooner, avoid common traps.",
+    points: [
+      "Skimming and scanning techniques",
+      "True / False / Not Given logic",
+      "Time management across three passages",
+    ],
+  },
+  {
+    id: "writing",
+    label: "Writing",
+    icon: PenLine,
+    tagline: "Structure, clarity and a strong task response.",
+    points: [
+      "Task 1 reports and letters, Task 2 essays",
+      "Detailed correction on practice drafts",
+      "Vocabulary and grammar range for higher bands",
+    ],
+  },
+  {
+    id: "speaking",
+    label: "Speaking",
+    icon: Mic2,
+    tagline: "Fluency, ideas and confidence in front of the examiner.",
+    points: [
+      "Mock interviews across all three parts",
+      "Pronunciation and fluency coaching",
+      "Idea-building for cue-card topics",
+    ],
+  },
+];
+
+const ieltsBands = [
+  { value: "6.0", focus: "Build a solid base and remove the errors that keep repeating." },
+  { value: "6.5", focus: "Sharpen accuracy and widen your range across all four skills." },
+  { value: "7.0", focus: "Add precision, complexity and consistent timing under pressure." },
+  { value: "7.5", focus: "Polish coherence, vocabulary and examiner-ready delivery." },
+  { value: "8.0+", focus: "Refine nuance, speed and a flawless exam-day strategy." },
+];
+
+const goTo = (id) =>
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+/* shared class strings */
+const WRAP = "mx-auto w-full max-w-[1480px] px-5 sm:px-8 lg:px-12";
+const LABEL = "text-sm font-bold tracking-[0.14em] uppercase";
+
 /* =========================================================
    MAIN
 ========================================================= */
 
 function Programs() {
+  const { programs, loading } = usePrograms();
+
   const [activeGoal, setActiveGoal] = useState("confidence");
-  const [activeProgram, setActiveProgram] = useState(programs[0]?.id ?? 1);
+  const [activeProgramId, setActiveProgramId] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [query, setQuery] = useState("");
+  const [lightbox, setLightbox] = useState(false);
+  const [phraseIndex, setPhraseIndex] = useState(0);
 
-  const selectedGoal = goals.find((goal) => goal.id === activeGoal);
+  const detailRef = useRef(null);
 
-  const selectedProgram = useMemo(() => {
-    return (
-      programs.find((program) => program.id === activeProgram) || programs[0]
-    );
-  }, [activeProgram]);
+  /* ---------- derived ---------- */
 
-  /* =========================================================
-     GOAL SELECTION
-  ========================================================= */
+  const selectedGoal = goals.find((g) => g.id === activeGoal);
 
-  const selectGoal = (goal) => {
-    setActiveGoal(goal.id);
+  const selectedProgram = useMemo(
+    () => programs.find((p) => p.id === activeProgramId) || programs[0],
+    [programs, activeProgramId],
+  );
 
-    const firstMatchingProgram = programs.find((program) =>
-      goal.programs.includes(program.title),
-    );
+  const selectedIndex = Math.max(
+    programs.findIndex((p) => p.id === selectedProgram?.id),
+    0,
+  );
 
-    if (firstMatchingProgram) {
-      setActiveProgram(firstMatchingProgram.id);
+  const categories = useMemo(
+    () => ["All", ...new Set(programs.map((p) => p.category).filter(Boolean))],
+    [programs],
+  );
+
+  const visiblePrograms = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return programs.filter((p) => {
+      const okCat = categoryFilter === "All" || p.category === categoryFilter;
+      const okQ =
+        !q ||
+        p.title.toLowerCase().includes(q) ||
+        (p.shortTitle || "").toLowerCase().includes(q) ||
+        (p.category || "").toLowerCase().includes(q);
+      return okCat && okQ;
+    });
+  }, [programs, categoryFilter, query]);
+
+  const goalPrograms = (goal) => programs.filter((p) => goalOf(p)?.id === goal.id);
+
+  const highlights =
+    selectedProgram?.highlights?.length > 0
+      ? selectedProgram.highlights
+      : categoryHighlights[selectedProgram?.category] || categoryHighlights.Communication;
+
+  const SelectedIcon = iconMap[selectedProgram?.category] || Sparkles;
+
+  /* ---------- actions ---------- */
+
+  const scrollToDetail = () => {
+    if (window.innerWidth < 1024) {
+      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
+  const selectProgram = (program, { scroll = true } = {}) => {
+    setActiveProgramId(program.id);
+    const goal = goalOf(program);
+    if (goal) setActiveGoal(goal.id);
+    if (scroll) scrollToDetail();
+  };
+
+  const selectGoal = (goal) => {
+    setActiveGoal(goal.id);
+    setCategoryFilter("All");
+    setQuery("");
+    const first = programs.find((p) => goalOf(p)?.id === goal.id);
+    if (first) setActiveProgramId(first.id);
+  };
+
+  // used by hero chips AND the marquee: select a program and bring its poster into view
+  const jumpToProgram = (program) => {
+    setCategoryFilter("All");
+    setQuery("");
+    selectProgram(program, { scroll: false });
+
+    if (window.innerWidth < 1024) {
+      // small screens: land straight on the poster/stage
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+    } else {
+      goTo("explore-programs");
+    }
+  };
+
+  const step = (direction) => {
+    const list = visiblePrograms.length ? visiblePrograms : programs;
+    if (!list.length) return;
+    const current = list.findIndex((p) => p.id === selectedProgram?.id);
+    selectProgram(list[(current + direction + list.length) % list.length], { scroll: false });
+  };
+
+  const stepRef = useRef(step);
+  stepRef.current = step;
+
+  const handleKeyDown = (event) => {
+    if (lightbox || event.target.tagName === "INPUT") return;
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+      event.preventDefault();
+      step(1);
+    }
+    if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      step(-1);
+    }
+  };
+
+  /* ---------- effects ---------- */
+
+  // SEO: title, description, canonical, social tags
+  useEffect(() => {
+    document.title = SEO.title;
+    setMeta("name", "description", SEO.description);
+    setMeta("property", "og:title", SEO.title);
+    setMeta("property", "og:description", SEO.description);
+    setMeta("property", "og:type", "website");
+    setMeta("name", "twitter:card", "summary_large_image");
+
+    let link = document.head.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.setAttribute("rel", "canonical");
+      document.head.appendChild(link);
+    }
+    link.setAttribute("href", window.location.origin + window.location.pathname);
+  }, []);
+
+  // SEO: structured data listing every live program
+  useEffect(() => {
+    if (!programs.length) return undefined;
+
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Jashna English Programs",
+      itemListElement: programs.map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "Course",
+          name: p.title,
+          description: p.description || SEO.description,
+          provider: { "@type": "Organization", name: "Jashna" },
+        },
+      })),
+    };
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "programs-jsonld";
+    script.text = JSON.stringify(data);
+    document.getElementById("programs-jsonld")?.remove();
+    document.head.appendChild(script);
+
+    return () => script.remove();
+  }, [programs]);
+
+  // rotating hero phrase
+  useEffect(() => {
+    const id = setInterval(() => setPhraseIndex((i) => (i + 1) % heroPhrases.length), 2800);
+    return () => clearInterval(id);
+  }, []);
+
+  // lightbox keys + scroll lock
+  useEffect(() => {
+    if (!lightbox) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") setLightbox(false);
+      if (e.key === "ArrowRight") stepRef.current(1);
+      if (e.key === "ArrowLeft") stepRef.current(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [lightbox]);
+
+  useEffect(() => {
+    if (lightbox && !selectedProgram?.image?.url) setLightbox(false);
+  }, [lightbox, selectedProgram]);
+
+  // preload neighbouring images
+  useEffect(() => {
+    if (!programs.length) return;
+    [1, -1].forEach((d) => {
+      const p = programs[(selectedIndex + d + programs.length) % programs.length];
+      if (p?.image?.url) new Image().src = p.image.url;
+    });
+  }, [programs, selectedIndex]);
+
+  /* ---------- render ---------- */
+
   return (
-    <main
-      className="
-        relative
-        min-h-screen
-        overflow-hidden
-        bg-jashna-ivory
-        text-jashna-charcoal
-      "
-    >
+    <main className={`relative min-h-screen overflow-x-clip bg-[#F3F6FB] text-[#0E1A2B] ${TIMES}`}>
+      <style>{`
+        @keyframes pg-shine { to { background-position: 200% center; } }
+        @keyframes pg-marquee { to { transform: translateX(-50%); } }
+        .pg-shine { background-image: linear-gradient(90deg, #2F6BFF, #0E9F8C, #D97706, #2F6BFF); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: pg-shine 6s linear infinite; }
+        .pg-shine-brand { background-image: linear-gradient(90deg, #84e245, #2a9d8f, #84e245); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: pg-shine 5s linear infinite; }
+        .pg-marquee { animation: pg-marquee 50s linear infinite; }
+        .pg-marquee-wrap:hover .pg-marquee { animation-play-state: paused; }
+        .pg-sweep { background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.5) 50%, transparent 65%); transform: translateX(-120%); }
+        .group:hover .pg-sweep { transform: translateX(120%); transition: transform 1s ease; }
+        @media (prefers-reduced-motion: reduce) { .pg-shine, .pg-shine-brand, .pg-marquee { animation: none; } }
+      `}</style>
+
       {/* =====================================================
-          GLOBAL AMBIENT BACKGROUND
+          01 — HERO (SEO: header, h1, intro copy, nav, keywords)
       ===================================================== */}
 
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Blue glow */}
-
+      <header className="relative isolate overflow-hidden bg-gradient-to-br from-[#DCE9FF] via-[#E4F6F1] to-[#FFF0D2] pb-16 pt-28 text-[#0E1A2B] sm:pt-32 lg:pb-24 lg:pt-40">
         <motion.div
-          animate={{
-            x: [0, 35, 0],
-            y: [0, -25, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="
-            absolute
-            -right-40
-            top-20
-            h-[520px]
-            w-[520px]
-            rounded-full
-            bg-[#338DFD]/[0.055]
-            blur-[130px]
-          "
+          aria-hidden
+          animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -left-32 top-10 h-[26rem] w-[26rem] rounded-full bg-[#2F6BFF]/20 blur-[120px]"
         />
-
-        {/* Green glow */}
-
         <motion.div
-          animate={{
-            x: [0, -30, 0],
-            y: [0, 25, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="
-            absolute
-            -left-48
-            top-[38%]
-            h-[500px]
-            w-[500px]
-            rounded-full
-            bg-[#49C4A5]/[0.055]
-            blur-[130px]
-          "
+          aria-hidden
+          animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -right-24 bottom-0 h-[26rem] w-[26rem] rounded-full bg-[#FFB020]/25 blur-[120px]"
         />
-
-        {/* Fine grid */}
-
+        <motion.div
+          aria-hidden
+          animate={{ x: [0, 30, 0], y: [0, 30, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute left-[38%] top-[30%] h-[22rem] w-[22rem] rounded-full bg-[#12B5A0]/20 blur-[120px]"
+        />
         <div
-          className="
-            absolute
-            inset-0
-            opacity-[0.025]
-            [background-image:linear-gradient(#10243E_1px,transparent_1px),linear-gradient(90deg,#10243E_1px,transparent_1px)]
-            [background-size:60px_60px]
-          "
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.045] [background-image:linear-gradient(#0E1A2B_1px,transparent_1px),linear-gradient(90deg,#0E1A2B_1px,transparent_1px)] [background-size:56px_56px]"
         />
-      </div>
 
-      {/* =====================================================
-          01 — NEW OPENING / HERO
-      ===================================================== */}
-
-      <section
-        className="
-          relative
-          px-5
-          pb-20
-          pt-32
-          sm:px-8
-          lg:px-10
-          lg:pb-28
-          lg:pt-40
-        "
-      >
-        <div className="mx-auto max-w-7xl">
-          <div
-            className="
-              grid
-              items-center
-              gap-14
-              lg:grid-cols-[0.9fr_1.1fr]
-              lg:gap-20
-            "
-          >
-            {/* =================================================
-                LEFT — HERO COPY
-            ================================================= */}
-
+        <div className={`${WRAP} relative z-10`}>
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+            {/* LEFT — message */}
             <motion.div
-              initial={{
-                opacity: 0,
-                x: -25,
-              }}
-              animate={{
-                opacity: 1,
-                x: 0,
-              }}
-              transition={{
-                duration: 0.75,
-                ease: "easeOut",
-              }}
-              className="relative z-10"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="min-w-0"
             >
-              {/* EYEBROW */}
+              <p className="inline-flex items-center gap-2.5 rounded-full border border-[#0E1A2B]/10 bg-white/75 px-4 py-2 text-base font-bold text-[#0B7F70] shadow-sm backdrop-blur">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-[#12B5A0]" />
+                Jashna English programs
+              </p>
 
-              <div className="flex items-center gap-3">
-                <span
-                  className="
-                    h-[2px]
-                    w-10
-                    rounded-full
-                    bg-gradient-to-r
-                    from-[#338DFD]
-                    to-[#49C4A5]
-                  "
-                />
-
-                <span
-                  className="
-                    text-[10px]
-                    font-bold
-                    uppercase
-                    tracking-[0.3em]
-                    text-[#338DFD]
-                  "
-                >
-                  Learn with purpose
-                </span>
-              </div>
-
-              {/* HEADING */}
-
-              <h1
-                className="
-                  mt-7
-                  max-w-2xl
-                  font-display
-                  text-5xl
-                  font-bold
-                  leading-[0.96]
-                  tracking-[-0.045em]
-                  text-[#10243E]
-                  sm:text-6xl
-                  lg:text-[5.1rem]
-                "
-              >
-                Find the skills
-                <span
-                  className="
-                    block
-                    bg-gradient-to-r
-                    from-[#338DFD]
-                    via-[#338DFD]
-                    to-[#49C4A5]
-                    bg-clip-text
-                    text-transparent
-                  "
-                >
-                  that move you forward.
-                </span>
+              <h1 className="mt-6 text-[2.6rem] font-bold leading-[1.04] tracking-tight text-[#0E1A2B] sm:text-6xl xl:text-[4.6rem]">
+                English programs for
+                <span className="pg-shine block pb-2">the life you want.</span>
               </h1>
 
-              {/* DESCRIPTION */}
+              <div className="mt-3 text-xl font-medium text-[#0E1A2B]/65 sm:text-2xl">
+                <span aria-hidden>I want to</span>
+                <div aria-hidden className="relative mt-1 h-10 w-full max-w-md overflow-hidden sm:h-12">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={phraseIndex}
+                      initial={{ y: "100%", opacity: 0 }}
+                      animate={{ y: "0%", opacity: 1 }}
+                      exit={{ y: "-100%", opacity: 0 }}
+                      transition={{ duration: 0.45, ease: "easeOut" }}
+                      className="absolute inset-0 flex items-center whitespace-nowrap font-bold text-[#2F6BFF]"
+                    >
+                      {heroPhrases[phraseIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                </div>
+                <span className="sr-only">Programs to help you {heroPhrases.join(", ")}</span>
+              </div>
 
-              <p
-                className="
-                  mt-7
-                  max-w-xl
-                  text-base
-                  font-medium
-                  leading-8
-                  text-jashna-muted
-                  sm:text-lg
-                "
-              >
-                From everyday English to interviews, IELTS, public speaking and
-                professional communication, choose a learning path built around
-                what you want to achieve.
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
+                className="mt-4 block h-[5px] w-40 origin-left rounded-full bg-gradient-to-r from-[#2F6BFF] via-[#12B5A0] to-[#FFB020]"
+              />
+
+              <p className="mt-7 max-w-xl text-lg font-medium leading-8 text-[#0E1A2B]/75 sm:text-xl sm:leading-9">
+                Practical courses in <strong className="text-[#0E1A2B]">spoken English</strong>,{" "}
+                <strong className="text-[#0E1A2B]">IELTS preparation</strong>,{" "}
+                <strong className="text-[#0E1A2B]">interview skills</strong>,{" "}
+                <strong className="text-[#0E1A2B]">business English</strong> and{" "}
+                <strong className="text-[#0E1A2B]">teacher training</strong>. Pick the direction you
+                want to grow in and we'll match you with the right learning path.
               </p>
 
-              {/* ACTIONS */}
-
-              <div
-                className="
-                  mt-9
-                  flex
-                  flex-wrap
-                  items-center
-                  gap-4
-                "
-              >
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
                 <motion.a
-                  href="#explore"
-                  whileHover={{
-                    y: -3,
+                  href="#explore-programs"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goTo("explore-programs");
                   }}
-                  whileTap={{
-                    scale: 0.97,
-                  }}
-                  className="
-                    group
-                    inline-flex
-                    items-center
-                    gap-2.5
-                    rounded-full
-                    bg-gradient-to-r
-                    from-[#338DFD]
-                    to-[#49C4A5]
-                    px-6
-                    py-3.5
-                    text-sm
-                    font-bold
-                    text-white
-                    shadow-[0_10px_30px_rgba(51,141,253,0.20)]
-                    transition-all
-                    duration-300
-                    hover:shadow-[0_14px_38px_rgba(51,141,253,0.28)]
-                  "
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#0E1A2B] px-8 py-4 text-lg font-bold text-white shadow-[0_16px_40px_rgba(14,26,43,0.25)] transition-colors hover:bg-[#2F6BFF]"
                 >
-                  Explore learning paths
-                  <ArrowRight
-                    size={16}
-                    className="
-                      transition-transform
-                      duration-300
-                      group-hover:translate-x-1
-                    "
-                  />
+                  Explore programs
+                  <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
                 </motion.a>
 
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-2
-                    rounded-full
-                    border
-                    border-[#10243E]/10
-                    bg-white/55
-                    px-4
-                    py-2.5
-                    backdrop-blur-sm
-                  "
+                <motion.a
+                  href={getWhatsAppLink(
+                    "Hello Dr.Shivam Sir, I would like to book a free consultation for the English programs at Jashna Edu."
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="inline-flex items-center justify-center gap-2.5 rounded-full border-2 border-[#0E1A2B]/20 bg-white/70 px-7 py-[14px] text-lg font-bold text-[#0E1A2B] backdrop-blur transition-colors hover:border-[#2F6BFF] hover:bg-white hover:text-[#2F6BFF]"
                 >
-                  <span
-                    className="
-                      h-2
-                      w-2
-                      rounded-full
-                      bg-[#49C4A5]
-                      shadow-[0_0_9px_rgba(73,196,165,0.55)]
-                    "
-                  />
-
-                  <span
-                    className="
-                      text-[11px]
-                      font-bold
-                      text-[#10243E]/65
-                    "
-                  >
-                    11 focused learning paths
-                  </span>
-                </div>
+                  <CalendarCheck2 size={19} />
+                  Book a consultation
+                </motion.a>
               </div>
 
-              {/* MINI TRUST POINTS */}
+              <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-base font-bold text-[#0E1A2B]/70">
+                {["Practical", "Personalised", "Real-world"].map((t) => (
+                  <li key={t} className="flex items-center gap-2">
+                    <Check size={16} className="text-[#0E9F8C]" />
+                    {t}
+                  </li>
+                ))}
+              </ul>
 
-              <div
-                className="
-                  mt-10
-                  flex
-                  flex-wrap
-                  gap-x-6
-                  gap-y-3
-                  text-[10px]
-                  font-bold
-                  uppercase
-                  tracking-[0.12em]
-                  text-[#10243E]/40
-                "
-              >
-                <span className="flex items-center gap-2">
-                  <Check size={13} className="text-[#49C4A5]" />
-                  Practical learning
-                </span>
-
-                <span className="flex items-center gap-2">
-                  <Check size={13} className="text-[#49C4A5]" />
-                  Real-world skills
-                </span>
-
-                <span className="flex items-center gap-2">
-                  <Check size={13} className="text-[#49C4A5]" />
-                  Personalised direction
-                </span>
+              <div className="mt-10 grid max-w-md grid-cols-3 border-t border-[#0E1A2B]/15 pt-7">
+                <HeroStat value={programs.length} label="Programs" />
+                <HeroStat value={goals.length} label="Directions" bordered />
+                <HeroStat value={Math.max(categories.length - 1, 0)} label="Categories" bordered />
               </div>
             </motion.div>
 
-            {/* =================================================
-                RIGHT — PROGRAM NAVIGATOR
-
-                Replaces the old decorative circle.
-            ================================================= */}
-
-            <motion.div
-              initial={{
-                opacity: 0,
-                x: 30,
-                scale: 0.97,
-              }}
-              animate={{
-                opacity: 1,
-                x: 0,
-                scale: 1,
-              }}
-              transition={{
-                duration: 0.85,
-                delay: 0.12,
-                ease: "easeOut",
-              }}
-              className="relative mx-auto w-full max-w-[620px]"
+            {/* RIGHT — direction picker */}
+            <motion.nav
+              aria-label="Choose your learning direction"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}
+              className="min-w-0 rounded-[32px] border border-white/80 bg-white/60 p-5 shadow-[0_30px_80px_rgba(47,107,255,0.15)] backdrop-blur-xl sm:p-7"
             >
-              {/* Background decorative glow */}
-
-              <div
-                className="
-                  pointer-events-none
-                  absolute
-                  -right-10
-                  -top-10
-                  h-40
-                  w-40
-                  rounded-full
-                  bg-[#338DFD]/10
-                  blur-[70px]
-                "
-              />
-
-              <div
-                className="
-                  pointer-events-none
-                  absolute
-                  -bottom-10
-                  -left-10
-                  h-40
-                  w-40
-                  rounded-full
-                  bg-[#49C4A5]/10
-                  blur-[70px]
-                "
-              />
-
-              {/* Main dashboard */}
-
-              <div
-                className="
-                  relative
-                  overflow-hidden
-                  rounded-[34px]
-                  border
-                  border-[#10243E]/10
-                  bg-white/70
-                  p-5
-                  shadow-[0_25px_70px_rgba(16,36,62,0.10)]
-                  backdrop-blur-xl
-                  sm:p-7
-                "
-              >
-                {/* top gradient line */}
-
-                <div
-                  className="
-                    absolute
-                    left-0
-                    right-0
-                    top-0
-                    h-[3px]
-                    bg-gradient-to-r
-                    from-[#338DFD]
-                    via-[#49C4A5]
-                    to-[#338DFD]
-                  "
-                />
-
-                {/* Dashboard header */}
-
-                <div
-                  className="
-                    flex
-                    items-start
-                    justify-between
-                    gap-5
-                  "
-                >
-                  <div>
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-2
-                        text-[9px]
-                        font-bold
-                        uppercase
-                        tracking-[0.24em]
-                        text-[#338DFD]
-                      "
-                    >
-                      <Sparkles size={12} />
-                      Program Navigator
-                    </div>
-
-                    <h2
-                      className="
-                        mt-2
-                        font-display
-                        text-2xl
-                        font-bold
-                        tracking-[-0.02em]
-                        text-[#10243E]
-                        sm:text-3xl
-                      "
-                    >
-                      Where do you want to grow?
-                    </h2>
-                  </div>
-
-                  <div
-                    className="
-                      hidden
-                      h-11
-                      w-11
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-2xl
-                      bg-gradient-to-br
-                      from-[#338DFD]
-                      to-[#49C4A5]
-                      text-white
-                      shadow-[0_8px_20px_rgba(51,141,253,0.20)]
-                      sm:flex
-                    "
-                  >
-                    <Target size={19} />
-                  </div>
-                </div>
-
-                {/* Goal pills */}
-
-                <div
-                  className="
-                    mt-7
-                    grid
-                    grid-cols-2
-                    gap-2.5
-                    sm:grid-cols-4
-                  "
-                >
-                  {goals.map((goal) => {
-                    const active = activeGoal === goal.id;
-
-                    return (
-                      <motion.button
-                        key={goal.id}
-                        type="button"
-                        onClick={() => selectGoal(goal)}
-                        whileHover={{
-                          y: -2,
-                        }}
-                        whileTap={{
-                          scale: 0.96,
-                        }}
-                        className={`
-                          relative
-                          overflow-hidden
-                          rounded-2xl
-                          border
-                          px-3
-                          py-3.5
-                          text-left
-                          transition-all
-                          duration-300
-
-                          ${
-                            active
-                              ? `
-                                border-[#338DFD]/20
-                                bg-gradient-to-br
-                                from-[#338DFD]
-                                to-[#49C4A5]
-                                text-white
-                                shadow-[0_8px_22px_rgba(51,141,253,0.20)]
-                              `
-                              : `
-                                border-[#10243E]/8
-                                bg-[#F8F9FA]
-                                text-[#10243E]
-                                hover:border-[#338DFD]/20
-                                hover:bg-white
-                              `
-                          }
-                        `}
-                      >
-                        <span
-                          className={`
-                            text-[8px]
-                            font-bold
-                            tracking-[0.15em]
-
-                            ${active ? "text-white/65" : "text-[#338DFD]/60"}
-                          `}
-                        >
-                          {goal.number}
-                        </span>
-
-                        <span
-                          className="
-                            mt-1
-                            block
-                            text-[11px]
-                            font-bold
-                            leading-4
-                          "
-                        >
-                          {goal.title
-                            .replace(
-                              "Become a better educator",
-                              "Better educator",
-                            )
-                            .replace(
-                              "Achieve an academic goal",
-                              "Academic goals",
-                            )
-                            .replace("Grow my career", "Career growth")
-                            .replace(
-                              "Speak with confidence",
-                              "Speak confidently",
-                            )}
-                        </span>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-
-                {/* Selected goal panel */}
-
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={selectedGoal?.id}
-                    initial={{
-                      opacity: 0,
-                      y: 8,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                    }}
-                    exit={{
-                      opacity: 0,
-                      y: -8,
-                    }}
-                    transition={{
-                      duration: 0.3,
-                    }}
-                    className="
-                      mt-5
-                      rounded-[24px]
-                      bg-[#10243E]
-                      p-5
-                      text-white
-                      sm:p-6
-                    "
-                  >
-                    <div
-                      className="
-                        flex
-                        items-start
-                        justify-between
-                        gap-5
-                      "
-                    >
-                      <div>
-                        <p
-                          className="
-                            text-[9px]
-                            font-bold
-                            uppercase
-                            tracking-[0.2em]
-                            text-[#49C4A5]
-                          "
-                        >
-                          Your selected direction
-                        </p>
-
-                        <h3
-                          className="
-                            mt-2
-                            font-display
-                            text-xl
-                            font-bold
-                            sm:text-2xl
-                          "
-                        >
-                          {selectedGoal?.title}
-                        </h3>
-                      </div>
-
-                      <span
-                        className="
-                          flex
-                          h-9
-                          w-9
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-full
-                          bg-white/10
-                          text-[#49C4A5]
-                        "
-                      >
-                        <ArrowUpRight size={16} />
-                      </span>
-                    </div>
-
-                    <p
-                      className="
-                        mt-3
-                        max-w-lg
-                        text-xs
-                        leading-6
-                        text-white/55
-                      "
-                    >
-                      {selectedGoal?.description}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Bottom statistics */}
-
-                <div
-                  className="
-                    mt-5
-                    grid
-                    grid-cols-3
-                    divide-x
-                    divide-[#10243E]/8
-                    rounded-2xl
-                    border
-                    border-[#10243E]/8
-                    bg-white/50
-                    py-4
-                  "
-                >
-                  <NavigatorStat number="11" label="Programs" />
-
-                  <NavigatorStat number="04" label="Goal areas" />
-
-                  <NavigatorStat number="01" label="You" />
-                </div>
-              </div>
-
-              {/* Floating micro-card */}
-
-              <motion.div
-                animate={{
-                  y: [0, -6, 0],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="
-                  absolute
-                  -bottom-5
-                  -left-3
-                  hidden
-                  rounded-2xl
-                  border
-                  border-[#10243E]/8
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-[0_12px_30px_rgba(16,36,62,0.10)]
-                  sm:block
-                  lg:-left-7
-                "
-              >
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className="
-                      flex
-                      h-7
-                      w-7
-                      items-center
-                      justify-center
-                      rounded-full
-                      bg-[#49C4A5]/10
-                      text-[#49C4A5]
-                    "
-                  >
-                    <Check size={13} />
-                  </span>
-
-                  <div>
-                    <p className="text-[9px] font-bold text-[#10243E]">
-                      Built around real goals
-                    </p>
-
-                    <p className="mt-0.5 text-[8px] text-[#10243E]/40">
-                      Learn • Practise • Apply
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Floating program count */}
-
-              <motion.div
-                animate={{
-                  y: [0, 5, 0],
-                }}
-                transition={{
-                  duration: 4.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.7,
-                }}
-                className="
-                  absolute
-                  -right-2
-                  -top-4
-                  hidden
-                  rounded-2xl
-                  border
-                  border-[#338DFD]/10
-                  bg-white
-                  px-4
-                  py-3
-                  shadow-[0_12px_30px_rgba(16,36,62,0.10)]
-                  sm:block
-                  lg:-right-6
-                "
-              >
-                <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#338DFD]">
-                  Jashna
-                </p>
-
-                <p className="mt-1 text-xs font-bold text-[#10243E]">
-                  11 learning paths
-                </p>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          02 — GOAL SELECTOR
-      ===================================================== */}
-
-      <section
-        id="explore"
-        className="
-          relative
-          border-y
-          border-[#10243E]/8
-          bg-white/40
-          px-5
-          py-20
-          sm:px-8
-          lg:px-10
-          lg:py-28
-        "
-      >
-        <div className="mx-auto max-w-7xl">
-          {/* Section heading */}
-
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-3">
-              <span
-                className="
-                  h-[2px]
-                  w-9
-                  rounded-full
-                  bg-[#49C4A5]
-                "
-              />
-
-              <p
-                className="
-                  text-[10px]
-                  font-bold
-                  uppercase
-                  tracking-[0.28em]
-                  text-[#338DFD]
-                "
-              >
-                Start with your goal
-              </p>
-            </div>
-
-            <h2
-              className="
-                mt-5
-                font-display
-                text-4xl
-                font-bold
-                leading-[1.05]
-                tracking-[-0.035em]
-                text-[#10243E]
-                sm:text-5xl
-              "
-            >
-              Choose where you want
-              <span
-                className="
-                  block
-                  bg-gradient-to-r
-                  from-[#338DFD]
-                  to-[#49C4A5]
-                  bg-clip-text
-                  text-transparent
-                "
-              >
-                your learning to take you.
-              </span>
-            </h2>
-
-            <p
-              className="
-                mt-5
-                max-w-xl
-                text-sm
-                font-medium
-                leading-7
-                text-jashna-muted
-              "
-            >
-              You don't need to know which course you need. Start with the
-              outcome you want, and explore the programs connected to it.
-            </p>
-          </div>
-
-          {/* Goal cards */}
-
-          <div
-            className="
-              mt-12
-              grid
-              gap-4
-              sm:grid-cols-2
-              lg:grid-cols-4
-            "
-          >
-            {goals.map((goal) => {
-              const isActive = activeGoal === goal.id;
-
-              return (
-                <motion.button
-                  key={goal.id}
-                  type="button"
-                  onClick={() => selectGoal(goal)}
-                  whileHover={{
-                    y: -6,
-                  }}
-                  whileTap={{
-                    scale: 0.98,
-                  }}
-                  className={`
-                    group
-                    relative
-                    overflow-hidden
-                    rounded-[28px]
-                    border
-                    p-7
-                    text-left
-                    transition-all
-                    duration-500
-
-                    ${
-                      isActive
-                        ? `
-                          border-[#338DFD]/10
-                          bg-[#10243E]
-                          text-white
-                          shadow-[0_20px_45px_rgba(16,36,62,0.18)]
-                        `
-                        : `
-                          border-[#10243E]/8
-                          bg-white/65
-                          hover:border-[#338DFD]/20
-                          hover:bg-white
-                          hover:shadow-[0_18px_40px_rgba(16,36,62,0.08)]
-                        `
-                    }
-                  `}
-                >
-                  {/* Card glow */}
-
-                  <span
-                    className="
-                      pointer-events-none
-                      absolute
-                      -right-10
-                      -top-10
-                      h-28
-                      w-28
-                      rounded-full
-                      bg-[#338DFD]/10
-                      blur-2xl
-                      transition-transform
-                      duration-500
-                      group-hover:scale-150
-                    "
-                  />
-
-                  {/* Number */}
-
-                  <span
-                    className={`
-                      relative
-                      z-10
-                      font-display
-                      text-5xl
-                      font-bold
-
-                      ${isActive ? "text-white/10" : "text-[#338DFD]/10"}
-                    `}
-                  >
-                    {goal.number}
-                  </span>
-
-                  <h3
-                    className={`
-                      relative
-                      z-10
-                      mt-7
-                      font-display
-                      text-xl
-                      font-bold
-
-                      ${isActive ? "text-white" : "text-[#10243E]"}
-                    `}
-                  >
-                    {goal.title}
-                  </h3>
-
-                  <p
-                    className={`
-                      relative
-                      z-10
-                      mt-3
-                      text-xs
-                      leading-6
-
-                      ${isActive ? "text-white/55" : "text-jashna-muted"}
-                    `}
-                  >
-                    {goal.description}
-                  </p>
-
-                  <span
-                    className={`
-                      relative
-                      z-10
-                      mt-6
-                      inline-flex
-                      items-center
-                      gap-2
-                      text-xs
-                      font-bold
-
-                      ${isActive ? "text-[#49C4A5]" : "text-[#338DFD]"}
-                    `}
-                  >
-                    Explore this path
-                    <ArrowUpRight
-                      size={14}
-                      className="
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-0.5
-                        group-hover:-translate-y-0.5
-                      "
-                    />
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          03 — PROGRAM SHOWCASE
-      ===================================================== */}
-
-      <section
-        className="
-          relative
-          px-5
-          py-24
-          sm:px-8
-          lg:px-10
-          lg:py-32
-        "
-      >
-        <div className="mx-auto max-w-7xl">
-          <div
-            className="
-              grid
-              gap-12
-              lg:grid-cols-[0.3fr_0.7fr]
-              lg:gap-14
-            "
-          >
-            {/* =================================================
-                LEFT — PROGRAM NAVIGATION
-            ================================================= */}
-
-            <div className="relative">
-              <div
-                className="
-                  mb-7
-                  flex
-                  items-end
-                  justify-between
-                  gap-4
-                "
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="
-                        h-1.5
-                        w-1.5
-                        rounded-full
-                        bg-[#49C4A5]
-                        shadow-[0_0_8px_rgba(73,196,165,0.5)]
-                      "
-                    />
-
-                    <p
-                      className="
-                        text-[10px]
-                        font-bold
-                        uppercase
-                        tracking-[0.28em]
-                        text-[#338DFD]
-                      "
-                    >
-                      Our programs
-                    </p>
-                  </div>
-
-                  <h3
-                    className="
-                      mt-2
-                      font-display
-                      text-2xl
-                      font-bold
-                      text-[#10243E]
-                    "
-                  >
-                    Find your learning path
-                  </h3>
-                </div>
-
-                <span
-                  className="
-                    rounded-full
-                    border
-                    border-[#10243E]/8
-                    bg-white/65
-                    px-3
-                    py-1.5
-                    text-[9px]
-                    font-bold
-                    tracking-[0.12em]
-                    text-jashna-muted
-                  "
-                >
-                  11 PROGRAMS
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#12B5A0] text-white shadow-md">
+                  <Target size={20} />
                 </span>
+                <div className="min-w-0">
+                  <p className="text-base font-bold text-[#0B7F70]">Find your direction</p>
+                  <h2 className="text-2xl font-bold leading-tight text-[#0E1A2B] sm:text-3xl">
+                    What are you working towards?
+                  </h2>
+                </div>
               </div>
 
-              {/* Program list */}
-
-              <div
-                className="
-                  overflow-hidden
-                  rounded-[28px]
-                  border
-                  border-[#10243E]/8
-                  bg-white/60
-                  p-2
-                  shadow-sm
-                  backdrop-blur-sm
-                "
-              >
-                {programs.map((program, index) => {
-                  const Icon = iconMap[program.category] || Sparkles;
-
-                  const isActive = selectedProgram?.id === program.id;
+              <div className="mt-6 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2">
+                {goals.map((goal) => {
+                  const active = activeGoal === goal.id;
+                  const GoalIcon = goal.icon;
+                  const count = goalPrograms(goal).length;
 
                   return (
                     <motion.button
-                      key={program.id}
+                      key={goal.id}
                       type="button"
-                      onClick={() => setActiveProgram(program.id)}
-                      whileHover={{
-                        x: isActive ? 0 : 4,
-                      }}
-                      whileTap={{
-                        scale: 0.985,
-                      }}
-                      transition={{
-                        duration: 0.2,
-                      }}
-                      className={`
-                        group
-                        relative
-                        flex
-                        w-full
-                        items-center
-                        gap-3
-                        rounded-[20px]
-                        px-3
-                        py-3
-                        text-left
-                        transition-all
-                        duration-300
-
-                        ${
-                          isActive
-                            ? `
-                              bg-[#10243E]
-                              text-white
-                              shadow-lg
-                            `
-                            : `
-                              text-[#10243E]
-                              hover:bg-white
-                            `
-                        }
-                      `}
+                      onClick={() => selectGoal(goal)}
+                      aria-pressed={active}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ scale: 0.97 }}
+                      className={`group relative flex min-w-0 flex-col items-start overflow-hidden rounded-2xl border p-4 text-left transition-colors duration-300 sm:p-5 ${
+                        active
+                          ? "border-transparent bg-gradient-to-br from-[#2F6BFF] to-[#12B5A0] text-white shadow-[0_16px_40px_rgba(47,107,255,0.35)]"
+                          : "border-[#0E1A2B]/10 bg-white text-[#0E1A2B] hover:border-[#2F6BFF]/40 hover:shadow-[0_12px_30px_rgba(14,26,43,0.08)]"
+                      }`}
                     >
-                      {/* Active indicator */}
-
-                      {isActive && (
-                        <motion.span
-                          layoutId="activeProgramIndicator"
-                          className="
-                            absolute
-                            left-0
-                            top-1/2
-                            h-7
-                            w-1
-                            -translate-y-1/2
-                            rounded-r-full
-                            bg-gradient-to-b
-                            from-[#338DFD]
-                            to-[#49C4A5]
-                          "
-                        />
-                      )}
-
-                      {/* Number */}
-
                       <span
-                        className={`
-                          flex
-                          h-8
-                          w-8
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-xl
-                          text-[9px]
-                          font-bold
-                          transition-all
-                          duration-300
-
-                          ${
-                            isActive
-                              ? "bg-white/10 text-[#49C4A5]"
-                              : "bg-[#10243E]/[0.04] text-jashna-muted group-hover:bg-[#338DFD]/10 group-hover:text-[#338DFD]"
-                          }
-                        `}
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                          active ? "bg-white/20 text-white" : "bg-[#2F6BFF]/10 text-[#2F6BFF]"
+                        }`}
                       >
-                        {String(index + 1).padStart(2, "0")}
+                        <GoalIcon size={19} />
                       </span>
-
-                      {/* Icon */}
-
-                      <span
-                        className={`
-                          flex
-                          h-8
-                          w-8
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-xl
-                          transition-all
-                          duration-300
-
-                          ${
-                            isActive
-                              ? "bg-gradient-to-br from-[#338DFD] to-[#49C4A5] text-white"
-                              : "bg-[#338DFD]/[0.06] text-[#338DFD] group-hover:bg-[#338DFD] group-hover:text-white"
-                          }
-                        `}
-                      >
-                        <Icon size={14} />
-                      </span>
-
-                      {/* Course info */}
-
-                      <span className="min-w-0 flex-1">
-                        <span
-                          className={`
-                            block
-                            truncate
-                            text-xs
-                            font-bold
-                            leading-5
-
-                            ${isActive ? "text-white" : "text-[#10243E]"}
-                          `}
-                        >
-                          {program.shortTitle || program.title}
-                        </span>
-
-                        <span
-                          className={`
-                            mt-0.5
-                            block
-                            truncate
-                            text-[9px]
-                            font-medium
-
-                            ${isActive ? "text-white/40" : "text-jashna-muted"}
-                          `}
-                        >
-                          {program.category}
-                        </span>
-                      </span>
-
-                      {/* Arrow */}
-
-                      <span
-                        className={`
-                          flex
-                          h-7
-                          w-7
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-full
-                          transition-all
-                          duration-300
-
-                          ${
-                            isActive
-                              ? "bg-white/10 text-[#49C4A5]"
-                              : "text-jashna-muted/40 group-hover:bg-[#338DFD] group-hover:text-white"
-                          }
-                        `}
-                      >
-                        <ArrowUpRight size={13} />
+                      <span className="mt-3 text-xl font-bold leading-6">{goal.short}</span>
+                      <span className={`mt-1.5 flex items-center gap-1 text-base font-medium ${active ? "text-white/90" : "text-[#0E1A2B]/55"}`}>
+                        {count} {count === 1 ? "program" : "programs"}
+                        <ChevronRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
                       </span>
                     </motion.button>
                   );
                 })}
               </div>
 
-              {/* Supporting line */}
-
-              <div
-                className="
-                  mt-5
-                  flex
-                  items-center
-                  gap-3
-                  px-2
-                "
-              >
-                <span className="h-px flex-1 bg-[#10243E]/8" />
-
-                <span
-                  className="
-                    text-[9px]
-                    font-bold
-                    text-jashna-muted
-                  "
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedGoal?.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                  className="mt-5 rounded-2xl border border-[#0E1A2B]/10 bg-gradient-to-br from-white to-[#F1F7FF] p-5"
                 >
-                  Select a program to explore
-                </span>
+                  <p className="text-lg font-medium leading-7 text-[#0E1A2B]/75">
+                    {selectedGoal?.description}
+                  </p>
 
-                <span className="h-px flex-1 bg-[#10243E]/8" />
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {goalPrograms(selectedGoal).map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => jumpToProgram(p)}
+                        className="max-w-full rounded-full border border-[#0E1A2B]/12 bg-white px-4 py-2 text-left text-base font-bold text-[#0E1A2B] transition-all hover:-translate-y-0.5 hover:border-[#2F6BFF] hover:bg-[#E6EEFF] hover:text-[#2F6BFF]"
+                      >
+                        {p.shortTitle || p.title}
+                      </button>
+                    ))}
+                    {programs.length > 0 && goalPrograms(selectedGoal).length === 0 && (
+                      <span className="text-base text-[#0E1A2B]/55">Programs coming soon.</span>
+                    )}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </motion.nav>
+          </div>
+        </div>
+      </header>
+
+      {/* =====================================================
+          MARQUEE — every live program (each name is clickable
+          and jumps to that program's poster below)
+      ===================================================== */}
+
+      {programs.length > 0 && (
+        <div className="pg-marquee-wrap relative overflow-hidden bg-gradient-to-r from-[#2F6BFF] via-[#1F8FD6] to-[#12B5A0] py-5">
+          <div className="pg-marquee flex w-max items-center gap-10 whitespace-nowrap">
+            {[...programs, ...programs].map((program, i) => {
+              const isCopy = i >= programs.length;
+              const name = program.shortTitle || program.title;
+
+              return (
+                <span
+                  key={`${program.id}-${i}`}
+                  aria-hidden={isCopy || undefined}
+                  className="flex items-center gap-10"
+                >
+                  <button
+                    type="button"
+                    onClick={() => jumpToProgram(program)}
+                    tabIndex={isCopy ? -1 : 0}
+                    aria-label={`View ${name} program`}
+                    className="cursor-pointer text-2xl font-bold text-white underline-offset-8 transition-colors duration-300 hover:text-[#FFE08A] hover:underline focus-visible:text-[#FFE08A] focus-visible:underline focus-visible:outline-none sm:text-3xl"
+                  >
+                    {name}
+                  </button>
+                  <Sparkles size={20} aria-hidden className="text-[#FFC043]" />
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          02 — PROGRAM EXPLORER (redesigned)
+      ===================================================== */}
+
+      <section id="explore-programs" className="relative scroll-mt-20 overflow-hidden py-20 lg:py-28">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -left-40 top-24 h-[28rem] w-[28rem] rounded-full bg-[#215e93]/10 blur-[120px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-32 bottom-10 h-[28rem] w-[28rem] rounded-full bg-[#84e245]/15 blur-[120px]"
+        />
+
+        <div className={`${WRAP} relative`}>
+          <Reveal>
+            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+              <div>
+                <p className={`${LABEL} text-[#2a9d8f]`}>You don't need to know which course</p>
+                <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+                  Find the program{" "}
+                  <span className="bg-gradient-to-r from-[#215e93] via-[#2a9d8f] to-[#84e245] bg-clip-text text-transparent">
+                    that fits.
+                  </span>
+                </h2>
+              </div>
+              <p className="max-w-md text-lg font-medium leading-7 text-[#0E1A2B]/65 md:text-right">
+                Select a program to see it. Use the arrow keys or the arrows on the picture to
+                browse.
+              </p>
+            </div>
+          </Reveal>
+
+          {/* filters + search */}
+          <div className="mt-9 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              {categories.map((category) => {
+                const active = categoryFilter === category;
+                return (
+                  <motion.button
+                    key={category}
+                    type="button"
+                    onClick={() => setCategoryFilter(category)}
+                    whileTap={{ scale: 0.95 }}
+                    className={`rounded-full border px-4 py-2 text-base font-bold transition-colors duration-200 ${
+                      active
+                        ? "border-[#215e93] bg-[#215e93] text-white"
+                        : "border-[#0E1A2B]/12 bg-white text-[#0E1A2B]/70 hover:border-[#2a9d8f] hover:text-[#215e93]"
+                    }`}
+                  >
+                    {category}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            <label className="relative block w-full lg:w-72">
+              <span className="sr-only">Search programs</span>
+              <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#0E1A2B]/40" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search programs…"
+                className="w-full rounded-full border border-[#0E1A2B]/12 bg-white py-2.5 pl-10 pr-4 text-base outline-none transition-all placeholder:text-[#0E1A2B]/40 focus:border-[#2a9d8f] focus:ring-4 focus:ring-[#2a9d8f]/15"
+              />
+            </label>
+          </div>
+
+          <div
+            className="mt-8 grid gap-6 lg:grid-cols-[0.3fr_0.7fr] lg:items-start xl:gap-8"
+            onKeyDown={handleKeyDown}
+          >
+            {/* list */}
+            <div className="min-w-0 rounded-[28px] border border-[#0E1A2B]/10 bg-white/70 p-4 shadow-[0_14px_40px_rgba(14,26,43,0.06)] backdrop-blur sm:p-5">
+              <div className="mb-4 flex items-center justify-between px-1">
+                <span className={`${LABEL} text-[#0E1A2B]/55`}>All programs</span>
+                <span className="rounded-full bg-[#215e93]/10 px-2.5 py-0.5 text-base font-bold text-[#215e93]">
+                  {String(visiblePrograms.length).padStart(2, "0")}
+                </span>
+              </div>
+
+              <div className="relative max-h-[70vh] overflow-y-auto pr-1 lg:max-h-[calc(100vh-16rem)]">
+                {loading &&
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="mb-2 h-[60px] animate-pulse rounded-2xl bg-[#0E1A2B]/[0.06]" />
+                  ))}
+
+                {!loading && visiblePrograms.length === 0 && (
+                  <p className="px-2 py-6 text-base text-[#0E1A2B]/60">
+                    No programs match your search. Try another word or category.
+                  </p>
+                )}
+
+                {visiblePrograms.map((program) => {
+                  const Icon = iconMap[program.category] || Sparkles;
+                  const isActive = selectedProgram?.id === program.id;
+                  const number = programs.findIndex((p) => p.id === program.id) + 1;
+
+                  return (
+                    <motion.button
+                      key={program.id}
+                      type="button"
+                      onClick={() => selectProgram(program)}
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`group relative mb-1.5 flex w-full items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 text-left transition-colors duration-300 sm:gap-4 sm:px-4 ${
+                        isActive
+                          ? "border-[#2a9d8f]/50 bg-gradient-to-r from-[#215e93]/10 via-[#2a9d8f]/10 to-[#84e245]/15 shadow-[0_10px_25px_rgba(33,94,147,0.14)]"
+                          : "border-transparent hover:border-[#0E1A2B]/10 hover:bg-white"
+                      }`}
+                    >
+                      {isActive && (
+                        <motion.span
+                          layoutId="programRail"
+                          className="absolute left-0 top-1/2 h-9 w-[4px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-[#215e93] via-[#2a9d8f] to-[#84e245]"
+                        />
+                      )}
+
+                      {program.image?.url ? (
+                        <img
+                          src={program.image.url}
+                          alt=""
+                          loading="lazy"
+                          className={`h-11 w-11 shrink-0 rounded-xl object-cover ring-2 transition-all duration-300 group-hover:scale-105 ${
+                            isActive ? "ring-[#2a9d8f]" : "ring-transparent"
+                          }`}
+                        />
+                      ) : (
+                        <span
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-bold ${
+                            isActive ? "bg-[#215e93] text-white" : "bg-[#0E1A2B]/[0.06] text-[#0E1A2B]/45"
+                          }`}
+                        >
+                          {String(number).padStart(2, "0")}
+                        </span>
+                      )}
+
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-base font-bold">
+                          {program.shortTitle || program.title}
+                        </span>
+                        <span className="mt-0.5 block truncate text-base text-[#0E1A2B]/55">
+                          {program.category}
+                        </span>
+                      </span>
+
+                      <Icon
+                        size={17}
+                        className={`shrink-0 transition-colors ${
+                          isActive ? "text-[#2a9d8f]" : "text-[#0E1A2B]/25 group-hover:text-[#2a9d8f]"
+                        }`}
+                      />
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* =================================================
-                RIGHT — LARGE PROGRAM PANEL
-            ================================================= */}
-
-            <div className="relative min-h-[560px]">
+            {/* stage */}
+            <div ref={detailRef} className="min-w-0 scroll-mt-24 lg:sticky lg:top-24">
               <AnimatePresence mode="wait">
-                {selectedProgram && (
+                {!selectedProgram ? (
+                  <motion.div
+                    key="stage-skeleton"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="h-[320px] animate-pulse rounded-[28px] bg-gradient-to-r from-[#E6EEFF] via-white to-[#DDF6F1] sm:h-[480px]"
+                  />
+                ) : (
                   <motion.div
                     key={selectedProgram.id}
-                    initial={{
-                      opacity: 0,
-                      y: 20,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                    }}
-                    exit={{
-                      opacity: 0,
-                      y: -20,
-                    }}
-                    transition={{
-                      duration: 0.45,
-                    }}
-                    className="
-                      relative
-                      h-full
-                      min-h-[560px]
-                      overflow-hidden
-                      rounded-[36px]
-                      bg-[#10243E]
-                      p-7
-                      text-white
-                      shadow-[0_25px_70px_rgba(16,36,62,0.20)]
-                      sm:p-12
-                    "
+                    initial={{ opacity: 0, y: 18, scale: 0.985 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -14, scale: 0.99 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                   >
-                    {/* Blue glow */}
-
-                    <div
-                      className="
-                        pointer-events-none
-                        absolute
-                        -right-24
-                        -top-24
-                        h-80
-                        w-80
-                        rounded-full
-                        bg-[#338DFD]/20
-                        blur-[100px]
-                      "
+                    <ProgramStage
+                      program={selectedProgram}
+                      index={selectedIndex}
+                      total={programs.length}
+                      Icon={SelectedIcon}
+                      highlights={highlights}
+                      onPrev={() => step(-1)}
+                      onNext={() => step(1)}
+                      onEnlarge={() => setLightbox(true)}
                     />
-
-                    {/* Green glow */}
-
-                    <div
-                      className="
-                        pointer-events-none
-                        absolute
-                        bottom-[-100px]
-                        left-[-80px]
-                        h-72
-                        w-72
-                        rounded-full
-                        bg-[#49C4A5]/15
-                        blur-[100px]
-                      "
-                    />
-
-                    {/* Decorative number */}
-
-                    <span
-                      className="
-                        pointer-events-none
-                        absolute
-                        -right-5
-                        -top-16
-                        font-display
-                        text-[18rem]
-                        font-bold
-                        leading-none
-                        text-white/[0.035]
-                      "
-                    >
-                      {String(selectedProgram.id).padStart(2, "0")}
-                    </span>
-
-                    <div className="relative z-10 flex h-full flex-col">
-                      {/* Top */}
-
-                      <div
-                        className="
-                          flex
-                          items-start
-                          justify-between
-                          gap-5
-                        "
-                      >
-                        <div>
-                          <span
-                            className="
-                              inline-flex
-                              rounded-full
-                              border
-                              border-white/10
-                              bg-white/5
-                              px-3
-                              py-1.5
-                              text-[9px]
-                              font-bold
-                              uppercase
-                              tracking-[0.18em]
-                              text-[#49C4A5]
-                            "
-                          >
-                            {selectedProgram.category}
-                          </span>
-
-                          <p
-                            className="
-                              mt-8
-                              text-xs
-                              font-bold
-                              uppercase
-                              tracking-[0.22em]
-                              text-white/30
-                            "
-                          >
-                            Program{" "}
-                            {String(selectedProgram.id).padStart(2, "0")}
-                          </p>
-                        </div>
-
-                        <div
-                          className="
-                            flex
-                            h-14
-                            w-14
-                            items-center
-                            justify-center
-                            rounded-2xl
-                            border
-                            border-white/10
-                            bg-white/5
-                            text-[#49C4A5]
-                          "
-                        >
-                          {(() => {
-                            const Icon =
-                              iconMap[selectedProgram.category] || Sparkles;
-
-                            return <Icon size={22} />;
-                          })()}
-                        </div>
-                      </div>
-
-                      {/* Bottom content */}
-
-                      <div className="mt-auto pt-20">
-                        <h3
-                          className="
-                            max-w-3xl
-                            font-display
-                            text-4xl
-                            font-bold
-                            leading-[1.04]
-                            sm:text-5xl
-                            lg:text-6xl
-                          "
-                        >
-                          {selectedProgram.title}
-                        </h3>
-
-                        <p
-                          className="
-                            mt-6
-                            max-w-2xl
-                            text-sm
-                            font-medium
-                            leading-7
-                            text-white/60
-                            sm:text-base
-                          "
-                        >
-                          {selectedProgram.description}
-                        </p>
-
-                        {/* Program details */}
-
-                        <div
-                          className="
-                            mt-9
-                            grid
-                            gap-4
-                            sm:grid-cols-2
-                          "
-                        >
-                          <div
-                            className="
-                              rounded-2xl
-                              border
-                              border-white/10
-                              bg-white/5
-                              p-5
-                            "
-                          >
-                            <p
-                              className="
-                                text-[9px]
-                                font-bold
-                                uppercase
-                                tracking-[0.18em]
-                                text-white/30
-                              "
-                            >
-                              Designed for
-                            </p>
-
-                            <p
-                              className="
-                                mt-2
-                                text-xs
-                                font-medium
-                                leading-5
-                                text-white/80
-                              "
-                            >
-                              {selectedProgram.audience}
-                            </p>
-                          </div>
-
-                          <div
-                            className="
-                              rounded-2xl
-                              border
-                              border-white/10
-                              bg-white/5
-                              p-5
-                            "
-                          >
-                            <p
-                              className="
-                                text-[9px]
-                                font-bold
-                                uppercase
-                                tracking-[0.18em]
-                                text-white/30
-                              "
-                            >
-                              Focus
-                            </p>
-
-                            <p
-                              className="
-                                mt-2
-                                text-xs
-                                font-medium
-                                leading-5
-                                text-white/80
-                              "
-                            >
-                              Practical skills for real-world communication
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* CTA */}
-
-                        <div
-                          className="
-                            mt-8
-                            flex
-                            flex-wrap
-                            items-center
-                            gap-5
-                          "
-                        >
-                          <motion.a
-                            href="#consultation"
-                            whileHover={{
-                              y: -2,
-                            }}
-                            whileTap={{
-                              scale: 0.97,
-                            }}
-                            className="
-                              group
-                              inline-flex
-                              items-center
-                              gap-2
-                              rounded-full
-                              bg-gradient-to-r
-                              from-[#338DFD]
-                              to-[#49C4A5]
-                              px-6
-                              py-3.5
-                              text-xs
-                              font-bold
-                              text-white
-                              shadow-[0_10px_28px_rgba(51,141,253,0.22)]
-                              transition-all
-                              duration-300
-                            "
-                          >
-                            Talk to us about this program
-                            <ArrowUpRight
-                              size={15}
-                              className="
-                                transition-transform
-                                duration-300
-                                group-hover:translate-x-1
-                                group-hover:-translate-y-1
-                              "
-                            />
-                          </motion.a>
-
-                          <span
-                            className="
-                              flex
-                              items-center
-                              gap-2
-                              text-[10px]
-                              font-bold
-                              uppercase
-                              tracking-[0.14em]
-                              text-white/30
-                            "
-                          >
-                            <span
-                              className="
-                                h-1.5
-                                w-1.5
-                                rounded-full
-                                bg-[#49C4A5]
-                              "
-                            />
-                            Practical learning
-                          </span>
-                        </div>
-                      </div>
-                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1786,643 +885,794 @@ function Programs() {
       </section>
 
       {/* =====================================================
-          04 — JASHNA METHOD
+          03 — JASHNA METHOD (full-width, light)
       ===================================================== */}
 
       <section
-        className="
-          relative
-          border-y
-          border-[#10243E]/8
-          bg-white/45
-          px-5
-          py-24
-          sm:px-8
-          lg:px-10
-          lg:py-32
-        "
+        id="method"
+        className="relative overflow-hidden border-y border-[#0E1A2B]/10 bg-gradient-to-br from-[#FFF1D6] via-[#F3F6FB] to-[#DCE9FF] py-20 lg:py-28"
       >
-        <div className="mx-auto max-w-7xl">
-          <div
-            className="
-              grid
-              gap-16
-              lg:grid-cols-[0.8fr_1.2fr]
-            "
-          >
-            <div>
-              <div className="flex items-center gap-3">
-                <span
-                  className="
-                    h-[2px]
-                    w-9
-                    rounded-full
-                    bg-[#338DFD]
-                  "
-                />
+        <motion.div
+          aria-hidden
+          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -left-24 top-10 h-80 w-80 rounded-full bg-[#FFB020]/20 blur-[110px]"
+        />
+        <motion.div
+          aria-hidden
+          animate={{ x: [0, -30, 0], y: [0, 20, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-[#2F6BFF]/20 blur-[110px]"
+        />
 
-                <p
-                  className="
-                    text-[10px]
-                    font-bold
-                    uppercase
-                    tracking-[0.28em]
-                    text-[#338DFD]
-                  "
-                >
-                  More than a course
+        <div className={`${WRAP} relative`}>
+          <Reveal>
+            <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+              <div>
+                <p className={`${LABEL} text-[#0B7F70]`}>The Jashna method</p>
+                <h2 className="mt-4 max-w-2xl text-4xl font-bold leading-[1.08] tracking-tight text-[#0E1A2B] sm:text-5xl lg:text-6xl">
+                  Learning should move <span className="text-[#2F6BFF]">with you.</span>
+                </h2>
+                <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-[#0E1A2B]/70 sm:text-xl">
+                  We don't begin with a fixed formula. We begin with the learner, understand the
+                  gap, and turn learning into something you can actually use.
                 </p>
               </div>
 
-              <h2
-                className="
-                  mt-5
-                  max-w-lg
-                  font-display
-                  text-4xl
-                  font-bold
-                  leading-tight
-                  text-[#10243E]
-                  sm:text-5xl
-                "
+              <div className="flex items-center gap-5 rounded-[28px] border border-white/80 bg-white/70 p-6 shadow-[0_20px_50px_rgba(14,26,43,0.08)] backdrop-blur sm:p-7">
+                <span className="pg-shine text-7xl font-bold leading-none sm:text-8xl">05</span>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-[#0E1A2B] sm:text-2xl">
+                    steps from where you are to where you want to be
+                  </p>
+                  <p className="mt-2 text-base font-bold text-[#0B7F70]">
+                    Assess · Practise · Apply
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+
+          <ol className="relative mt-14 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-[10%] right-[10%] top-7 hidden h-[3px] rounded-full bg-gradient-to-r from-[#2F6BFF]/40 via-[#12B5A0]/40 to-[#FFB020]/60 lg:block"
+            />
+            <MethodStep index={0} Icon={ClipboardCheck} number="01" title="Assess" description="Understand your current ability, challenges and goals." />
+            <MethodStep index={1} Icon={SlidersHorizontal} number="02" title="Personalise" description="Build a learning path around what you actually need." />
+            <MethodStep index={2} Icon={Mic2} number="03" title="Practise" description="Work with realistic situations instead of learning English in isolation." />
+            <MethodStep index={3} Icon={MessageSquareText} number="04" title="Refine" description="Receive feedback, correction and guidance to improve." />
+            <MethodStep index={4} Icon={Rocket} number="05" title="Apply" description="Take your new skills into conversations, classrooms, interviews and workplaces." last />
+          </ol>
+
+          <Reveal delay={0.1}>
+            <div className="mt-12 flex flex-col items-start justify-between gap-5 rounded-[28px] border border-[#0E1A2B]/10 bg-white/70 p-6 backdrop-blur sm:flex-row sm:items-center sm:p-8">
+              <p className="max-w-2xl text-xl font-bold leading-8 text-[#0E1A2B]">
+                Every learner starts at a different point. That's why step one is always an
+                assessment, not a syllabus.
+              </p>
+              <motion.a
+                href="/assessment"
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.97 }}
+                className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-[#0E1A2B] px-6 py-3.5 text-base font-bold text-white transition-colors hover:bg-[#2F6BFF]"
               >
-                Learning designed
-                <span
-                  className="
-                    block
-                    bg-gradient-to-r
-                    from-[#338DFD]
-                    to-[#49C4A5]
-                    bg-clip-text
-                    text-transparent
-                  "
+                Start with an assessment
+                <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+              </motion.a>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* =====================================================
+          04 — IELTS SPOTLIGHT (replaces "The real outcome")
+      ===================================================== */}
+
+      <IeltsSpotlight />
+
+      {/* =====================================================
+          05 — FINAL CTA
+      ===================================================== */}
+
+      <section id="consultation" className="relative scroll-mt-20 pb-20 lg:pb-28">
+        <Reveal>
+          <div className={WRAP}>
+            <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#2F6BFF] via-[#1F8FD6] to-[#12B5A0] px-6 py-16 text-center text-white shadow-[0_30px_80px_rgba(47,107,255,0.3)] sm:px-12 lg:rounded-[48px] lg:py-24">
+              <motion.div
+                aria-hidden
+                animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+                transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+                className="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-white/20 blur-3xl"
+              />
+              <motion.div
+                aria-hidden
+                animate={{ x: [0, -25, 0], y: [0, 25, 0] }}
+                transition={{ duration: 17, repeat: Infinity, ease: "easeInOut" }}
+                className="pointer-events-none absolute -bottom-28 -left-16 h-80 w-80 rounded-full bg-[#FFC043]/35 blur-3xl"
+              />
+
+              <div className="relative mx-auto max-w-3xl">
+                <p className={`${LABEL} text-white/90`}>Your next step</p>
+                <h2 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
+                  Start with where you are.
+                  <span className="block pb-2 text-[#FFE9A8]">Grow from there.</span>
+                </h2>
+                <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-white/90 sm:text-xl">
+                  Tell us what you want to improve, where you're starting from and where you want
+                  to go. We'll help you find the right program.
+                </p>
+
+                <motion.a
+                  href={getWhatsAppLink(
+                    "Hello Dr.Shivam Sir, I would like to book a free consultation and find the right program at Jashna Edu."
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -4, scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group mt-9 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-lg font-bold text-[#2F6BFF] shadow-[0_12px_35px_rgba(0,0,0,0.15)] transition-colors duration-300 hover:bg-[#FFE9A8]"
                 >
-                  around you.
-                </span>
-              </h2>
-
-              <p
-                className="
-                  mt-6
-                  max-w-md
-                  text-sm
-                  font-medium
-                  leading-7
-                  text-jashna-muted
-                "
-              >
-                Every learner starts from a different place. That's why our
-                approach focuses on understanding your needs first, then turning
-                learning into practical action.
-              </p>
-            </div>
-
-            <div className="relative">
-              <MethodStep
-                number="01"
-                title="Assess"
-                description="Understand your current ability, challenges and goals."
-              />
-
-              <MethodStep
-                number="02"
-                title="Personalise"
-                description="Build a learning path around what you actually need."
-              />
-
-              <MethodStep
-                number="03"
-                title="Practise"
-                description="Work with realistic situations instead of learning English in isolation."
-              />
-
-              <MethodStep
-                number="04"
-                title="Refine"
-                description="Receive feedback, correction and guidance to improve."
-              />
-
-              <MethodStep
-                number="05"
-                title="Apply"
-                description="Take your new skills into conversations, classrooms, interviews and workplaces."
-                last
-              />
+                  Book a consultation
+                  <ArrowUpRight size={18} className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+                </motion.a>
+              </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* =====================================================
-          05 — TRANSFORMATION
+          LIGHTBOX
       ===================================================== */}
 
-      <section
-        className="
-          relative
-          px-5
-          py-24
-          sm:px-8
-          lg:px-10
-          lg:py-32
-        "
-      >
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3">
-              <span
-                className="
-                  h-[2px]
-                  w-8
-                  rounded-full
-                  bg-[#49C4A5]
-                "
-              />
+      <AnimatePresence>
+        {lightbox && selectedProgram?.image?.url && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLightbox(false)}
+            className="fixed inset-0 z-[100] flex cursor-zoom-out items-center justify-center bg-[#08121F]/80 p-4 backdrop-blur-md sm:p-10"
+          >
+            <motion.img
+              key={selectedProgram.id}
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              src={selectedProgram.image.url}
+              alt={selectedProgram.image.alt || selectedProgram.title}
+              className="max-h-full max-w-full rounded-3xl object-contain shadow-[0_30px_90px_rgba(0,0,0,0.45)]"
+            />
 
-              <p
-                className="
-                  text-[10px]
-                  font-bold
-                  uppercase
-                  tracking-[0.28em]
-                  text-[#338DFD]
-                "
+            <button
+              type="button"
+              onClick={() => setLightbox(false)}
+              aria-label="Close image"
+              className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#0E1A2B] shadow-lg transition hover:scale-110 hover:bg-white sm:right-5 sm:top-5"
+            >
+              <X size={20} />
+            </button>
+
+            {[
+              { label: "Previous program", dir: -1, Icon: ArrowLeft, pos: "left-3 sm:left-8" },
+              { label: "Next program", dir: 1, Icon: ArrowRight, pos: "right-3 sm:right-8" },
+            ].map(({ label, dir, Icon, pos }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  step(dir);
+                }}
+                aria-label={label}
+                className={`absolute top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#0E1A2B] shadow-lg transition hover:scale-110 hover:bg-white ${pos}`}
               >
-                The real outcome
-              </p>
-
-              <span
-                className="
-                  h-[2px]
-                  w-8
-                  rounded-full
-                  bg-[#338DFD]
-                "
-              />
-            </div>
-
-            <h2
-              className="
-                mx-auto
-                mt-5
-                max-w-3xl
-                font-display
-                text-4xl
-                font-bold
-                leading-tight
-                tracking-[-0.035em]
-                text-[#10243E]
-                sm:text-5xl
-              "
-            >
-              From knowing English
-              <span
-                className="
-                  block
-                  bg-gradient-to-r
-                  from-[#338DFD]
-                  to-[#49C4A5]
-                  bg-clip-text
-                  text-transparent
-                "
-              >
-                to using it.
-              </span>
-            </h2>
-
-            <p
-              className="
-                mx-auto
-                mt-5
-                max-w-xl
-                text-sm
-                font-medium
-                leading-7
-                text-jashna-muted
-              "
-            >
-              Because confidence isn't built by collecting certificates. It's
-              built by being able to use what you've learned.
-            </p>
-          </div>
-
-          <div
-            className="
-              mt-16
-              overflow-hidden
-              rounded-[36px]
-              border
-              border-[#10243E]/8
-              bg-white/65
-              shadow-[0_18px_50px_rgba(16,36,62,0.06)]
-            "
-          >
-            <TransformationRow
-              before="I know what I want to say."
-              after="I can say it clearly."
-            />
-
-            <TransformationRow
-              before="I understand English."
-              after="I can communicate confidently."
-            />
-
-            <TransformationRow
-              before="I get nervous presenting."
-              after="I can own the room."
-            />
-
-            <TransformationRow
-              before="I know my subject."
-              after="I can explain it professionally."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          06 — FINAL CTA
-      ===================================================== */}
-
-      <section
-        id="consultation"
-        className="
-          relative
-          overflow-hidden
-          bg-[#10243E]
-          px-5
-          py-28
-          text-white
-          sm:px-8
-          lg:px-10
-          lg:py-36
-        "
-      >
-        {/* Blue glow */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            right-[-150px]
-            top-[-150px]
-            h-[500px]
-            w-[500px]
-            rounded-full
-            bg-[#338DFD]/20
-            blur-[120px]
-          "
-        />
-
-        {/* Green glow */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            bottom-[-180px]
-            left-[-100px]
-            h-[450px]
-            w-[450px]
-            rounded-full
-            bg-[#49C4A5]/15
-            blur-[120px]
-          "
-        />
-
-        <div className="relative mx-auto max-w-4xl text-center">
-          <div
-            className="
-              flex
-              items-center
-              justify-center
-              gap-3
-            "
-          >
-            <span
-              className="
-                h-[2px]
-                w-8
-                rounded-full
-                bg-[#338DFD]
-              "
-            />
-
-            <p
-              className="
-                text-[10px]
-                font-bold
-                uppercase
-                tracking-[0.28em]
-                text-[#49C4A5]
-              "
-            >
-              Your next step
-            </p>
-
-            <span
-              className="
-                h-[2px]
-                w-8
-                rounded-full
-                bg-[#49C4A5]
-              "
-            />
-          </div>
-
-          <h2
-            className="
-              mt-6
-              font-display
-              text-4xl
-              font-bold
-              leading-tight
-              tracking-[-0.035em]
-              sm:text-6xl
-            "
-          >
-            Not sure where
-            <span
-              className="
-                block
-                bg-gradient-to-r
-                from-[#338DFD]
-                to-[#49C4A5]
-                bg-clip-text
-                text-transparent
-              "
-            >
-              to begin?
-            </span>
-          </h2>
-
-          <p
-            className="
-              mx-auto
-              mt-6
-              max-w-xl
-              text-sm
-              leading-7
-              text-white/55
-              sm:text-base
-            "
-          >
-            Tell us what you want to improve, where you're starting from and
-            where you want to go. We'll help you find the right program.
-          </p>
-
-          <motion.a
-            href="/consultation"
-            whileHover={{
-              y: -4,
-            }}
-            whileTap={{
-              scale: 0.97,
-            }}
-            className="
-              group
-              mt-9
-              inline-flex
-              items-center
-              gap-2
-              rounded-full
-              bg-gradient-to-r
-              from-[#338DFD]
-              to-[#49C4A5]
-              px-7
-              py-4
-              text-sm
-              font-bold
-              text-white
-              shadow-[0_12px_35px_rgba(51,141,253,0.25)]
-              transition-all
-              duration-300
-              hover:shadow-[0_16px_42px_rgba(51,141,253,0.35)]
-            "
-          >
-            Book a Consultation
-            <ArrowUpRight
-              size={17}
-              className="
-                transition-transform
-                duration-300
-                group-hover:translate-x-1
-                group-hover:-translate-y-1
-              "
-            />
-          </motion.a>
-        </div>
-      </section>
+                <Icon size={20} />
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
 
 /* =========================================================
-   NAVIGATOR STAT
+   REVEAL
 ========================================================= */
 
-function NavigatorStat({ number, label }) {
+function Reveal({ children, delay = 0, className = "" }) {
   return (
-    <div className="text-center">
-      <p
-        className="
-          font-display
-          text-xl
-          font-bold
-          text-[#10243E]
-        "
-      >
-        {number}
-      </p>
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.6, delay, ease: "easeOut" }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
-      <p
-        className="
-          mt-1
-          text-[8px]
-          font-bold
-          uppercase
-          tracking-[0.15em]
-          text-jashna-muted
-        "
-      >
-        {label}
+/* =========================================================
+   HERO STAT — counts up
+========================================================= */
+
+function HeroStat({ value, label, bordered = false }) {
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    let frame;
+    let start;
+    const duration = 1400;
+
+    const tick = (time) => {
+      if (!start) start = time;
+      const progress = Math.min((time - start) / duration, 1);
+      setDisplay(Math.round(value * (1 - Math.pow(1 - progress, 3))));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
+
+  return (
+    <div className={`px-3 text-left first:pl-0 sm:px-5 ${bordered ? "border-l border-[#0E1A2B]/15" : ""}`}>
+      <p className="text-4xl font-bold leading-none text-[#0E1A2B] sm:text-5xl">
+        {String(display).padStart(2, "0")}
       </p>
+      <p className="mt-2 text-base font-medium text-[#0E1A2B]/60">{label}</p>
     </div>
   );
 }
 
 /* =========================================================
-   METHOD STEP
+   PROGRAM STAGE (redesigned)
+   Split card: poster pane (blurred poster fills the sides,
+   poster itself is never cropped) + information pane.
+   No image: a branded art pane replaces the poster.
 ========================================================= */
 
-function MethodStep({ number, title, description, last = false }) {
+function ProgramStage({ program, index, total, Icon, highlights, onPrev, onNext, onEnlarge }) {
+  const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const hasImage = Boolean(program.image?.url) && !failed;
+  const isIelts = /ielts/i.test(`${program.title} ${program.shortTitle || ""}`);
+  const progress = ((index + 1) / Math.max(total, 1)) * 100;
+
+  const whatsappLink = getWhatsAppLink(
+    `Hello Dr.Shivam Sir, I would like to discuss the "${program.title}" program at Jashna Edu.`
+  );
+
+  const circleBtn =
+    "absolute top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#0E1A2B] opacity-100 shadow-lg backdrop-blur transition-opacity duration-300 hover:bg-white focus-visible:opacity-100 lg:opacity-0 lg:group-hover:opacity-100";
+
+  const navBtn =
+    "flex h-11 w-11 items-center justify-center rounded-full border border-[#0E1A2B]/12 bg-white text-[#0E1A2B]/70 shadow-sm transition-colors hover:border-[#215e93] hover:bg-[#215e93] hover:text-white";
+
   return (
-    <motion.div
-      whileHover={{
-        x: 4,
-      }}
-      transition={{
-        duration: 0.25,
-      }}
-      className="group relative flex gap-6"
-    >
-      {!last && (
-        <div
-          className="
-            absolute
-            left-[19px]
-            top-11
-            h-[calc(100%-4px)]
-            w-px
-            bg-gradient-to-b
-            from-[#338DFD]/30
-            to-[#49C4A5]/10
-          "
+    <div className="grid overflow-hidden rounded-[28px] border border-[#0E1A2B]/10 bg-white shadow-[0_25px_70px_rgba(14,26,43,0.14)] xl:grid-cols-[1.05fr_0.95fr]">
+      {/* ---------- POSTER PANE ---------- */}
+      <div className="group relative flex min-h-[300px] items-center justify-center overflow-hidden bg-[#12324f] p-4 sm:min-h-[420px] sm:p-8">
+        {hasImage ? (
+          <>
+            {/* blurred copy of the poster fills every empty side */}
+            <img
+              src={program.image.url}
+              alt=""
+              aria-hidden
+              className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover opacity-80 blur-2xl"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#215e93]/60 via-[#0E1A2B]/25 to-[#2a9d8f]/50"
+            />
+
+            {!loaded && (
+              <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-[#215e93]/40 via-white/20 to-[#2a9d8f]/40" />
+            )}
+
+            <motion.button
+              type="button"
+              onClick={onEnlarge}
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.995 }}
+              aria-label="Enlarge program image"
+              className="relative z-10 block w-full cursor-zoom-in"
+            >
+              <img
+                src={program.image.url}
+                alt={program.image.alt || program.title}
+                decoding="async"
+                onLoad={() => setLoaded(true)}
+                onError={() => setFailed(true)}
+                className={`mx-auto block h-auto max-h-[calc(100vh-11rem)] w-full object-contain drop-shadow-[0_22px_40px_rgba(0,0,0,0.45)] transition-opacity duration-500 ${
+                  loaded ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            </motion.button>
+
+            <span className="pg-sweep pointer-events-none absolute inset-0 z-10" />
+
+            <motion.button
+              type="button"
+              onClick={onEnlarge}
+              aria-label="Enlarge program image"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="absolute bottom-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-[#0E1A2B] shadow-lg backdrop-blur transition-colors hover:bg-[#84e245] sm:bottom-4 sm:right-4"
+            >
+              <Maximize2 size={16} />
+            </motion.button>
+          </>
+        ) : (
+          /* art pane — shown when a program has no poster */
+          <div className="relative flex h-full min-h-[260px] w-full flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#215e93] via-[#1f7f9a] to-[#2a9d8f] p-8 text-center text-white sm:min-h-[340px]">
+            <motion.span
+              aria-hidden
+              animate={{ scale: [1, 1.12, 1], opacity: [0.25, 0.4, 0.25] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute h-72 w-72 rounded-full border border-white/40"
+            />
+            <motion.span
+              aria-hidden
+              animate={{ scale: [1.1, 1, 1.1], opacity: [0.15, 0.3, 0.15] }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute h-96 w-96 rounded-full border border-white/30"
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -bottom-6 -right-2 text-[9rem] font-bold leading-none text-white/10"
+            >
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.25)] backdrop-blur">
+              <Icon size={42} />
+            </span>
+            <p className="relative mt-6 text-base font-bold uppercase tracking-[0.14em] text-[#d6ffb0]">
+              {program.category}
+            </p>
+            <p className="relative mt-2 max-w-xs text-2xl font-bold leading-8">
+              {program.shortTitle || program.title}
+            </p>
+          </div>
+        )}
+
+        {/* browse arrows */}
+        <motion.button type="button" onClick={onPrev} aria-label="Previous program" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className={`${circleBtn} left-3 sm:left-4`}>
+          <ArrowLeft size={19} />
+        </motion.button>
+        <motion.button type="button" onClick={onNext} aria-label="Next program" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className={`${circleBtn} right-3 sm:right-4`}>
+          <ArrowRight size={19} />
+        </motion.button>
+
+        {/* counter */}
+        <span className="pointer-events-none absolute left-3 top-3 z-20 rounded-full bg-white/90 px-3.5 py-1 text-sm font-bold text-[#0E1A2B] shadow backdrop-blur sm:left-4 sm:top-4">
+          {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+        </span>
+      </div>
+
+      {/* ---------- INFORMATION PANE ---------- */}
+      <div className="relative flex min-w-0 flex-col overflow-hidden p-6 sm:p-8 lg:p-9">
+        <motion.div
+          aria-hidden
+          animate={{ x: [0, 20, 0], y: [0, -15, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-[#84e245]/15 blur-3xl"
         />
-      )}
+        <motion.div
+          aria-hidden
+          animate={{ x: [0, -20, 0], y: [0, 15, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-[#215e93]/10 blur-3xl"
+        />
 
-      <div
-        className="
-          relative
-          z-10
-          flex
-          h-10
-          w-10
-          shrink-0
-          items-center
-          justify-center
-          rounded-full
-          border
-          border-[#338DFD]/15
-          bg-jashna-ivory
-          text-[10px]
-          font-bold
-          text-[#338DFD]
-          transition-all
-          duration-300
-          group-hover:border-[#338DFD]/30
-          group-hover:bg-[#338DFD]
-          group-hover:text-white
-          group-hover:shadow-[0_0_18px_rgba(51,141,253,0.18)]
-        "
-      >
-        {number}
+        <div className="relative flex flex-1 flex-col">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#215e93] to-[#2a9d8f] text-white shadow-[0_12px_30px_rgba(33,94,147,0.35)]">
+                <Icon size={22} />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-bold text-[#215e93]">{program.category}</p>
+                <p className="text-base font-medium text-[#0E1A2B]/50">
+                  Program {index + 1} of {total}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2 xl:hidden">
+              <motion.button type="button" onClick={onPrev} aria-label="Previous program" whileTap={{ scale: 0.9 }} className={navBtn}>
+                <ArrowLeft size={17} />
+              </motion.button>
+              <motion.button type="button" onClick={onNext} aria-label="Next program" whileTap={{ scale: 0.9 }} className={navBtn}>
+                <ArrowRight size={17} />
+              </motion.button>
+            </div>
+          </div>
+
+          <h3 className="mt-6 break-words text-3xl font-bold leading-[1.1] tracking-tight sm:text-4xl">
+            {program.title}
+          </h3>
+
+          {(program.duration || program.fees != null) && (
+            <div className="mt-5 flex flex-wrap gap-3">
+              {program.duration && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#215e93]/15 bg-[#215e93]/5 px-4 py-1.5 text-base font-bold text-[#215e93]">
+                  <Clock size={15} className="text-[#2a9d8f]" />
+                  {program.duration}
+                </span>
+              )}
+              {program.fees != null && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#215e93]/15 bg-[#215e93]/5 px-4 py-1.5 text-base font-bold text-[#215e93]">
+                  ₹{Number(program.fees).toLocaleString("en-IN")}
+                </span>
+              )}
+            </div>
+          )}
+
+          <p className="mt-5 text-lg font-medium leading-8 text-[#0E1A2B]/70">
+            {program.description}
+          </p>
+
+          <ul className="mt-6 grid gap-2.5">
+            {highlights.slice(0, 4).map((highlight) => (
+              <li
+                key={highlight}
+                className="flex items-center gap-3 rounded-2xl border border-[#0E1A2B]/8 bg-[#F3F6FB] px-4 py-3 transition-colors hover:border-[#2a9d8f]/60 hover:bg-white"
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#2a9d8f] to-[#84e245] text-white">
+                  <Check size={15} strokeWidth={3} />
+                </span>
+                <span className="text-lg font-bold leading-6">{highlight}</span>
+              </li>
+            ))}
+          </ul>
+
+          {program.audience && (
+            <div className="mt-6">
+              <p className="text-base font-bold text-[#0E1A2B]/45">Designed for</p>
+              <p className="mt-1 text-lg font-medium text-[#0E1A2B]/75">{program.audience}</p>
+            </div>
+          )}
+
+          <div className="mt-auto pt-7">
+            <div className="flex flex-wrap items-center gap-3">
+              <motion.a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.96 }}
+                className="group/cta inline-flex shrink-0 items-center gap-2 rounded-full bg-[#215e93] px-6 py-3.5 text-base font-bold text-white shadow-[0_14px_30px_rgba(33,94,147,0.3)] transition-colors hover:bg-[#2a9d8f]"
+              >
+                Discuss this program
+                <ArrowUpRight size={16} className="transition-transform duration-300 group-hover/cta:-translate-y-1 group-hover/cta:translate-x-1" />
+              </motion.a>
+
+              {isIelts && (
+                <motion.a
+                  href="/ielts"
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-[#2a9d8f] bg-white px-5 py-3 text-base font-bold text-[#215e93] transition-colors hover:bg-[#84e245] hover:text-[#0E1A2B]"
+                >
+                  IELTS course page
+                  <ArrowRight size={16} />
+                </motion.a>
+              )}
+
+              <div className="ml-auto hidden items-center gap-2 xl:flex">
+                <motion.button type="button" onClick={onPrev} aria-label="Previous program" whileTap={{ scale: 0.9 }} className={navBtn}>
+                  <ArrowLeft size={17} />
+                </motion.button>
+                <motion.button type="button" onClick={onNext} aria-label="Next program" whileTap={{ scale: 0.9 }} className={navBtn}>
+                  <ArrowRight size={17} />
+                </motion.button>
+              </div>
+            </div>
+
+            <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-[#0E1A2B]/10">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="h-full rounded-full bg-gradient-to-r from-[#215e93] via-[#2a9d8f] to-[#84e245]"
+              />
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="pb-10">
-        <h3
-          className="
-            font-display
-            text-xl
-            font-bold
-            text-[#10243E]
-          "
-        >
-          {title}
-        </h3>
-
-        <p
-          className="
-            mt-2
-            max-w-lg
-            text-sm
-            font-medium
-            leading-6
-            text-jashna-muted
-          "
-        >
-          {description}
-        </p>
-      </div>
-    </motion.div>
+    </div>
   );
 }
 
 /* =========================================================
-   TRANSFORMATION ROW
+   METHOD STEP (light)
 ========================================================= */
 
-function TransformationRow({ before, after }) {
+function MethodStep({ index = 0, Icon, number, title, description, last = false }) {
   return (
-    <motion.div
-      whileHover={{
-        backgroundColor: "rgba(255,255,255,0.85)",
-      }}
-      className="
-        grid
-        gap-5
-        border-b
-        border-[#10243E]/8
-        p-7
-        transition-colors
-        duration-300
-        last:border-b-0
-        sm:grid-cols-[1fr_auto_1fr]
-        sm:items-center
-        sm:p-9
-      "
+    <motion.li
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
+      className="group relative flex min-w-0 flex-col"
     >
-      <div>
+      <span
+        className={`relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 shadow-md transition-all duration-300 group-hover:scale-110 ${
+          last
+            ? "border-transparent bg-gradient-to-br from-[#2F6BFF] to-[#12B5A0] text-white"
+            : "border-[#2F6BFF]/25 bg-white text-[#2F6BFF] group-hover:border-transparent group-hover:bg-[#2F6BFF] group-hover:text-white"
+        }`}
+      >
+        <Icon size={22} />
+      </span>
+
+      <div
+        className={`relative mt-4 flex-1 overflow-hidden rounded-3xl border p-5 transition-all duration-300 group-hover:-translate-y-1.5 ${
+          last
+            ? "border-transparent bg-gradient-to-br from-[#2F6BFF] to-[#12B5A0] text-white shadow-[0_20px_50px_rgba(47,107,255,0.3)]"
+            : "border-[#0E1A2B]/10 bg-white/85 text-[#0E1A2B] shadow-[0_10px_30px_rgba(14,26,43,0.05)] group-hover:shadow-[0_18px_40px_rgba(47,107,255,0.15)]"
+        }`}
+      >
         <span
-          className="
-            text-[9px]
-            font-bold
-            uppercase
-            tracking-[0.2em]
-            text-jashna-muted
-          "
+          aria-hidden
+          className={`pointer-events-none absolute right-4 top-2 text-6xl font-bold leading-none ${
+            last ? "text-white/20" : "text-[#2F6BFF]/10"
+          }`}
         >
-          Before
+          {number}
         </span>
 
-        <p
-          className="
-            mt-2
-            font-display
-            text-lg
-            font-medium
-            text-[#10243E]/45
-          "
-        >
-          {before}
+        <h3 className="relative pr-12 text-2xl font-bold">{title}</h3>
+        <p className={`relative mt-2 text-base font-medium leading-7 ${last ? "text-white/90" : "text-[#0E1A2B]/70"}`}>
+          {description}
         </p>
       </div>
+    </motion.li>
+  );
+}
 
-      <ArrowRight
-        size={20}
-        className="
-          hidden
-          text-[#49C4A5]
-          sm:block
-        "
-      />
+/* =========================================================
+   IELTS SPOTLIGHT
+   Interactive: pick a target band (animated ring) and explore
+   the four IELTS modules. CTA links to the /ielts page.
+========================================================= */
 
-      <div>
-        <span
-          className="
-            text-[9px]
-            font-bold
-            uppercase
-            tracking-[0.2em]
-            text-[#338DFD]
-          "
-        >
-          After
-        </span>
+function IeltsSpotlight() {
+  const [moduleId, setModuleId] = useState("listening");
+  const [bandIndex, setBandIndex] = useState(2);
 
-        <p
-          className="
-            mt-2
-            font-display
-            text-lg
-            font-bold
-            text-[#10243E]
-          "
-        >
-          {after}
-        </p>
+  const activeModule = ieltsModules.find((m) => m.id === moduleId) || ieltsModules[0];
+  const band = ieltsBands[bandIndex];
+
+  const RADIUS = 54;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  const ringProgress = (bandIndex + 1) / ieltsBands.length;
+
+  return (
+    <section id="ielts-spotlight" className="relative scroll-mt-20 py-20 lg:py-28">
+      <div className={WRAP}>
+        <Reveal>
+          <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#215e93] via-[#1a4c78] to-[#12324f] p-6 text-white shadow-[0_30px_80px_rgba(33,94,147,0.35)] sm:p-10 lg:rounded-[48px] lg:p-14">
+            {/* ambient glows + watermark */}
+            <motion.div
+              aria-hidden
+              animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+              transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+              className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-[#2a9d8f]/40 blur-[110px]"
+            />
+            <motion.div
+              aria-hidden
+              animate={{ x: [0, -30, 0], y: [0, 25, 0] }}
+              transition={{ duration: 19, repeat: Infinity, ease: "easeInOut" }}
+              className="pointer-events-none absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-[#84e245]/25 blur-[110px]"
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -bottom-10 -right-4 select-none text-[11rem] font-bold leading-none tracking-tight text-white/[0.05] sm:text-[16rem]"
+            >
+              IELTS
+            </span>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:56px_56px]"
+            />
+
+            <div className="relative grid items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-14">
+              {/* LEFT — message */}
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-base font-bold text-[#d6ffb0] backdrop-blur">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-[#84e245]" />
+                  IELTS spotlight
+                </p>
+
+                <h2 className="mt-6 text-4xl font-bold leading-[1.06] tracking-tight sm:text-5xl lg:text-6xl">
+                  Don't just practise IELTS.
+                  <span className="pg-shine-brand block pb-2">Train for your band.</span>
+                </h2>
+
+                <p className="mt-5 max-w-xl text-lg font-medium leading-8 text-white/85 sm:text-xl">
+                  Our IELTS preparation begins with a diagnostic of where you stand, then builds a
+                  plan around the band you need across Listening, Reading, Writing and Speaking.
+                </p>
+
+                <ul className="mt-7 grid max-w-xl gap-3 sm:grid-cols-2">
+                  {[
+                    "Diagnostic test first",
+                    "Band-wise feedback",
+                    "Timed mock tests",
+                    "Examiner-style speaking practice",
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-3 text-lg font-bold">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#84e245] text-[#0E1A2B]">
+                        <Check size={15} strokeWidth={3} />
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                  <motion.a
+                    href="/ielts"
+                    whileHover={{ y: -4, scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#84e245] px-8 py-4 text-lg font-bold text-[#0E1A2B] shadow-[0_16px_40px_rgba(132,226,69,0.35)] transition-colors duration-300 hover:bg-white"
+                  >
+                    Explore the IELTS course
+                    <ArrowUpRight size={19} className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+                  </motion.a>
+                  <span className="text-base font-bold text-white/70">
+                    Listening · Reading · Writing · Speaking
+                  </span>
+                </div>
+              </div>
+
+              {/* RIGHT — interactive band planner */}
+              <div className="min-w-0 rounded-[30px] border border-white/20 bg-white/10 p-5 shadow-[0_24px_60px_rgba(0,0,0,0.2)] backdrop-blur-xl sm:p-7">
+                <p className={`${LABEL} text-[#d6ffb0]`}>Pick your target band</p>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {ieltsBands.map((b, i) => {
+                    const active = i === bandIndex;
+                    return (
+                      <motion.button
+                        key={b.value}
+                        type="button"
+                        onClick={() => setBandIndex(i)}
+                        aria-pressed={active}
+                        whileTap={{ scale: 0.93 }}
+                        className={`rounded-full border px-4 py-2 text-lg font-bold transition-colors duration-200 ${
+                          active
+                            ? "border-[#84e245] bg-[#84e245] text-[#0E1A2B]"
+                            : "border-white/25 bg-white/5 text-white hover:border-[#84e245] hover:text-[#84e245]"
+                        }`}
+                      >
+                        {b.value}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-6 flex items-center gap-5 sm:gap-7">
+                  <div className="relative h-[132px] w-[132px] shrink-0">
+                    <svg viewBox="0 0 132 132" className="h-full w-full" aria-hidden>
+                      <defs>
+                        <linearGradient id="ielts-ring" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#84e245" />
+                          <stop offset="100%" stopColor="#2a9d8f" />
+                        </linearGradient>
+                      </defs>
+                      <circle cx="66" cy="66" r={RADIUS} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="10" />
+                      <motion.circle
+                        cx="66"
+                        cy="66"
+                        r={RADIUS}
+                        fill="none"
+                        stroke="url(#ielts-ring)"
+                        strokeWidth="10"
+                        strokeLinecap="round"
+                        strokeDasharray={CIRCUMFERENCE}
+                        initial={{ strokeDashoffset: CIRCUMFERENCE }}
+                        animate={{ strokeDashoffset: CIRCUMFERENCE * (1 - ringProgress) }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        transform="rotate(-90 66 66)"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={band.value}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-4xl font-bold leading-none"
+                        >
+                          {band.value}
+                        </motion.span>
+                      </AnimatePresence>
+                      <span className="mt-1 text-sm font-bold uppercase tracking-wider text-white/70">Band</span>
+                    </div>
+                  </div>
+
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={band.value}
+                      initial={{ opacity: 0, x: 12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -12 }}
+                      transition={{ duration: 0.25 }}
+                      className="min-w-0 text-lg font-medium leading-7 text-white/90 sm:text-xl sm:leading-8"
+                    >
+                      {band.focus}
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
+
+                <div className="my-6 h-px bg-white/15" />
+
+                <p className={`${LABEL} text-[#d6ffb0]`}>Four modules, one plan</p>
+
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {ieltsModules.map((m) => {
+                    const active = m.id === moduleId;
+                    const ModIcon = m.icon;
+                    return (
+                      <motion.button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setModuleId(m.id)}
+                        aria-pressed={active}
+                        whileHover={{ y: -3 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-base font-bold transition-colors duration-200 ${
+                          active
+                            ? "border-transparent bg-gradient-to-br from-[#2a9d8f] to-[#84e245] text-[#0E1A2B]"
+                            : "border-white/20 bg-white/5 text-white hover:border-[#84e245]"
+                        }`}
+                      >
+                        <ModIcon size={20} />
+                        {m.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeModule.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="mt-4 rounded-2xl bg-white/10 p-5"
+                  >
+                    <p className="text-xl font-bold leading-7">{activeModule.tagline}</p>
+                    <ul className="mt-3 grid gap-2">
+                      {activeModule.points.map((point) => (
+                        <li key={point} className="flex items-start gap-2.5 text-base font-medium leading-6 text-white/85">
+                          <ChevronRight size={17} className="mt-1 shrink-0 text-[#84e245]" />
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </Reveal>
       </div>
-    </motion.div>
+    </section>
   );
 }
 

@@ -7,7 +7,24 @@ import eventRoutes from "./routes/eventRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
-
+import aiRoutes from "./routes/aiRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
+import activityRoutes from "./routes/activityRoutes.js";
+import StudentAtendanceRoutes from "./routes/studentAttendanceRoutes.js";
+import progressRoutes from "./routes/progressRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
+import studentTaskRoutes from "./routes/studentTaskRoutes.js";
+import batchRoutes from "./routes/batchRoutes.js";
+import driveRoutes from "./routes/driveRoutes.js";
+import instituteInfoRoutes from "./routes/instituteInforoutes.js";
+import programRoutes from "./routes/programRoutes.js";
+import recentAdmissionRoutes from "./routes/recentAdmissionRoutes.js";
+import studentLearningGoalsRoutes from "./routes/studentLearningGoalsRoutes.js";
+import adminCareersRoutes from "./routes/adminCareerRoutes.js";
+import careersRoutes from "./routes/careersRoutes.js";
+import faqRoutes from "./routes/faqRoutes.js";
+import assessmentLinksRoutes from "./routes/assessmentLinksRoutes.js";
 const app = express();
 
 connectDB();
@@ -25,6 +42,7 @@ app.get("/", (req, res) => {
     message: "Jashna Edu API is running",
   });
 });
+app.use("/api/ai", aiRoutes);
 /*TEMPORARY ENDPOINT FOR TESTING OPENAI CONFIGURATION*/
 app.get("/api/test-openai-config", (req, res) => {
   res.json({
@@ -95,6 +113,23 @@ app.use("/api/events", eventRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/challenges", challengeRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/activities", activityRoutes);
+app.use("/api/attendance", attendanceRoutes);
+app.use("/api/student-attendance", StudentAtendanceRoutes);
+app.use("/api/progress", progressRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/student-tasks", studentTaskRoutes);
+app.use("/api/batches", batchRoutes);
+app.use("/api/drive", driveRoutes);
+app.use("/api/programs", programRoutes);
+app.use("/api/settings", instituteInfoRoutes);
+app.use("/api/recent-admissions", recentAdmissionRoutes);
+app.use("/api/student-learning-goals", studentLearningGoalsRoutes);
+app.use("/api/admin/careers", adminCareersRoutes);
+app.use("/api/careers", careersRoutes);
+app.use("/api/faqs", faqRoutes);
+app.use("/api/assessment-links", assessmentLinksRoutes);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

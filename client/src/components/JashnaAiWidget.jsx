@@ -1,0 +1,2300 @@
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  MessageCircle,
+  Mic2,
+  Phone,
+  Send,
+  Sparkles,
+  Star,
+  Volume2,
+  VolumeX,
+  X,
+} from "lucide-react";
+
+import Marrisa from "../assets/images/Marrisa.webp";
+import Mario from "../assets/images/Mario.webp";
+
+/* =========================================================
+   JASHNA EDU AI ASSISTANT  (MERGED VERSION)
+   ---------------------------------------------------------
+   FROM FILE 1 (kept as-is in look + behaviour)
+   - Floating launcher (rotating rainbow ring + CoachOrb)
+   - Desktop greeting card on the home page
+   - "Who do you want to talk to?" chooser with 2 coaches
+
+   FROM FILE 2 (kept as-is in look + behaviour)
+   - Chat panel (hero with PNG + floating keywords)
+   - Action cards, messages, typing indicator, lead form
+   - Chat / lead API functionality
+
+   NEW
+   - Bigger, bolder, more readable text everywhere
+   - Hover / tap / shine effects on every interactive element
+========================================================= */
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+const JASHNA_BRAND = {
+  blue: "#2778E8",
+  green: "#48A947",
+};
+
+/* =========================================================
+   BOT CONFIG
+   Same backend/context. Different visual personality only.
+========================================================= */
+
+const BOT_CONFIG = {
+  marrisa: {
+    id: "marrisa",
+    name: "Marrisa",
+    image: Marrisa,
+    role: "Warm English & confidence mentor",
+    shortRole: "Speaking & Confidence Mentor",
+    shortDescription: "Warm, supportive and encouraging.",
+    description:
+      "A warm and supportive mentor for English, confidence and professional growth.",
+    tags: ["Warm", "Supportive", "Professional"],
+
+    primary: "#E84393",
+    primaryDark: "#B92D70",
+    primarySoft: "#FCE2EF",
+
+    secondary: "#9B6DE3",
+    secondarySoft: "#EEE5FB",
+
+    accent: "#FF7565",
+
+    dark: "#35172F",
+    text: "#202033",
+    muted: "#4A4D63",
+
+    heroStart: "#32182F",
+    heroMiddle: "#3E1B3C",
+    heroEnd: "#241A38",
+
+    cardBg: "#FFFFFF",
+    cardHover: "#FFF6FA",
+    border: "#EBD5E2",
+
+    panel: "linear-gradient(145deg, #FFF7FB 0%, #F7F0FF 52%, #FFF7F3 100%)",
+    button: "linear-gradient(135deg, #E94F91, #A978F4)",
+    speech:
+      "linear-gradient(135deg, rgba(255,255,255,.98), rgba(255,240,247,.96))",
+
+    keywords: [
+      "SPEAK",
+      "CONFIDENCE",
+      "ENGLISH",
+      "GROW",
+      "INTERVIEW",
+      "EXPRESS",
+    ],
+    idleWords: ["Speak", "Confidence", "English", "Grow"],
+
+    welcome:
+      "Hi! I'm Marrisa. Let's work on your communication goals together. I'm here to guide you with warmth and support as you build your English, confidence and professional growth.",
+
+    greeting: "Let's practise! 💬",
+
+    /* VOICE — spoken when the coach is chosen */
+    voiceGreeting:
+      "Hi, I'm Marrisa! I'm your Jashna Edu guide for English and confidence. Let's speak with ease and grow together. How can I help you today?",
+    voiceGender: "female",
+    voicePitch: 1.15,
+    voiceRate: 0.98,
+
+    font: "'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif",
+  },
+
+  mario: {
+    id: "mario",
+    name: "Mario",
+    image: Mario,
+    role: "Energetic speaking & interview mentor",
+    shortRole: "Speaking & Interview Mentor",
+    shortDescription: "Energetic, practical and motivating.",
+    description:
+      "An energetic mentor for speaking, interviews, confidence and professional growth.",
+    tags: ["Energetic", "Confident", "Practical"],
+
+    primary: "#2577E8",
+    primaryDark: "#1554AE",
+    primarySoft: "#E2EEFF",
+
+    secondary: "#22B8CF",
+    secondarySoft: "#DDF8FB",
+
+    accent: "#9AD83D",
+
+    dark: "#102A42",
+    text: "#152033",
+    muted: "#46536B",
+
+    heroStart: "#081F3E",
+    heroMiddle: "#0A2B51",
+    heroEnd: "#08182F",
+
+    cardBg: "#FFFFFF",
+    cardHover: "#F4F9FF",
+    border: "#D6E4F5",
+
+    panel: "linear-gradient(145deg, #F1F9FF 0%, #EAFBFC 52%, #F5FFE9 100%)",
+    button: "linear-gradient(135deg, #287BE8, #19BFC9)",
+    speech:
+      "linear-gradient(135deg, rgba(255,255,255,.98), rgba(236,251,255,.96))",
+
+    keywords: [
+      "SPEAK",
+      "CONFIDENCE",
+      "ENGLISH",
+      "GROW",
+      "INTERVIEW",
+      "PRACTISE",
+    ],
+    idleWords: ["Speak", "Focus", "Confidence", "Level Up"],
+
+    welcome:
+      "Hi! I'm Mario. Let's work on your communication goals together. I'm here to help you practise speaking, build confidence and prepare for professional situations.",
+
+    greeting: "Ready to practise! 🎤",
+
+    /* VOICE — spoken when the coach is chosen */
+    voiceGreeting:
+      "Hey there! I'm Mario, your Jashna Edu guide for speaking and interviews. Ready to level up? Tell me what you want to work on!",
+    voiceGender: "male",
+    voicePitch: 0.85,
+    voiceRate: 1.04,
+
+    font: "'Inter', 'Segoe UI', Arial, system-ui, sans-serif",
+  },
+};
+
+/* =========================================================
+   QUICK ACTIONS
+========================================================= */
+
+const CHAT_ACTIONS = [
+  {
+    id: "speaking",
+    title: "Improve my speaking",
+    description: "Speak more clearly and confidently.",
+    icon: Mic2,
+    prompt:
+      "I want to improve my speaking. Give me a practical exercise I can start right now.",
+  },
+  {
+    id: "interview",
+    title: "Prepare for an interview",
+    description: "Practise answers and interview communication.",
+    icon: MessageCircle,
+    prompt:
+      "Help me prepare for an interview. Start by asking me one realistic interview question.",
+  },
+  {
+    id: "confidence",
+    title: "Build my confidence",
+    description: "Become more comfortable while speaking.",
+    icon: Sparkles,
+    prompt:
+      "I want to become more confident while speaking English. Give me a simple practice routine.",
+  },
+  {
+    id: "english",
+    title: "Practise English",
+    description: "Improve vocabulary, grammar and fluency.",
+    icon: Star,
+    prompt:
+      "Let's practise English together. Give me a short speaking activity and correct my mistakes.",
+  },
+  {
+    id: "assessment",
+    title: "Take an assessment",
+    description: "Understand where your communication stands.",
+    icon: CheckCircle2,
+    prompt:
+      "I want to understand my current communication level. What kind of assessment should I take?",
+    navigate: "/assessment",
+  },
+];
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const createMessage = (role, content, extra = {}) => ({
+  id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  role,
+  content,
+  ...extra,
+});
+
+/* =========================================================
+   VOICE HELPERS  (browser speechSynthesis — no API needed)
+========================================================= */
+
+const speechSupported =
+  typeof window !== "undefined" && "speechSynthesis" in window;
+
+/*
+  Picks the best English voice for the coach.
+  Marrisa -> female-sounding voice, Mario -> male-sounding voice.
+  If no matching voice exists on the device, we return null and the
+  default voice is used (pitch still differs, so they sound different).
+*/
+function pickVoice(gender) {
+  if (!speechSupported) return null;
+
+  const english = window.speechSynthesis
+    .getVoices()
+    .filter((voice) => voice.lang.toLowerCase().startsWith("en"));
+
+  if (!english.length) return null;
+
+  const femaleHint =
+    /female|zira|samantha|susan|aria|jenny|heera|veena|neerja|karen|moira|tessa|serena|google us english/i;
+  const maleHint =
+    /\bmale\b|david|mark|daniel|alex|guy|ravi|prabhat|rishi|george|james|fred/i;
+
+  const matches = english.filter((voice) =>
+    gender === "female"
+      ? femaleHint.test(voice.name)
+      : !/female/i.test(voice.name) && maleHint.test(voice.name),
+  );
+
+  /* prefer Indian English if the device has it */
+  return (
+    matches.find((voice) => voice.lang.toLowerCase() === "en-in") ||
+    matches[0] ||
+    null
+  );
+}
+
+/* =========================================================
+   SHINE  (white light sweep on hover — put inside any
+   `relative overflow-hidden group` button)
+========================================================= */
+
+function Shine() {
+  return (
+    <span className="pointer-events-none absolute inset-y-0 -left-[60%] w-1/2 skew-x-[-20deg] bg-white/30 opacity-0 transition-all duration-700 ease-out group-hover:left-[130%] group-hover:opacity-100" />
+  );
+}
+
+/* =========================================================
+   JASHNA BRAND MARK   (file 1)
+========================================================= */
+
+function JashnaBrandMark({ small = false }) {
+  return (
+    <div
+      className={`flex items-center justify-center font-black tracking-[-0.07em] ${
+        small ? "text-[10px]" : "text-[18px]"
+      }`}
+    >
+      <span style={{ color: JASHNA_BRAND.blue }}>JASHNA</span>
+      <span className="ml-0.5" style={{ color: JASHNA_BRAND.green }}>
+        EDU
+      </span>
+    </div>
+  );
+}
+
+/* =========================================================
+   NEUTRAL COACH ORB   (file 1 — launcher before choosing)
+========================================================= */
+
+function CoachOrb({ active = false }) {
+  return (
+    <div className="relative flex h-full w-full items-center justify-center">
+      <motion.div
+        className="absolute inset-[-7px] rounded-full"
+        style={{
+          background:
+            "conic-gradient(from 180deg,#E94F91,#A978F4,#3288F5,#20C9D5,#E94F91)",
+        }}
+        animate={{ rotate: [0, 360] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+      />
+
+      <div className="absolute inset-[-4px] rounded-full bg-white" />
+
+      <motion.div
+        className="relative z-10 flex h-[68px] w-[68px] flex-col items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[0_12px_30px_rgba(20,40,80,.2)]"
+        animate={{ scale: active ? [1, 1.04, 1] : [1, 1.02, 1] }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <div className="absolute inset-0">
+          <div className="absolute left-0 top-0 h-full w-1/2 bg-gradient-to-br from-[#FFF0F7] to-[#F2E8FF]" />
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-[#EEF9FF] to-[#E8FFFF]" />
+        </div>
+
+        <motion.div
+          className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-white shadow-lg"
+          style={{
+            background:
+              "linear-gradient(135deg,#E94F91 0%,#A978F4 48%,#3288F5 100%)",
+          }}
+          animate={{ y: [0, -2, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Mic2 size={15} strokeWidth={2.4} />
+        </motion.div>
+
+        <div className="relative z-10 mt-1">
+          <JashnaBrandMark small />
+        </div>
+      </motion.div>
+
+      <motion.span
+        className="absolute -right-1 top-1 z-30 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-[#B9E94A] text-[#18364D] shadow-md"
+        animate={{ rotate: [0, 12, -12, 0], scale: [1, 1.12, 1] }}
+        transition={{ duration: 2.2, repeat: Infinity }}
+      >
+        <Sparkles size={9} />
+      </motion.span>
+    </div>
+  );
+}
+
+/* =========================================================
+   CHARACTER LAUNCHER   (file 1 — launcher after choosing)
+========================================================= */
+
+function CharacterLauncher({ bot, active = false }) {
+  return (
+    <div className="relative flex h-full w-full items-center justify-center">
+      <motion.div
+        className="absolute inset-0 rounded-full blur-xl"
+        style={{ background: `${bot.primary}45` }}
+        animate={{
+          scale: active ? [0.9, 1.15, 0.9] : [0.96, 1.04, 0.96],
+          opacity: active ? [0.4, 0.8, 0.4] : [0.35, 0.5, 0.35],
+        }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      <motion.img
+        src={bot.image}
+        alt={bot.name}
+        className="relative z-10 h-full w-full object-contain object-bottom"
+        animate={{ y: active ? [0, -2, 0] : [0, -1, 0] }}
+        transition={{
+          duration: bot.id === "marrisa" ? 3.5 : 2.6,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+    </div>
+  );
+}
+
+/* =========================================================
+   CHOOSER SCENE PIECES   (file 1 — floating words / dots /
+   waveform / speech bubble), text made bigger
+========================================================= */
+
+function FloatingWord({
+  bot,
+  children,
+  className = "",
+  delay = 0,
+  rotate = 0,
+}) {
+  return (
+    <motion.div
+      className={`pointer-events-none absolute z-20 ${className}`}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{
+        opacity: [0.7, 1, 0.7],
+        y: [0, -9, 0],
+        rotate: [rotate, rotate + 3, rotate],
+      }}
+      transition={{ duration: 4, delay, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <div
+        className="rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] shadow-lg backdrop-blur-md"
+        style={{
+          color: bot.primaryDark,
+          borderColor: `${bot.primary}30`,
+          background: "rgba(255,255,255,.92)",
+        }}
+      >
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
+function FloatingDot({ bot, className = "", delay = 0, size = "small" }) {
+  const sizeClass = size === "medium" ? "h-2.5 w-2.5" : "h-2 w-2";
+
+  return (
+    <motion.span
+      className={`pointer-events-none absolute z-10 rounded-full ${sizeClass} ${className}`}
+      style={{
+        background: bot.accent,
+        boxShadow: `0 0 14px ${bot.accent}90`,
+      }}
+      animate={{
+        y: [0, -10, 0],
+        opacity: [0.35, 0.9, 0.35],
+        scale: [1, 1.2, 1],
+      }}
+      transition={{ duration: 3.5, delay, repeat: Infinity, ease: "easeInOut" }}
+    />
+  );
+}
+
+function CharacterWaveform({ bot }) {
+  const bars = [8, 14, 22, 12, 28, 18, 34, 24, 31, 16, 25, 12, 20, 14, 8];
+
+  return (
+    <div className="flex h-6 items-center justify-center gap-[2px]">
+      {bars.map((height, index) => (
+        <motion.span
+          key={index}
+          className="w-[3px] rounded-full"
+          style={{
+            background: index % 3 === 0 ? bot.accent : bot.primary,
+          }}
+          animate={{
+            height: [
+              Math.max(3, height * 0.3),
+              height * 0.7,
+              Math.max(4, height * 0.45),
+              height * 0.6,
+            ],
+            opacity: [0.5, 1, 0.65, 0.95],
+          }}
+          transition={{
+            duration: 0.65 + index * 0.035,
+            repeat: Infinity,
+            repeatType: "mirror",
+            delay: index * 0.02,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ChooserScene({ bot }) {
+  return (
+    <div className="relative mx-auto h-[280px] w-full">
+      {/* ambient glow */}
+      <motion.div
+        className="absolute left-1/2 top-1/2 z-0 h-[210px] w-[250px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+        style={{
+          background: `radial-gradient(circle,${bot.primary}35,transparent 68%)`,
+        }}
+        animate={{ scale: [0.9, 1.08, 0.9], opacity: [0.55, 0.85, 0.55] }}
+        transition={{
+          duration: bot.id === "marrisa" ? 4 : 3,
+          repeat: Infinity,
+        }}
+      />
+
+      {/* floating words */}
+      <FloatingWord
+        bot={bot}
+        className="left-[3%] top-[56px]"
+        delay={0.3}
+        rotate={-5}
+      >
+        {bot.idleWords[0]}
+      </FloatingWord>
+      <FloatingWord
+        bot={bot}
+        className="right-[3%] top-[92px]"
+        delay={0.9}
+        rotate={4}
+      >
+        {bot.idleWords[1]}
+      </FloatingWord>
+      <FloatingWord
+        bot={bot}
+        className="left-[5%] bottom-[78px]"
+        delay={1.4}
+        rotate={3}
+      >
+        {bot.idleWords[2]}
+      </FloatingWord>
+
+      {/* dots */}
+      <FloatingDot
+        bot={bot}
+        className="left-[17%] top-[23px]"
+        delay={0.4}
+        size="medium"
+      />
+      <FloatingDot bot={bot} className="right-[17%] top-[30px]" delay={1.1} />
+      <FloatingDot bot={bot} className="left-[23%] bottom-[35px]" delay={1.6} />
+      <FloatingDot
+        bot={bot}
+        className="right-[22%] bottom-[27px]"
+        delay={2}
+        size="medium"
+      />
+
+      {/* character */}
+      <motion.div
+        className="absolute bottom-[4px] left-1/2 z-10 h-[255px] w-[240px] -translate-x-1/2"
+        animate={{ y: bot.id === "marrisa" ? [0, -4, 0] : [0, -6, 0] }}
+        transition={{
+          duration: bot.id === "marrisa" ? 4 : 2.8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      >
+        <motion.img
+          src={bot.image}
+          alt={`${bot.name}, Jashna Edu ${bot.shortRole}`}
+          className="h-full w-full object-contain object-bottom drop-shadow-[0_18px_25px_rgba(0,0,0,.18)]"
+          draggable="false"
+          whileHover={{ scale: 1.06 }}
+          transition={{ type: "spring", stiffness: 220, damping: 14 }}
+        />
+      </motion.div>
+
+      {/* speech bubble */}
+      <motion.div
+        className="absolute right-[2%] top-[4px] z-30 max-w-[190px]"
+        initial={{ opacity: 0, scale: 0.85, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: [0, -3, 0] }}
+        transition={{
+          opacity: { duration: 0.5, delay: 0.3 },
+          scale: { duration: 0.5, delay: 0.3 },
+          y: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 },
+        }}
+      >
+        <div
+          className="relative rounded-[16px] border px-3.5 py-2.5 shadow-[0_12px_25px_rgba(0,0,0,.12)] backdrop-blur-xl"
+          style={{
+            background: bot.speech,
+            borderColor: `${bot.primary}30`,
+          }}
+        >
+          <div
+            className="text-[14px] font-black leading-[1.35]"
+            style={{ color: bot.dark }}
+          >
+            {bot.greeting}
+          </div>
+
+          <div
+            className="absolute -bottom-1.5 left-5 h-3 w-3 rotate-45 border-b border-r"
+            style={{
+              borderColor: `${bot.primary}30`,
+              background: bot.id === "marrisa" ? "#FFF9FC" : "#F6FDFF",
+            }}
+          />
+        </div>
+      </motion.div>
+
+      {/* waveform pill */}
+      <motion.div
+        className="absolute bottom-[10px] left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/70 bg-white/95 px-3.5 py-2 shadow-[0_10px_25px_rgba(0,0,0,.1)] backdrop-blur-xl"
+        animate={{ y: [0, -2, 0] }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Mic2 size={13} style={{ color: bot.primary }} />
+        <CharacterWaveform bot={bot} />
+        <span
+          className="text-[11px] font-black uppercase tracking-[0.12em]"
+          style={{ color: bot.dark }}
+        >
+          Speak
+        </span>
+      </motion.div>
+    </div>
+  );
+}
+
+/* =========================================================
+   CHARACTER CHOOSER   (file 1 — "Who do you want to talk to?")
+========================================================= */
+
+function CharacterChooser({ onSelect, onClose }) {
+  const bots = [BOT_CONFIG.marrisa, BOT_CONFIG.mario];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-[#020A1C]/75 px-3 py-4 backdrop-blur-xl sm:px-5"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.94 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.96 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="relative max-h-[94dvh] w-full max-w-[880px] overflow-y-auto rounded-[30px] border border-white/20 bg-white p-4 shadow-[0_40px_120px_rgba(0,0,0,.4)] sm:rounded-[36px] sm:p-7"
+      >
+        {/* close */}
+        <motion.button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          whileHover={{ scale: 1.1, rotate: 90 }}
+          whileTap={{ scale: 0.9 }}
+          className="absolute right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-900"
+        >
+          <X size={20} />
+        </motion.button>
+
+        {/* header */}
+        <div className="mx-auto max-w-[620px] text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-3 flex items-center justify-center gap-2"
+          >
+            <span className="h-px w-8 bg-slate-200" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50">
+              <Mic2 size={15} className="text-[#2778E8]" />
+            </span>
+            <span className="h-px w-8 bg-slate-200" />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.16 }}
+          >
+            <JashnaBrandMark />
+
+            <p className="mt-3 text-[12px] font-black uppercase tracking-[0.2em] text-slate-500">
+              Meet your Jashna English & confidence mentors
+            </p>
+
+            <h2 className="mt-2 text-[32px] font-black leading-[1.05] tracking-[-0.05em] text-[#10233E] sm:text-[44px]">
+              Who do you want to talk to?
+            </h2>
+
+            <p className="mx-auto mt-3 max-w-[520px] text-[15px] font-semibold leading-[1.6] text-slate-600 sm:text-[16px]">
+              Two personalities, one Jashna Edu learning experience. Choose the
+              coach whose style feels right for you.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* cards */}
+        <div className="mt-6 grid gap-4 sm:mt-8 sm:grid-cols-2">
+          {bots.map((bot, index) => (
+            <motion.div
+              key={bot.id}
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22 + index * 0.1, duration: 0.5 }}
+              whileHover={{ y: -6 }}
+              className="group relative overflow-hidden rounded-[27px] border p-3.5 transition-shadow duration-300 hover:shadow-[0_28px_60px_rgba(0,0,0,.14)] sm:rounded-[30px] sm:p-4"
+              style={{
+                background: bot.panel,
+                borderColor: `${bot.primary}35`,
+                fontFamily: bot.font,
+              }}
+            >
+              <motion.div
+                className="pointer-events-none absolute -right-20 -top-20 h-44 w-44 rounded-full blur-3xl"
+                style={{ background: `${bot.primary}25` }}
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              />
+              <motion.div
+                className="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full blur-3xl"
+                style={{ background: `${bot.secondary}22` }}
+                animate={{ scale: [1.1, 1, 1.1] }}
+                transition={{ duration: 5, repeat: Infinity }}
+              />
+
+              <div className="relative">
+                <ChooserScene bot={bot} />
+              </div>
+
+              <div className="relative mt-1 rounded-[21px] border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-xl">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3
+                        className="text-[28px] font-black leading-none tracking-[-0.045em]"
+                        style={{ color: bot.dark }}
+                      >
+                        {bot.name}
+                      </h3>
+
+                      <span
+                        className="rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.1em]"
+                        style={{
+                          color: bot.primaryDark,
+                          background: `${bot.primary}15`,
+                        }}
+                      >
+                        AI Coach
+                      </span>
+                    </div>
+
+                    <p
+                      className="mt-1.5 text-[12px] font-black uppercase tracking-[0.12em]"
+                      style={{ color: bot.primaryDark }}
+                    >
+                      {bot.role}
+                    </p>
+                  </div>
+
+                  <motion.button
+                    type="button"
+                    onClick={() => onSelect(bot.id)}
+                    whileHover={{ scale: 1.12, rotate: -4 }}
+                    whileTap={{ scale: 0.92 }}
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white shadow-lg"
+                    style={{ background: bot.button }}
+                    aria-label={`Talk to ${bot.name}`}
+                  >
+                    <ArrowRight size={20} strokeWidth={2.6} />
+                  </motion.button>
+                </div>
+
+                <p
+                  className="mt-3 text-[15px] font-bold leading-[1.5]"
+                  style={{ color: bot.muted }}
+                >
+                  {bot.shortDescription}
+                </p>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {bot.tags.map((tag) => (
+                    <motion.span
+                      key={tag}
+                      whileHover={{ y: -2, scale: 1.05 }}
+                      className="rounded-full border bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.06em]"
+                      style={{
+                        borderColor: `${bot.primary}30`,
+                        color: bot.primaryDark,
+                      }}
+                    >
+                      {tag}
+                    </motion.span>
+                  ))}
+                </div>
+
+                <motion.button
+                  type="button"
+                  onClick={() => onSelect(bot.id)}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group/btn relative mt-4 flex w-full items-center justify-center gap-2 overflow-hidden rounded-[15px] px-4 py-4 text-[14px] font-black uppercase tracking-[0.06em] text-white shadow-lg"
+                  style={{ background: bot.button }}
+                >
+                  <span className="pointer-events-none absolute inset-y-0 -left-[60%] w-1/2 skew-x-[-20deg] bg-white/30 opacity-0 transition-all duration-700 ease-out group-hover/btn:left-[130%] group-hover/btn:opacity-100" />
+                  Talk to {bot.name}
+                  <ArrowUpRight size={17} strokeWidth={2.6} />
+                </motion.button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex items-center justify-center gap-2 text-center text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
+          <span className="h-px w-6 bg-slate-200" />
+          Same Jashna Edu intelligence
+          <span className="h-px w-6 bg-slate-200" />
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* =========================================================
+   FLOATING KEYWORD   (file 2 — positions kept, text bigger)
+========================================================= */
+
+function FloatingKeyword({ children, bot, position, delay = 0 }) {
+  return (
+    <motion.div
+      className="absolute z-20 select-none"
+      style={position}
+      initial={{ opacity: 0, scale: 0.7, y: 8 }}
+      animate={{ opacity: 1, scale: 1, y: [0, -5, 0] }}
+      whileHover={{ scale: 1.15, rotate: -3 }}
+      transition={{
+        opacity: { duration: 0.45, delay },
+        scale: { duration: 0.45, delay, type: "spring" },
+        y: {
+          duration: 3.2,
+          repeat: Infinity,
+          delay: delay + 0.5,
+          ease: "easeInOut",
+        },
+      }}
+    >
+      <div
+        className="cursor-default rounded-full border px-3.5 py-2 text-[12px] font-black tracking-[0.12em] shadow-lg backdrop-blur-md sm:text-[13px]"
+        style={{
+          color: bot.primaryDark,
+          background: "rgba(255,255,255,0.95)",
+          borderColor: bot.primarySoft,
+          boxShadow: `0 8px 22px ${bot.primary}28`,
+        }}
+      >
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
+/* =========================================================
+   CHARACTER HERO   (file 2 — big PNG + floating keywords)
+========================================================= */
+
+function CharacterHero({ bot, isSpeaking = false }) {
+  return (
+    <div
+      className="relative w-full overflow-hidden"
+      style={{
+        height: "clamp(300px, 43vh, 440px)",
+        minHeight: 300,
+        background: `linear-gradient(145deg, ${bot.heroStart} 0%, ${bot.heroMiddle} 48%, ${bot.heroEnd} 100%)`,
+      }}
+    >
+      {/* ambient circles */}
+      <motion.div
+        className="absolute -left-20 top-12 h-44 w-44 rounded-full blur-3xl"
+        style={{ background: `${bot.primary}25` }}
+        animate={{ x: [0, 20, 0], y: [0, -12, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute -right-16 bottom-4 h-48 w-48 rounded-full blur-3xl"
+        style={{ background: `${bot.secondary}20` }}
+        animate={{ x: [0, -15, 0], y: [0, 12, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* subtle grid */}
+      <div
+        className="absolute inset-0 opacity-[0.09]"
+        style={{
+          backgroundImage: `
+            linear-gradient(${bot.secondary} 1px, transparent 1px),
+            linear-gradient(90deg, ${bot.secondary} 1px, transparent 1px)
+          `,
+          backgroundSize: "34px 34px",
+        }}
+      />
+
+      {/* floating keywords */}
+      <FloatingKeyword
+        bot={bot}
+        position={{ left: "6%", top: "29%" }}
+        delay={0.1}
+      >
+        {bot.keywords[0]}
+      </FloatingKeyword>
+      <FloatingKeyword
+        bot={bot}
+        position={{ right: "5%", top: "37%" }}
+        delay={0.25}
+      >
+        {bot.keywords[1]}
+      </FloatingKeyword>
+      <FloatingKeyword
+        bot={bot}
+        position={{ left: "5%", bottom: "28%" }}
+        delay={0.4}
+      >
+        {bot.keywords[2]}
+      </FloatingKeyword>
+      <FloatingKeyword
+        bot={bot}
+        position={{ right: "6%", bottom: "27%" }}
+        delay={0.55}
+      >
+        {bot.keywords[3]}
+      </FloatingKeyword>
+      <FloatingKeyword
+        bot={bot}
+        position={{ left: "14%", top: "55%" }}
+        delay={0.7}
+      >
+        {bot.keywords[4]}
+      </FloatingKeyword>
+
+      {/* speech bubble */}
+      <motion.div
+        className="absolute right-[8%] top-4 z-30 hidden sm:block"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: [0, -3, 0] }}
+        whileHover={{ scale: 1.08 }}
+        transition={{
+          opacity: { duration: 0.5 },
+          y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+        }}
+      >
+        <div
+          className="relative rounded-full bg-white px-5 py-2.5 text-[14px] font-black shadow-xl"
+          style={{ color: bot.text }}
+        >
+          {bot.greeting}
+          <span className="absolute -bottom-2 left-8 h-4 w-4 rotate-45 bg-white" />
+        </div>
+      </motion.div>
+
+      {/* LARGE CHARACTER IMAGE */}
+      <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-center">
+        <motion.div
+          className="relative w-[88%] max-w-[450px]"
+          initial={{ opacity: 0, y: 25, scale: 0.94 }}
+          animate={{ opacity: 1, y: [0, -4, 0], scale: 1 }}
+          transition={{
+            opacity: { duration: 0.5 },
+            y: { duration: 4.5, repeat: Infinity, ease: "easeInOut" },
+            scale: { duration: 0.6, type: "spring", stiffness: 160 },
+          }}
+        >
+          <div
+            className="absolute inset-x-[15%] bottom-3 top-[15%] rounded-[40px] blur-2xl"
+            style={{ background: `${bot.primary}25` }}
+          />
+
+          <motion.img
+            src={bot.image}
+            alt={`${bot.name}, Jashna Edu ${bot.shortRole}`}
+            className="relative z-10 block h-auto w-full cursor-pointer object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.28)]"
+            draggable="false"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97, rotate: [0, -2, 2, 0] }}
+            transition={{ type: "spring", stiffness: 220, damping: 14 }}
+          />
+        </motion.div>
+      </div>
+
+      {/* online status pill */}
+      <div className="absolute bottom-3 left-1/2 z-40 -translate-x-1/2">
+        <motion.div
+          className="flex items-center gap-2.5 rounded-full border px-5 py-2.5 shadow-2xl backdrop-blur-xl"
+          style={{
+            background: "rgba(24,17,31,0.92)",
+            borderColor: `${bot.primary}55`,
+          }}
+          animate={{ scale: [1, 1.025, 1] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <motion.span
+            className="flex h-3 w-3 rounded-full"
+            style={{ background: bot.accent }}
+            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.65, 1] }}
+            transition={{ duration: 1.7, repeat: Infinity }}
+          />
+          <Mic2 size={16} color="#fff" strokeWidth={2.5} />
+          <span className="text-[12px] font-black uppercase tracking-[0.14em] text-white sm:text-[13px]">
+            {isSpeaking ? `${bot.name} is speaking` : `${bot.name} is online`}
+          </span>
+          {isSpeaking && <CharacterWaveform bot={bot} />}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   BOT AVATAR   (file 2)
+========================================================= */
+
+function BotAvatar({ bot, size = "normal" }) {
+  const isSmall = size === "small";
+
+  return (
+    <motion.div
+      className={`relative shrink-0 overflow-hidden rounded-2xl border ${
+        isSmall ? "h-11 w-11" : "h-14 w-14"
+      }`}
+      style={{
+        background: `linear-gradient(145deg, ${bot.primarySoft}, ${bot.secondarySoft})`,
+        borderColor: `${bot.primary}35`,
+      }}
+      whileHover={{ scale: 1.1, rotate: [-1, 2, -2, 0] }}
+      whileTap={{ scale: 0.92 }}
+      transition={{ duration: 0.3 }}
+    >
+      <img
+        src={bot.image}
+        alt={bot.name}
+        className="h-full w-full object-cover object-top"
+      />
+    </motion.div>
+  );
+}
+
+/* =========================================================
+   ACTION CARD   (file 2 — bigger text + shine + arrow slide)
+========================================================= */
+
+function ActionCard({ action, bot, onClick }) {
+  const Icon = action.icon;
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-[20px] border p-3.5 text-left outline-none focus-visible:ring-4 sm:p-4"
+      style={{
+        background: bot.cardBg,
+        borderColor: bot.border,
+        boxShadow: `0 4px 14px ${bot.primary}12`,
+      }}
+      whileHover={{
+        y: -4,
+        scale: 1.015,
+        backgroundColor: bot.cardHover,
+        borderColor: `${bot.primary}80`,
+        boxShadow: `0 16px 32px ${bot.primary}28`,
+      }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+      <Shine />
+
+      <motion.div
+        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[16px] border"
+        style={{
+          background: bot.primarySoft,
+          borderColor: `${bot.primary}30`,
+          color: bot.primaryDark,
+        }}
+        whileHover={{ scale: 1.1, rotate: -6 }}
+      >
+        <Icon size={25} strokeWidth={2.5} />
+      </motion.div>
+
+      <div className="min-w-0 flex-1">
+        <h3
+          className="text-[17px] font-black leading-[1.2] sm:text-[18px]"
+          style={{ color: bot.text }}
+        >
+          {action.title}
+        </h3>
+
+        <p
+          className="mt-1 text-[13px] font-bold leading-[1.4] sm:text-[14px]"
+          style={{ color: bot.muted }}
+        >
+          {action.description}
+        </p>
+      </div>
+
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:scale-110"
+        style={{ background: bot.primary }}
+      >
+        <ChevronRight size={22} strokeWidth={3} />
+      </div>
+    </motion.button>
+  );
+}
+
+/* =========================================================
+   MESSAGE CONTENT   (file 2 — markdown-lite, bigger text)
+========================================================= */
+
+function MessageContent({ content, bot }) {
+  const parts = content.split("\n");
+
+  return (
+    <div className="space-y-2">
+      {parts.map((line, index) => {
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+          return <div key={index} className="h-1" />;
+        }
+
+        const segments = trimmed.split(/(\*\*.*?\*\*)/g);
+
+        return (
+          <p
+            key={index}
+            className="text-[15px] font-bold leading-[1.65] sm:text-[16px]"
+            style={{ color: bot.text }}
+          >
+            {segments.map((segment, segmentIndex) => {
+              if (segment.startsWith("**") && segment.endsWith("**")) {
+                return (
+                  <strong
+                    key={segmentIndex}
+                    className="font-black"
+                    style={{ color: bot.primaryDark }}
+                  >
+                    {segment.slice(2, -2)}
+                  </strong>
+                );
+              }
+
+              return segment;
+            })}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+/* =========================================================
+   TYPING INDICATOR   (file 2)
+========================================================= */
+
+function TypingIndicator({ bot }) {
+  return (
+    <div className="flex items-end gap-2">
+      <BotAvatar bot={bot} size="small" />
+
+      <div
+        className="rounded-[18px] rounded-bl-md border px-4 py-3.5"
+        style={{ background: bot.cardBg, borderColor: bot.border }}
+      >
+        <div className="flex items-center gap-1.5">
+          {[0, 1, 2].map((item) => (
+            <motion.span
+              key={item}
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ background: bot.primary }}
+              animate={{ y: [0, -5, 0], opacity: [0.45, 1, 0.45] }}
+              transition={{
+                duration: 0.8,
+                repeat: Infinity,
+                delay: item * 0.12,
+              }}
+            />
+          ))}
+
+          <span
+            className="ml-1.5 text-[13px] font-black"
+            style={{ color: bot.muted }}
+          >
+            {bot.name} is thinking
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   LEAD FORM   (file 2 — bigger text)
+========================================================= */
+
+function LeadForm({
+  bot,
+  leadForm,
+  setLeadForm,
+  onSubmit,
+  onClose,
+  leadStatus,
+}) {
+  const inputClass =
+    "w-full rounded-[14px] border bg-white px-4 py-3.5 text-[15px] font-bold outline-none transition placeholder:text-slate-400 focus:ring-4";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 12 }}
+      className="mt-5 rounded-[22px] border p-4 sm:p-5"
+      style={{
+        background: bot.primarySoft,
+        borderColor: `${bot.primary}35`,
+      }}
+    >
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h3
+            className="text-[20px] font-black leading-tight"
+            style={{ color: bot.text }}
+          >
+            Connect with Jashna Edu
+          </h3>
+
+          <p
+            className="mt-1.5 text-[14px] font-bold leading-[1.5]"
+            style={{ color: bot.muted }}
+          >
+            Leave your details and the Jashna Edu team can help you with the
+            next step.
+          </p>
+        </div>
+
+        <motion.button
+          type="button"
+          onClick={onClose}
+          aria-label="Close form"
+          whileHover={{ scale: 1.15, rotate: 90 }}
+          whileTap={{ scale: 0.9 }}
+          className="rounded-full p-2 transition hover:bg-white/80"
+          style={{ color: bot.text }}
+        >
+          <X size={20} />
+        </motion.button>
+      </div>
+
+      <div className="space-y-3">
+        <input
+          value={leadForm.name}
+          onChange={(e) =>
+            setLeadForm((prev) => ({ ...prev, name: e.target.value }))
+          }
+          placeholder="Your name"
+          autoComplete="name"
+          className={inputClass}
+          style={{ borderColor: bot.border, color: bot.text }}
+        />
+
+        <input
+          value={leadForm.phone}
+          onChange={(e) =>
+            setLeadForm((prev) => ({ ...prev, phone: e.target.value }))
+          }
+          placeholder="Phone number"
+          type="tel"
+          autoComplete="tel"
+          className={inputClass}
+          style={{ borderColor: bot.border, color: bot.text }}
+        />
+
+        <select
+          value={leadForm.interest}
+          onChange={(e) =>
+            setLeadForm((prev) => ({ ...prev, interest: e.target.value }))
+          }
+          className="w-full rounded-[14px] border bg-white px-4 py-3.5 text-[15px] font-bold outline-none transition focus:ring-4"
+          style={{ borderColor: bot.border, color: bot.text }}
+        >
+          <option value="">What are you interested in?</option>
+          <option value="Spoken English">Spoken English</option>
+          <option value="IELTS">IELTS</option>
+          <option value="Public Speaking">Public Speaking</option>
+          <option value="Interview Skills">Interview Skills</option>
+          <option value="Business English">Business English</option>
+        </select>
+
+        <label className="flex cursor-pointer items-start gap-2.5">
+          <input
+            type="checkbox"
+            checked={leadForm.marketingConsent}
+            onChange={(e) =>
+              setLeadForm((prev) => ({
+                ...prev,
+                marketingConsent: e.target.checked,
+              }))
+            }
+            className="mt-1 h-4 w-4"
+            style={{ accentColor: bot.primary }}
+          />
+
+          <span
+            className="text-[13px] font-bold leading-[1.45]"
+            style={{ color: bot.muted }}
+          >
+            I agree to be contacted by Jashna Edu regarding my enquiry.
+          </span>
+        </label>
+
+        <motion.button
+          type="button"
+          onClick={onSubmit}
+          disabled={leadStatus === "submitting"}
+          whileHover={{ y: -3 }}
+          whileTap={{ scale: 0.97 }}
+          className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] px-4 py-4 text-[16px] font-black text-white shadow-lg transition disabled:opacity-60"
+          style={{
+            background: `linear-gradient(90deg, ${bot.primaryDark}, ${bot.primary})`,
+          }}
+        >
+          <Shine />
+          {leadStatus === "submitting" ? (
+            "Sending..."
+          ) : (
+            <>
+              <Phone size={18} />
+              Connect with Jashna Edu
+            </>
+          )}
+        </motion.button>
+
+        {leadStatus === "success" && (
+          <motion.p
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center justify-center gap-2 text-center text-[14px] font-black text-green-700"
+          >
+            <Check size={18} strokeWidth={3} />
+            Your details were sent successfully.
+          </motion.p>
+        )}
+
+        {leadStatus === "error" && (
+          <motion.p
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: 1, x: [0, -5, 5, -3, 3, 0] }}
+            className="text-center text-[14px] font-black text-red-600"
+          >
+            Please add your name and phone number, then try again.
+          </motion.p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+/* =========================================================
+   MAIN WIDGET
+========================================================= */
+
+export default function JashnaAiWidget() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const messagesEndRef = useRef(null);
+  const leadEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const [selectedBot, setSelectedBot] = useState(null);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [showChooser, setShowChooser] = useState(false);
+
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
+
+  const [isTyping, setIsTyping] = useState(false);
+  const [characterActive, setCharacterActive] = useState(false);
+
+  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [leadStatus, setLeadStatus] = useState("idle");
+
+  const [leadForm, setLeadForm] = useState({
+    name: "",
+    phone: "",
+    interest: "",
+    marketingConsent: false,
+  });
+
+  const [showGreeting, setShowGreeting] = useState(false);
+  const [greetingSeen, setGreetingSeen] = useState(false);
+
+  const [voiceOn, setVoiceOn] = useState(true);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const bot = selectedBot ? BOT_CONFIG[selectedBot] : null;
+
+  /* -------------------------------------------------------
+     VOICE  (greeting spoken when a coach is chosen)
+  ------------------------------------------------------- */
+
+  const stopSpeaking = () => {
+    if (!speechSupported) return;
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
+  const speakGreeting = (botId, force = false) => {
+    if (!speechSupported || (!voiceOn && !force)) return;
+
+    const coach = BOT_CONFIG[botId];
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(coach.voiceGreeting);
+    const voice = pickVoice(coach.voiceGender);
+
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    } else {
+      utterance.lang = "en-US";
+    }
+
+    utterance.pitch = coach.voicePitch;
+    utterance.rate = coach.voiceRate;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleVoice = () => {
+    if (voiceOn) {
+      stopSpeaking();
+      setVoiceOn(false);
+      return;
+    }
+
+    setVoiceOn(true);
+
+    if (selectedBot) speakGreeting(selectedBot, true);
+  };
+
+  /* browsers load voices late — warm the list up, and stop on unmount */
+  useEffect(() => {
+    if (!speechSupported) return;
+
+    const warmUp = () => window.speechSynthesis.getVoices();
+
+    warmUp();
+    window.speechSynthesis.addEventListener("voiceschanged", warmUp);
+
+    return () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", warmUp);
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
+    /* -------------------------------------------------------
+     DESKTOP GREETING  (file 1 — home page only)
+     Appears after the visitor scrolls a little, or after
+     10 seconds on the page — whichever happens first.
+     Never shows instantly.
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    if (location.pathname !== "/" || isOpen || showChooser || greetingSeen) {
+      setShowGreeting(false);
+      return undefined;
+    }
+
+    const GREETING_DELAY_MS = 10000; // minimum wait if the user doesn't scroll
+    const GREETING_SCROLL_PX = 250; // how far to scroll before it shows
+
+    let shown = false;
+
+    const reveal = () => {
+      if (shown) return;
+      shown = true;
+      setShowGreeting(true);
+      window.removeEventListener("scroll", onScroll);
+    };
+
+    const onScroll = () => {
+      if (window.scrollY > GREETING_SCROLL_PX) reveal();
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const timer = setTimeout(reveal, GREETING_DELAY_MS);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [location.pathname, isOpen, showChooser, greetingSeen]);
+  /* -------------------------------------------------------
+     BODY LOCK
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    if (!isOpen && !showChooser) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen, showChooser]);
+
+  /* -------------------------------------------------------
+     AUTO SCROLL
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    });
+  }, [messages, isTyping, isOpen]);
+
+  useEffect(() => {
+    if (!showLeadForm) return;
+
+    const timer = setTimeout(() => {
+      leadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [showLeadForm]);
+
+  /* -------------------------------------------------------
+     ESCAPE
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key !== "Escape") return;
+
+      if (showChooser) {
+        setShowChooser(false);
+        return;
+      }
+
+      if (isOpen) {
+        stopSpeaking();
+        setIsOpen(false);
+        setCharacterActive(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isOpen, showChooser]);
+
+  /* -------------------------------------------------------
+     OPEN / CLOSE
+  ------------------------------------------------------- */
+
+  const closeChat = () => {
+    stopSpeaking();
+    setIsOpen(false);
+    setCharacterActive(false);
+  };
+
+  const handleLauncherClick = () => {
+    setShowGreeting(false);
+    setGreetingSeen(true);
+
+    if (!selectedBot) {
+      setShowChooser(true);
+      return;
+    }
+
+    setIsOpen(true);
+    setCharacterActive(true);
+
+    setTimeout(() => inputRef.current?.focus(), 250);
+  };
+
+  /* -------------------------------------------------------
+     SELECT / SWITCH BOT
+  ------------------------------------------------------- */
+
+  const handleSelectBot = (botId) => {
+    const nextBot = BOT_CONFIG[botId];
+
+    setSelectedBot(botId);
+    setShowChooser(false);
+    setShowGreeting(false);
+    setGreetingSeen(true);
+    setIsOpen(true);
+    setCharacterActive(true);
+    setShowLeadForm(false);
+
+    /* coach says hello out loud (click = user gesture, so browsers allow it) */
+    speakGreeting(botId);
+
+    /*
+      Welcome message always comes from the selected bot.
+      If the user only has the welcome message so far (no real
+      conversation yet), it is replaced by the new coach's welcome.
+      If a real conversation exists, it is kept.
+    */
+
+    setMessages((previousMessages) => {
+      if (previousMessages.length <= 1) {
+        return [createMessage("assistant", nextBot.welcome)];
+      }
+
+      return previousMessages;
+    });
+
+    setTimeout(() => inputRef.current?.focus(), 300);
+  };
+
+  const handleSwitchBot = () => {
+    stopSpeaking();
+    setShowChooser(true);
+    setIsOpen(false);
+    setCharacterActive(false);
+  };
+
+  /* -------------------------------------------------------
+     SEND CHAT
+  ------------------------------------------------------- */
+
+  const sendMessage = async (messageOverride = null) => {
+    if (!selectedBot) {
+      setShowChooser(true);
+      return;
+    }
+
+    const messageText = (
+      messageOverride !== null ? messageOverride : input
+    ).trim();
+
+    if (!messageText || isTyping) return;
+
+    const userMessage = createMessage("user", messageText);
+    const nextMessages = [...messages, userMessage];
+
+    setMessages(nextMessages);
+    setInput("");
+    setIsTyping(true);
+    setCharacterActive(true);
+
+    try {
+      const history = nextMessages.map((item) => ({
+        role: item.role,
+        content: item.content,
+      }));
+
+      const response = await fetch("http://localhost:5000/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: messageText,
+          history,
+          page: location.pathname,
+          character: selectedBot,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Chat request failed");
+      }
+
+      const data = await response.json();
+
+      const rawReply =
+        data?.reply ||
+        "I'm here to help. Tell me a little more about what you want to practise.";
+
+      const hasCTA = /\[CTA:WHATSAPP\]/i.test(rawReply);
+      const reply = rawReply.replace(/\[CTA:WHATSAPP\]/gi, "").trim();
+
+      setMessages((previous) => [
+        ...previous,
+        createMessage("assistant", reply, { showCTA: hasCTA }),
+      ]);
+    } catch (error) {
+      console.error("Jashna AI error:", error);
+
+      setMessages((previous) => [
+        ...previous,
+        createMessage(
+          "assistant",
+          "I'm having a little trouble connecting right now. Please try again in a moment, or explore one of the practice options above.",
+        ),
+      ]);
+    } finally {
+      setIsTyping(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  };
+
+  /* -------------------------------------------------------
+     QUICK ACTION
+  ------------------------------------------------------- */
+
+  const handleAction = (action) => {
+    if (action.navigate) {
+      closeChat();
+      navigate(action.navigate);
+      return;
+    }
+
+    sendMessage(action.prompt);
+  };
+
+  /* -------------------------------------------------------
+     LEAD FORM
+  ------------------------------------------------------- */
+
+  const handleLeadSubmit = async () => {
+    if (!selectedBot) return;
+
+    if (!leadForm.name.trim() || !leadForm.phone.trim()) {
+      setLeadStatus("error");
+      return;
+    }
+
+    setLeadStatus("submitting");
+
+    try {
+      const response = await fetch("http://localhost:5000/api/ai/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...leadForm,
+          source: `Jashna Edu - ${bot.name}`,
+          page: location.pathname,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Lead submission failed");
+      }
+
+      setLeadStatus("success");
+
+      setLeadForm({
+        name: "",
+        phone: "",
+        interest: "",
+        marketingConsent: false,
+      });
+    } catch (error) {
+      console.error("Lead submission error:", error);
+      setLeadStatus("error");
+    }
+  };
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
+  return (
+    <>
+      {/* =====================================================
+          CHARACTER CHOOSER   (file 1)
+      ===================================================== */}
+
+      <AnimatePresence>
+        {showChooser && (
+          <CharacterChooser
+            onSelect={handleSelectBot}
+            onClose={() => setShowChooser(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* =====================================================
+          DESKTOP GREETING CARD   (file 1)
+      ===================================================== */}
+
+      <AnimatePresence>
+        {!isOpen && !showChooser && showGreeting && (
+          <motion.button
+            type="button"
+            onClick={handleLauncherClick}
+            initial={{ opacity: 0, y: 20, x: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, x: 10, scale: 0.95 }}
+            whileTap={{ scale: 0.97 }}
+            className="fixed bottom-[118px] right-5 z-[95] hidden md:block"
+          >
+            <motion.div
+              whileHover={{ y: -5, scale: 1.02 }}
+              className="group relative w-[345px] overflow-hidden rounded-[25px] border border-white/80 bg-white p-4 text-left shadow-[0_25px_70px_rgba(4,20,50,.22)]"
+            >
+              <Shine />
+
+              <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[#E94F91]/10 blur-3xl" />
+              <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-[#3288F5]/10 blur-3xl" />
+
+              <div className="relative flex items-center gap-3.5">
+                <div className="relative h-[62px] w-[62px] shrink-0">
+                  <CoachOrb />
+                </div>
+
+                <div>
+                  <JashnaBrandMark small />
+
+                  <p className="mt-1 text-[18px] font-black leading-tight text-[#10233E]">
+                    Meet your Jashna coaches
+                  </p>
+
+                  <span className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-black text-[#2778E8] transition-transform duration-300 group-hover:translate-x-1">
+                    Choose who to talk to
+                    <ArrowUpRight size={15} strokeWidth={2.8} />
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* =====================================================
+          FLOATING LAUNCHER   (file 1 — same look + content)
+      ===================================================== */}
+
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.div
+            className="fixed bottom-5 right-5 z-[100]"
+            initial={{ opacity: 0, scale: 0.75, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.75, y: 20 }}
+          >
+            <div
+              className="relative"
+              onMouseEnter={() => setCharacterActive(true)}
+              onMouseLeave={() => setCharacterActive(false)}
+            >
+              <motion.div
+                className="pointer-events-none absolute -inset-3 rounded-full"
+                style={{
+                  background:
+                    "conic-gradient(from 180deg,#E94F91,#A978F4,#3288F5,#20C9D5,#E94F91)",
+                }}
+                animate={{ rotate: [0, 360], opacity: [0.45, 0.8, 0.45] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+              />
+
+              <motion.button
+                type="button"
+                onClick={handleLauncherClick}
+                aria-label="Open Jashna Edu AI"
+                whileHover={{ y: -5, scale: 1.05 }}
+                whileTap={{ scale: 0.93 }}
+                className="relative flex h-[82px] w-[82px] items-center justify-center overflow-hidden rounded-[27px] border border-white/60 bg-white p-1 shadow-[0_20px_60px_rgba(24,100,220,.25)]"
+              >
+                <div className="relative h-full w-full overflow-hidden rounded-[23px] bg-slate-50">
+                  {bot ? (
+                    <CharacterLauncher bot={bot} active={characterActive} />
+                  ) : (
+                    <CoachOrb active={characterActive} />
+                  )}
+                </div>
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* =====================================================
+          MAIN CHAT PANEL   (file 2)
+      ===================================================== */}
+
+      <AnimatePresence>
+        {isOpen && bot && (
+          <motion.div
+            className="fixed inset-0 z-[110] flex items-end justify-center bg-black/30 backdrop-blur-[2px] sm:items-center sm:p-5"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-[0_30px_100px_rgba(0,0,0,0.28)] sm:h-[min(900px,94vh)] sm:max-w-[580px] sm:rounded-[32px]"
+              style={{ fontFamily: bot.font }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Jashna Edu ${bot.name} AI assistant`}
+              initial={{ opacity: 0, y: 30, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 230, damping: 24 }}
+            >
+              {/* =================================================
+                  HEADER
+              ================================================= */}
+
+              <header
+                className="relative z-50 flex shrink-0 items-center justify-between px-4 py-3.5 sm:px-5"
+                style={{
+                  background: `linear-gradient(135deg, ${bot.heroStart}, ${bot.heroEnd})`,
+                }}
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <BotAvatar bot={bot} />
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="truncate text-[20px] font-black uppercase tracking-tight text-white sm:text-[22px]">
+                        {bot.name}
+                      </h2>
+
+                      <span
+                        className="rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wider"
+                        style={{
+                          background: `${bot.primary}66`,
+                          color: "#fff",
+                        }}
+                      >
+                        AI
+                      </span>
+                    </div>
+
+                    <p className="mt-0.5 truncate text-[13px] font-bold text-white/75 sm:text-[14px]">
+                      Jashna Edu · {bot.shortRole}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {speechSupported && (
+                    <motion.button
+                      type="button"
+                      onClick={toggleVoice}
+                      className="flex h-11 w-11 items-center justify-center rounded-full border text-white"
+                      style={{
+                        borderColor: voiceOn
+                          ? `${bot.accent}99`
+                          : "rgba(255,255,255,0.18)",
+                        background: voiceOn
+                          ? `${bot.accent}30`
+                          : "rgba(255,255,255,0.08)",
+                      }}
+                      animate={
+                        isSpeaking ? { scale: [1, 1.12, 1] } : { scale: 1 }
+                      }
+                      transition={{
+                        duration: 0.8,
+                        repeat: isSpeaking ? Infinity : 0,
+                      }}
+                      whileHover={{ scale: 1.12 }}
+                      whileTap={{ scale: 0.88 }}
+                      aria-label={voiceOn ? "Mute voice" : "Turn voice on"}
+                      title={voiceOn ? "Mute voice" : "Turn voice on"}
+                    >
+                      {voiceOn ? <Volume2 size={21} /> : <VolumeX size={21} />}
+                    </motion.button>
+                  )}
+
+                  <motion.button
+                    type="button"
+                    onClick={handleSwitchBot}
+                    className="hidden rounded-full border px-5 py-2.5 text-[12px] font-black uppercase tracking-wider text-white sm:block"
+                    style={{
+                      borderColor: "rgba(255,255,255,0.22)",
+                      background: "rgba(255,255,255,0.08)",
+                    }}
+                    whileHover={{
+                      scale: 1.07,
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                    }}
+                    whileTap={{ scale: 0.94 }}
+                  >
+                    Switch
+                  </motion.button>
+
+                  <motion.button
+                    type="button"
+                    onClick={closeChat}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border text-white"
+                    style={{
+                      borderColor: "rgba(255,255,255,0.18)",
+                      background: "rgba(255,255,255,0.08)",
+                    }}
+                    whileHover={{
+                      scale: 1.12,
+                      rotate: 90,
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label="Close chat"
+                  >
+                    <X size={21} />
+                  </motion.button>
+                </div>
+              </header>
+
+              {/* mobile switch */}
+              <div
+                className="flex shrink-0 items-center justify-center border-b px-4 py-2.5 sm:hidden"
+                style={{ background: bot.primarySoft, borderColor: bot.border }}
+              >
+                <motion.button
+                  type="button"
+                  onClick={handleSwitchBot}
+                  whileTap={{ scale: 0.94 }}
+                  className="flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-[12px] font-black uppercase tracking-wider shadow-sm"
+                  style={{ color: bot.primaryDark }}
+                >
+                  <Sparkles size={14} />
+                  Switch coach
+                </motion.button>
+              </div>
+
+              {/* =================================================
+                  SCROLLABLE BODY
+              ================================================= */}
+
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-white">
+                <CharacterHero bot={bot} isSpeaking={isSpeaking} />
+
+                <main className="relative px-4 pb-5 pt-6 sm:px-5">
+                  {/* eyebrow */}
+                  <div className="mb-2 flex items-center justify-center gap-2">
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: bot.primary }}
+                    />
+
+                    <span
+                      className="text-[13px] font-black uppercase tracking-[0.2em]"
+                      style={{ color: bot.primaryDark }}
+                    >
+                      {bot.name}'s corner
+                    </span>
+
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: bot.secondary }}
+                    />
+                  </div>
+
+                  <h1
+                    className="text-center text-[32px] font-black leading-[1.05] tracking-[-0.045em] sm:text-[40px]"
+                    style={{ color: bot.text }}
+                  >
+                    What are you working on today?
+                  </h1>
+
+                  <p
+                    className="mx-auto mt-3 max-w-[460px] text-center text-[15px] font-bold leading-[1.6] sm:text-[16px]"
+                    style={{ color: bot.muted }}
+                  >
+                    {bot.description}
+                  </p>
+
+                  {/* QUICK ACTIONS */}
+                  <div className="mt-6 space-y-3">
+                    {CHAT_ACTIONS.map((action) => (
+                      <ActionCard
+                        key={action.id}
+                        action={action}
+                        bot={bot}
+                        onClick={() => handleAction(action)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* MESSAGES */}
+                  {messages.length > 0 && (
+                    <section className="mt-8">
+                      <div className="mb-4 flex items-center gap-3">
+                        <div className="h-px flex-1 bg-slate-200" />
+
+                        <span className="text-[12px] font-black uppercase tracking-[0.18em] text-slate-500">
+                          Conversation
+                        </span>
+
+                        <div className="h-px flex-1 bg-slate-200" />
+                      </div>
+
+                      <div className="space-y-4">
+                        {messages.map((message) => {
+                          const isUser = message.role === "user";
+
+                          return (
+                            <motion.div
+                              key={message.id}
+                              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              className={`flex ${
+                                isUser ? "justify-end" : "items-end gap-2"
+                              }`}
+                            >
+                              {!isUser && <BotAvatar bot={bot} size="small" />}
+
+                              <div className="flex max-w-[86%] flex-col">
+                                <motion.div
+                                  whileHover={{ y: -2 }}
+                                  className={`rounded-[19px] border px-4 py-3 shadow-sm transition-shadow hover:shadow-md ${
+                                    isUser ? "rounded-br-md" : "rounded-bl-md"
+                                  }`}
+                                  style={{
+                                    background: isUser
+                                      ? bot.primarySoft
+                                      : "#fff",
+                                    borderColor: isUser
+                                      ? `${bot.primary}30`
+                                      : bot.border,
+                                  }}
+                                >
+                                  <MessageContent
+                                    content={message.content}
+                                    bot={bot}
+                                  />
+                                </motion.div>
+
+                                {message.showCTA && (
+                                  <motion.button
+                                    type="button"
+                                    initial={{ opacity: 0, y: 6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    whileHover={{ y: -3, scale: 1.03 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    onClick={() => {
+                                      setLeadStatus("idle");
+                                      setShowLeadForm(true);
+                                    }}
+                                    className="group relative mt-2 inline-flex w-fit items-center gap-2 overflow-hidden rounded-full px-5 py-3 text-[15px] font-black text-white shadow-lg"
+                                    style={{ background: bot.button }}
+                                  >
+                                    <Shine />
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
+                                      <ArrowUpRight
+                                        size={15}
+                                        strokeWidth={2.8}
+                                      />
+                                    </span>
+                                    Get personalized guidance
+                                  </motion.button>
+                                )}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+
+                        {isTyping && <TypingIndicator bot={bot} />}
+
+                        <div ref={messagesEndRef} />
+                      </div>
+                    </section>
+                  )}
+
+                  {/* LEAD FORM */}
+                  <AnimatePresence>
+                    {showLeadForm && (
+                      <LeadForm
+                        bot={bot}
+                        leadForm={leadForm}
+                        setLeadForm={setLeadForm}
+                        onSubmit={handleLeadSubmit}
+                        onClose={() => {
+                          setShowLeadForm(false);
+                          setLeadStatus("idle");
+                        }}
+                        leadStatus={leadStatus}
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  <div ref={leadEndRef} />
+                </main>
+              </div>
+
+              {/* =================================================
+                  INPUT FOOTER
+              ================================================= */}
+
+              <footer
+                className="relative z-50 shrink-0 border-t bg-white px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 sm:px-5"
+                style={{ borderColor: bot.border }}
+              >
+                <div className="mb-2 flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <motion.span
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: bot.accent }}
+                      animate={{ scale: [1, 1.35, 1] }}
+                      transition={{ duration: 1.8, repeat: Infinity }}
+                    />
+
+                    <span
+                      className="text-[12px] font-black uppercase tracking-[0.14em]"
+                      style={{ color: bot.primaryDark }}
+                    >
+                      {bot.name} is ready
+                    </span>
+                  </div>
+
+                  <span className="hidden text-[12px] font-bold text-slate-500 sm:block">
+                    Enter ↵ to send
+                  </span>
+                </div>
+
+                <div
+                  className="flex items-center gap-2 rounded-[18px] border p-1.5 shadow-[0_7px_25px_rgba(0,0,0,0.08)] transition-shadow focus-within:shadow-[0_10px_30px_rgba(0,0,0,0.14)]"
+                  style={{ borderColor: bot.border, background: "#fff" }}
+                >
+                  <motion.div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px]"
+                    style={{
+                      background: `linear-gradient(145deg, ${bot.primary}, ${bot.secondary})`,
+                      color: "#fff",
+                    }}
+                    animate={characterActive ? { scale: [1, 1.05, 1] } : {}}
+                    transition={{
+                      duration: 1.5,
+                      repeat: characterActive ? Infinity : 0,
+                    }}
+                  >
+                    <Mic2 size={21} strokeWidth={2.5} />
+                  </motion.div>
+
+                  <input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={`Ask ${bot.name} anything...`}
+                    aria-label={`Ask ${bot.name} anything`}
+                    className="min-w-0 flex-1 bg-transparent px-1 text-[16px] font-bold text-slate-900 outline-none placeholder:text-slate-400 sm:text-[17px]"
+                  />
+
+                  <motion.button
+                    type="button"
+                    onClick={() => sendMessage()}
+                    disabled={!input.trim() || isTyping}
+                    className="group relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[14px] text-white shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                    style={{
+                      background: `linear-gradient(145deg, ${bot.primary}, ${bot.secondary})`,
+                    }}
+                    whileHover={
+                      input.trim() && !isTyping
+                        ? { scale: 1.1, rotate: -5 }
+                        : {}
+                    }
+                    whileTap={input.trim() && !isTyping ? { scale: 0.88 } : {}}
+                    aria-label="Send message"
+                  >
+                    <Shine />
+                    <Send size={20} strokeWidth={2.6} />
+                  </motion.button>
+                </div>
+
+                {/* lead CTA */}
+                {!showLeadForm && (
+                  <motion.button
+                    type="button"
+                    onClick={() => {
+                      setLeadStatus("idle");
+                      setShowLeadForm(true);
+                    }}
+                    className="mx-auto mt-2.5 flex items-center gap-2 rounded-full px-4 py-1.5 text-[12px] font-black uppercase tracking-[0.12em]"
+                    style={{ color: bot.muted }}
+                    whileHover={{
+                      color: bot.primaryDark,
+                      scale: 1.05,
+                      backgroundColor: bot.primarySoft,
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Better English
+                    <span style={{ color: bot.primary }}>✦</span>
+                    Bigger opportunities
+                    <ArrowUpRight size={14} strokeWidth={2.8} />
+                  </motion.button>
+                )}
+              </footer>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

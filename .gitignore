@@ -1,8 +1,14 @@
-# Activity videos - hosted externally
-client/src/assets/videos/Fire_challenge.mp4
+Updated root .gitignore
+Activity videos hosted externally
+
 client/src/assets/videos/Ice-Melt-2.mp4
 client/src/assets/videos/Spin_2.mp4
 client/src/assets/videos/Spin_2_original.mp4
 
-# Old Git history backup
+Homepage hero video - now embedded from YouTube
+
+client/src/assets/videos/jashna-hero.mp4
+
+Old Git history backup
+
 .git_old_backup/

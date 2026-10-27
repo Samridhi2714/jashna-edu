@@ -3,873 +3,603 @@ import {
   ArrowUpRight,
   Play,
   Pause,
-  VolumeX,
   Sparkles,
   Mic,
   MessageCircle,
   Globe2,
+  CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 
-import { motion } from "framer-motion";
-import { useRef, useState } from "react";
+import {
+  motion,
+  useMotionValue,
+  useMotionTemplate,
+  useSpring,
+} from "framer-motion";
+import { useState } from "react";
 
-import heroVideo from "../assets/videos/jashna-hero.mp4";
+import { getWhatsAppLink } from "../data/contact";
+
+/* =========================================================
+   DESIGN TOKENS
+========================================================= */
+
+const TIMES_FONT = '"Times New Roman", Times, serif';
+
+const INK = "#0F1E3A";
+const BODY = "#2B3A55";
+
+const HEADING_GRADIENT =
+  "linear-gradient(100deg, #1E3FD8 0%, #0E8FB5 38%, #0FA37F 68%, #1E3FD8 100%)";
+
+/* =========================================================
+   YOUTUBE CONFIGURATION
+   Replace this ID with the founder's video ID later.
+========================================================= */
+
+const HERO_VIDEO_ID = "sKwIdAG7Zi4";
+
+const HERO_VIDEO_URL = `https://www.youtube.com/embed/${HERO_VIDEO_ID}`;
+
+const HERO_EMBED_URL =
+  `${HERO_VIDEO_URL}?autoplay=1&mute=1&loop=1&playlist=${HERO_VIDEO_ID}&controls=1&playsinline=1&rel=0`;
+
+const HERO_WATCH_URL = `https://www.youtube.com/watch?v=${HERO_VIDEO_ID}`;
+
+/* =========================================================
+   SEO STRUCTURED DATA
+========================================================= */
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  name: "Jashna Edu",
+  url: "https://jashnaedu.com",
+  description:
+    "Spoken English, IELTS, public speaking, interview preparation and business English coaching with expert-led, personalized training.",
+  knowsAbout: [
+    "Spoken English",
+    "IELTS",
+    "Public Speaking",
+    "Interview Skills",
+    "Business English",
+  ],
+};
+
+/* =========================================================
+   GRADIENT TEXT
+========================================================= */
+
+function GradientText({ children }) {
+  return (
+    <motion.span
+      className="inline-block bg-clip-text text-transparent"
+      style={{
+        backgroundImage: HEADING_GRADIENT,
+        backgroundSize: "200% 100%",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+      }}
+      animate={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
+      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+    >
+      {children}
+    </motion.span>
+  );
+}
+
+/* =========================================================
+   HERO
+========================================================= */
 
 function Hero() {
-  const videoRef = useRef(null);
-
   const [isPlaying, setIsPlaying] = useState(true);
 
-  /* =========================================================
-     VIDEO CONTROL
-  ========================================================= */
+  const mouseX = useMotionValue(700);
+  const mouseY = useMotionValue(350);
 
-  const toggleVideo = () => {
-    if (!videoRef.current) return;
+  const spotlight = useMotionTemplate`
+    radial-gradient(
+      480px circle at ${mouseX}px ${mouseY}px,
+      rgba(30,63,216,0.09),
+      rgba(15,163,127,0.06) 45%,
+      transparent 75%
+    )
+  `;
 
-    if (videoRef.current.paused) {
-      videoRef.current.play();
-      setIsPlaying(true);
-    } else {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    }
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+  };
+
+  /*
+   * YouTube controls its own playback.
+   * The custom button opens the video directly on YouTube,
+   * rather than pretending to control an iframe as an HTML video.
+   */
+  const handleVideoAction = () => {
+    window.open(HERO_WATCH_URL, "_blank", "noopener,noreferrer");
   };
 
   return (
     <section
       id="top"
-      className="
-        relative
-        min-h-[calc(100vh-20px)]
-        overflow-hidden
-
-        bg-jashna-ivory
-
-        px-5
-        pb-16
-        pt-28
-
-        sm:px-6
-        sm:pb-20
-
-        lg:px-10
-        lg:pb-24
-        lg:pt-32
-
-        xl:pt-36
-      "
+      aria-labelledby="hero-heading"
+      onMouseMove={handleMouseMove}
+      style={{ fontFamily: TIMES_FONT, fontWeight: 700 }}
+      className="relative flex min-h-screen flex-col overflow-hidden bg-jashna-ivory px-4 pb-6 pt-28 sm:px-6 lg:px-8"
     >
-      {/* =====================================================
-          ATMOSPHERIC BACKGROUND
-      ====================================================== */}
+      {/* SEO structured data */}
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
-          overflow-hidden
-        "
-      >
-        {/* =================================================
-            JASHNA BLUE
-        ================================================= */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
 
-        <div
-          className="
-            absolute
-            -left-56
-            top-[12%]
+      {/* BACKGROUND */}
 
-            h-[520px]
-            w-[520px]
-
-            rounded-full
-
-            bg-[#338DFD]/[0.065]
-
-            blur-[130px]
-          "
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute inset-0"
+          style={{ background: spotlight }}
         />
 
-        {/* =================================================
-            JASHNA GREEN
-        ================================================= */}
+        <div className="absolute -left-56 top-[12%] h-[520px] w-[520px] rounded-full bg-[#338DFD]/[0.07] blur-[130px]" />
 
-        <div
-          className="
-            absolute
-            right-[18%]
-            top-[30%]
+        <div className="absolute -right-40 top-[30%] h-[460px] w-[460px] rounded-full bg-[#49C4A5]/[0.08] blur-[120px]" />
 
-            h-[380px]
-            w-[380px]
+        <div className="absolute bottom-[-140px] left-[30%] h-[400px] w-[400px] rounded-full bg-jashna-gold/[0.06] blur-[130px]" />
 
-            rounded-full
-
-            bg-[#49C4A5]/[0.06]
-
-            blur-[120px]
-          "
-        />
-
-        {/* =================================================
-            SOFT GOLD
-        ================================================= */}
-
-        <div
-          className="
-            absolute
-            left-[28%]
-            bottom-[-120px]
-
-            h-[420px]
-            w-[420px]
-
-            rounded-full
-
-            bg-jashna-gold/[0.055]
-
-            blur-[130px]
-          "
-        />
-
-        {/* =================================================
-            CENTER LIGHT
-        ================================================= */}
-
-        <div
-          className="
-            absolute
-            left-1/2
-            top-[42%]
-
-            h-[500px]
-            w-[700px]
-
-            -translate-x-1/2
-            -translate-y-1/2
-
-            rounded-full
-
-            bg-white/45
-
-            blur-[130px]
-          "
-        />
+        <div className="absolute left-1/2 top-[42%] h-[460px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/45 blur-[130px]" />
       </div>
 
-      {/* =====================================================
-          SUBTLE DOT TEXTURE
-      ====================================================== */}
+      {/* DOT TEXTURE */}
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
+      <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_1px_1px,rgba(16,36,62,0.12)_1px,transparent_0)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black,transparent_78%)]" />
 
-          opacity-[0.16]
+      {/* ROTATING RINGS */}
 
-          [background-image:radial-gradient(circle_at_1px_1px,rgba(16,36,62,0.12)_1px,transparent_0)]
-          [background-size:32px_32px]
-
-          [mask-image:linear-gradient(to_bottom,black,transparent_78%)]
-        "
-      />
-
-      {/* =====================================================
-          FLOATING BACKGROUND PARTICLES
-      ====================================================== */}
-
-      <motion.span
-        className="
-          pointer-events-none
-          absolute
-
-          right-[12%]
-          top-[20%]
-
-          h-2
-          w-2
-
-          rounded-full
-
-          bg-[#49C4A5]/80
-
-          shadow-[0_0_16px_rgba(73,196,165,0.45)]
-        "
-        animate={{
-          y: [0, -14, 0],
-          opacity: [0.35, 0.9, 0.35],
-        }}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-72 top-[18%] hidden h-[440px] w-[440px] rounded-full border border-dashed border-[#1E3FD8]/20 xl:block"
+        animate={{ rotate: 360 }}
         transition={{
-          duration: 4,
+          duration: 70,
           repeat: Infinity,
-          ease: "easeInOut",
+          ease: "linear",
         }}
       />
 
-      <motion.span
-        className="
-          pointer-events-none
-          absolute
-
-          left-[7%]
-          top-[39%]
-
-          h-1.5
-          w-1.5
-
-          rounded-full
-
-          bg-[#338DFD]/70
-
-          shadow-[0_0_14px_rgba(51,141,253,0.35)]
-        "
-        animate={{
-          y: [0, 12, 0],
-          opacity: [0.25, 0.8, 0.25],
-        }}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-72 top-[34%] hidden h-[480px] w-[480px] rounded-full border border-dashed border-[#0FA37F]/25 xl:block"
+        animate={{ rotate: -360 }}
         transition={{
-          duration: 5,
+          duration: 80,
           repeat: Infinity,
-          ease: "easeInOut",
+          ease: "linear",
         }}
       />
 
-      {/* =====================================================
-          MAIN HERO
-      ====================================================== */}
+      {/* MAIN HERO */}
 
-      <div
-        className="
-          relative
-          z-10
-
-          mx-auto
-
-          flex
-          min-h-[78vh]
-
-          max-w-[1380px]
-
-          items-center
-        "
-      >
-        <div
-          className="
-            grid
-            w-full
-
-            items-center
-
-            gap-12
-
-            lg:grid-cols-[0.92fr_1.08fr]
-
-            lg:gap-12
-
-            xl:grid-cols-[0.9fr_1.1fr]
-            xl:gap-16
-          "
-        >
-          {/* =================================================
-              LEFT CONTENT
-          ================================================= */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[1500px] flex-1 items-center">
+        <div className="grid w-full items-center gap-10 py-2 lg:grid-cols-[1.02fr_0.98fr] lg:gap-12 xl:gap-16">
+          {/* LEFT CONTENT */}
 
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 25,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.8,
-              ease: "easeOut",
-            }}
-            className="
-              relative
-              z-20
-
-              max-w-2xl
-
-              pt-4
-
-              lg:pt-0
-            "
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative z-20 w-full"
           >
-            {/* =================================================
-                SEO EYEBROW
-            ================================================= */}
+            {/* EYEBROW */}
 
-            <motion.div
-              initial={{
-                opacity: 0,
-                x: -15,
-              }}
-              animate={{
-                opacity: 1,
-                x: 0,
-              }}
-              transition={{
-                delay: 0.15,
-                duration: 0.6,
-              }}
-              className="
-                mb-6
-
-                flex
-                items-center
-                gap-3
-              "
+            <motion.p
+              initial={{ opacity: 0, x: -14 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.6 }}
+              className="inline-flex items-center gap-2 rounded-full border border-[#1E3FD8]/20 bg-white/75 px-4 py-1.5 text-[11px] uppercase tracking-[0.12em] shadow-[0_6px_20px_rgba(30,63,216,0.08)] backdrop-blur-sm sm:text-[12px]"
+              style={{ color: "#1B3A8F" }}
             >
-              <span
-                className="
-                  h-px
-                  w-9
+              <Sparkles size={14} className="shrink-0 text-[#0FA37F]" />
 
-                  bg-gradient-to-r
-                  from-[#338DFD]
-                  to-[#49C4A5]
+              Top Spoken English &amp; Professional Skills Organization
+            </motion.p>
 
-                  sm:w-12
-                "
-              />
-
-              <span
-                className="
-                  text-[10px]
-                  font-bold
-                  uppercase
-                  tracking-[0.2em]
-
-                  text-jashna-navy
-
-                  sm:text-xs
-                "
-              >
-                Top Spoken English & Professional Skills Institute
-              </span>
-            </motion.div>
-
-            {/* =================================================
-                MAIN H1
-            ================================================= */}
+            {/* MAIN HEADING */}
 
             <h1
-              className="
-                font-display
-
-                text-[3.35rem]
-                font-semibold
-
-                leading-[0.98]
-
-                tracking-[-0.045em]
-
-                text-jashna-charcoal
-
-                sm:text-6xl
-
-                md:text-7xl
-
-                lg:text-[4.65rem]
-
-                xl:text-[5.35rem]
-
-                2xl:text-[5.7rem]
-              "
+              id="hero-heading"
+              className="mt-5 text-[clamp(2.4rem,4.5vw,4.6rem)] leading-[1.1] tracking-[-0.01em]"
+              style={{ fontWeight: 700 }}
             >
-              Speak with
-              <br />
-              {/* =================================================
-                  GRADIENT EMPHASIS
-              ================================================= */}
-              <span
-                className="
-                  relative
-                  inline-block
-
-                  bg-gradient-to-r
-                  from-[#338DFD]
-                  via-[#49C4A5]
-                  to-[#338DFD]
-
-                  bg-clip-text
-                  text-transparent
-                "
-              >
-                confidence.
-                {/* Animated brand underline */}
-                <motion.span
-                  initial={{
-                    width: 0,
-                  }}
-                  animate={{
-                    width: "72%",
-                  }}
-                  transition={{
-                    delay: 0.9,
-                    duration: 0.8,
-                    ease: "easeOut",
-                  }}
-                  className="
-                    absolute
-
-                    -bottom-2
-                    left-0
-
-                    h-[3px]
-
-                    rounded-full
-
-                    bg-gradient-to-r
-                    from-[#338DFD]
-                    via-[#49C4A5]
-                    to-jashna-gold
-                  "
-                />
+              <span className="block">
+                <GradientText>Speak with</GradientText>
               </span>
-              <br />
-              Grow with
-              <span
-                className="
-                  ml-2
 
-                  text-[#338DFD]
-                "
-              >
-                purpose.
+              <span className="relative block w-fit">
+                <GradientText>confidence.</GradientText>
+
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 200 12"
+                  preserveAspectRatio="none"
+                  className="pointer-events-none absolute -bottom-0.5 left-0 h-3 w-full"
+                >
+                  <motion.path
+                    d="M2 7 Q 27 1 52 7 T 102 7 T 152 7 T 198 7"
+                    fill="none"
+                    stroke="#E0A82E"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{
+                      delay: 0.8,
+                      duration: 1,
+                      ease: "easeOut",
+                    }}
+                  />
+                </svg>
+              </span>
+
+              <span className="block">
+                <GradientText>Grow with purpose.</GradientText>
               </span>
             </h1>
 
-            {/* =================================================
-                SUPPORTING PARAGRAPH
-            ================================================= */}
+            {/* SUPPORTING TEXT */}
 
             <motion.p
-              initial={{
-                opacity: 0,
-                y: 10,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 0.45,
-                duration: 0.7,
-              }}
-              className="
-                mt-8
-
-                max-w-xl
-
-                text-[17px]
-                font-medium
-
-                leading-[1.85]
-
-                text-[#354255]
-
-                sm:text-[18px]
-
-                lg:text-[19px]
-                lg:leading-[1.8]
-              "
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.7 }}
+              className="mt-6 max-w-[36rem] text-[16px] leading-[1.75] sm:text-[17px] lg:text-[18px]"
+              style={{ color: BODY }}
             >
-             Develop stronger English language skills for academic, professional, and
-            everyday success through expert-led training in spoken English, IELTS,
-            public speaking, interview preparation, and workplace communication.
+              Develop stronger English language skills for academic,
+              professional, and everyday success through expert-led training
+              in <strong style={{ color: INK }}>spoken English</strong>,{" "}
+              <strong style={{ color: INK }}>IELTS</strong>,{" "}
+              <strong style={{ color: INK }}>public speaking</strong>,{" "}
+              <strong style={{ color: INK }}>interview preparation</strong>,
+              and{" "}
+              <strong style={{ color: INK }}>
+                workplace communication
+              </strong>
+              .
             </motion.p>
 
-            {/* =================================================
-                CTA BUTTONS
-            ================================================= */}
+            {/* CTA BUTTONS */}
 
             <motion.div
-              initial={{
-                opacity: 0,
-                y: 12,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 0.65,
-                duration: 0.7,
-              }}
-              className="
-                mt-9
-
-                flex
-                flex-col
-                gap-3
-
-                sm:flex-row
-              "
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.65, duration: 0.7 }}
+              className="mt-7 flex flex-col gap-3 sm:flex-row"
             >
-              {/* =================================================
-                  PRIMARY CTA
-              ================================================= */}
-
               <motion.a
-                href="#consultation"
-                whileHover={{
-                  y: -3,
-                }}
-                whileTap={{
-                  scale: 0.98,
-                }}
-                className="
-                  group
-
-                  relative
-
-                  inline-flex
-                  items-center
-                  justify-center
-                  gap-2
-
-                  overflow-hidden
-
-                  rounded-full
-
-                  bg-gradient-to-r
-                  from-[#338DFD]
-                  to-[#49C4A5]
-
-                  px-6
-                  py-3.5
-
-                  text-sm
-                  font-semibold
-                  text-white
-
-                  shadow-[0_10px_30px_rgba(51,141,253,0.20)]
-
-                  transition-all
-                  duration-300
-
-                  hover:shadow-[0_15px_38px_rgba(51,141,253,0.28)]
-                  hover:brightness-[1.06]
-                "
+                href={getWhatsAppLink(
+                  "Hello Dr.Shivam Sir, I would like to book a free consultation for the English communication program at Jashna Edu."
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Book a free consultation on WhatsApp"
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.97 }}
+                className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-[#1E3FD8] to-[#0FA37F] px-7 py-3 text-[15px] text-white shadow-[0_10px_26px_rgba(30,63,216,0.28)] transition-shadow duration-300 hover:shadow-[0_14px_34px_rgba(15,163,127,0.38)]"
               >
-                {/* =================================================
-                    GLOSSY SHINE SWEEP
-                ================================================= */}
+                <span className="pointer-events-none absolute inset-y-0 -left-14 w-10 rotate-12 bg-white/35 blur-sm transition-all duration-700 group-hover:left-[115%]" />
 
-                <span
-                  className="
-                    pointer-events-none
-
-                    absolute
-                    inset-y-0
-                    -left-14
-
-                    w-10
-
-                    rotate-12
-
-                    bg-white/35
-
-                    blur-sm
-
-                    transition-all
-                    duration-700
-
-                    group-hover:left-[115%]
-                  "
-                />
-
-                {/* Subtle inner glow */}
-
-                <span
-                  className="
-                    pointer-events-none
-
-                    absolute
-                    inset-0
-
-                    rounded-full
-
-                    bg-gradient-to-r
-                    from-white/0
-                    via-white/10
-                    to-white/0
-
-                    opacity-0
-
-                    transition-opacity
-                    duration-300
-
-                    group-hover:opacity-100
-                  "
-                />
-
-                <span className="relative z-10">Book a Consultation</span>
+                <span className="relative z-10">
+                  Book a Consultation
+                </span>
 
                 <ArrowUpRight
                   size={17}
-                  className="
-                    relative
-                    z-10
-
-                    transition-transform
-                    duration-300
-
-                    group-hover:translate-x-0.5
-                    group-hover:-translate-y-0.5
-                  "
+                  className="relative z-10 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                 />
               </motion.a>
-
-              {/* =================================================
-                  SECONDARY CTA
-              ================================================= */}
 
               <motion.a
                 href="/programs"
-                whileHover={{
-                  y: -3,
-                }}
-                whileTap={{
-                  scale: 0.98,
-                }}
-                className="
-                  group
-
-                  inline-flex
-                  items-center
-                  justify-center
-                  gap-2
-
-                  rounded-full
-
-                  border
-                  border-jashna-charcoal/15
-
-                  bg-white/45
-
-                  px-6
-                  py-3.5
-
-                  text-sm
-                  font-semibold
-
-                  text-jashna-charcoal
-
-                  backdrop-blur-sm
-
-                  transition-all
-                  duration-300
-
-                  hover:border-[#338DFD]/30
-                  hover:bg-white/75
-                  hover:text-[#338DFD]
-
-                  hover:shadow-[0_8px_24px_rgba(51,141,253,0.08)]
-                "
+                title="Explore English communication programs"
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.97 }}
+                className="group inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#1E3FD8]/70 bg-white/70 px-7 py-3 text-[15px] font-semibold text-[#1E3FD8] backdrop-blur-sm transition-all duration-300 hover:border-[#1E3FD8] hover:bg-[#1E3FD8] hover:text-white hover:shadow-[0_10px_26px_rgba(30,63,216,0.25)]"
               >
                 Explore Programs
-                <ArrowRight
-                  size={16}
-                  className="
-                    transition-transform
-                    duration-300
 
-                    group-hover:translate-x-1
-                  "
+                <ArrowRight
+                  size={17}
+                  className="transition-transform duration-300 group-hover:translate-x-1.5"
                 />
               </motion.a>
             </motion.div>
 
-            {/* =================================================
-                TRUST / POSITIONING STRIP
-            ================================================= */}
+            {/* TRUST STRIP */}
 
-            <motion.div
-              initial={{
-                opacity: 0,
-              }}
-              animate={{
-                opacity: 1,
-              }}
-              transition={{
-                delay: 1,
-                duration: 0.7,
-              }}
-              className="
-                mt-9
-
-                flex
-                flex-wrap
-                items-center
-
-                gap-x-5
-                gap-y-3
-
-                text-[15px]
-                font-semibold
-
-                text-[#26384d]
-
-                sm:text-[16px]
-              "
+            <motion.ul
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 0.7 }}
+              className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[14px] sm:text-[15px]"
+              style={{ color: INK }}
             >
               <TrustItem text="Practical learning" />
-
-              <span
-                className="
-                  hidden
-                  h-1
-                  w-1
-                  rounded-full
-
-                  bg-jashna-gold
-
-                  sm:block
-                "
-              />
-
               <TrustItem text="Personalized guidance" />
-
-              <span
-                className="
-                  hidden
-                  h-1
-                  w-1
-                  rounded-full
-
-                  bg-jashna-gold
-
-                  sm:block
-                "
-              />
-
               <TrustItem text="Career-focused training" />
-            </motion.div>
-
-            {/* =================================================
-                SEO KEYWORD LINE
-            ================================================= */}
-
-            <motion.p
-              initial={{
-                opacity: 0,
-                y: 5,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 1.15,
-                duration: 0.6,
-              }}
-              className="
-                mt-5
-
-                max-w-xl
-
-                text-[14px]
-                font-semibold
-
-                leading-7
-
-                tracking-[0.01em]
-
-                text-[#4a586b]
-
-                sm:text-[15px]
-                sm:leading-7
-              "
-            >
-              Spoken English
-              <span className="mx-2 text-[#49C4A5]">•</span>
-              IELTS
-              <span className="mx-2 text-[#49C4A5]">•</span>
-              Public Speaking
-              <span className="mx-2 text-[#49C4A5]">•</span>
-              Interview Skills
-              <span className="mx-2 text-[#49C4A5]">•</span>
-              Business English
-            </motion.p>
+            </motion.ul>
           </motion.div>
 
-          {/* =================================================
-              RIGHT VIDEO
-
-              MOVED UPWARD
-          ================================================= */}
+          {/* RIGHT VIDEO */}
 
           <motion.div
-            initial={{
-              opacity: 0,
-              x: 35,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
+            initial={{ opacity: 0, x: 32 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{
               delay: 0.25,
               duration: 0.9,
               ease: "easeOut",
             }}
-            className="
-              relative
-
-              mx-auto
-
-              w-full
-
-              max-w-[720px]
-
-              -translate-y-5
-
-              sm:-translate-y-6
-
-              lg:-translate-y-10
-
-              xl:-translate-y-12
-            "
+            className="relative mx-auto w-full max-w-[640px] lg:ml-auto lg:mr-0 xl:max-w-[680px]"
           >
-            <HeroVideo
-              videoRef={videoRef}
-              isPlaying={isPlaying}
-              toggleVideo={toggleVideo}
-            />
+            <TiltCard>
+              <HeroVideo
+                isPlaying={isPlaying}
+                onVideoAction={handleVideoAction}
+              />
+            </TiltCard>
           </motion.div>
         </div>
       </div>
 
-      {/* =====================================================
-          BOTTOM FADE
-      ====================================================== */}
+      {/* SEO KEYWORD CLOUDS */}
 
-      <div
-        className="
-          pointer-events-none
+      <div className="relative z-10 mx-auto mt-1 w-full max-w-[1500px]">
+        <h2 className="sr-only">
+          Our English communication programs: Spoken English, IELTS, Public
+          Speaking, Interview Skills and Business English
+        </h2>
 
-          absolute
-          inset-x-0
-          bottom-0
+        <SeoKeywordTrail />
+      </div>
 
-          h-28
+      {/* BOTTOM FADE */}
 
-          bg-gradient-to-t
-          from-jashna-ivory
-          to-transparent
-        "
-      />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-jashna-ivory to-transparent" />
     </section>
+  );
+}
+
+/* =========================================================
+   TILT CARD
+========================================================= */
+
+function TiltCard({ children }) {
+  const rx = useMotionValue(0);
+  const ry = useMotionValue(0);
+
+  const rotateX = useSpring(rx, {
+    stiffness: 110,
+    damping: 14,
+  });
+
+  const rotateY = useSpring(ry, {
+    stiffness: 110,
+    damping: 14,
+  });
+
+  const handleMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+
+    ry.set(((e.clientX - r.left) / r.width - 0.5) * 7);
+    rx.set(-((e.clientY - r.top) / r.height - 0.5) * 7);
+  };
+
+  const handleLeave = () => {
+    rx.set(0);
+    ry.set(0);
+  };
+
+  return (
+    <motion.div
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformPerspective: 1200,
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* =========================================================
+   SEO KEYWORD CLOUDS
+========================================================= */
+
+const CLOUD_PALETTE = [
+  "#1F6FEB",
+  "#0F9D82",
+  "#B8861B",
+  "#6D5BE8",
+];
+
+const CLOUD_HOLD_SECONDS = 2.5;
+const CLOUD_FADE = 0.05;
+
+function buildCloudColorCycle(offset) {
+  const count = CLOUD_PALETTE.length;
+  const colors = [];
+  const times = [];
+
+  for (let i = 0; i < count; i++) {
+    const color = CLOUD_PALETTE[(offset + i) % count];
+
+    colors.push(color, color);
+    times.push(i / count, (i + 1) / count - CLOUD_FADE);
+  }
+
+  colors.push(CLOUD_PALETTE[offset % count]);
+  times.push(1);
+
+  return {
+    colors,
+    times,
+    duration: count * CLOUD_HOLD_SECONDS,
+  };
+}
+
+function SeoKeywordTrail() {
+  const keywords = [
+    { label: "Spoken English", offset: 0, stagger: "lg:mt-0" },
+    { label: "IELTS", offset: 1, stagger: "lg:mt-5" },
+    { label: "Public Speaking", offset: 2, stagger: "lg:mt-0" },
+    { label: "Interview Skills", offset: 3, stagger: "lg:mt-5" },
+    { label: "Business English", offset: 0, stagger: "lg:mt-0" },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        delay: 1.1,
+        duration: 0.7,
+        ease: "easeOut",
+      }}
+      className="relative w-full pb-1 pt-5"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-[4%] right-[4%] top-[45%] hidden h-12 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#338DFD]/[0.06] via-[#49C4A5]/[0.08] to-[#338DFD]/[0.06] blur-2xl xl:block"
+      />
+
+      <ul className="relative z-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-8 xl:flex-nowrap xl:items-start xl:justify-between xl:gap-x-4">
+        {keywords.map((keyword, index) => (
+          <li key={keyword.label} className={keyword.stagger}>
+            <CloudBubble
+              label={keyword.label}
+              offset={keyword.offset}
+              index={index}
+            />
+          </li>
+        ))}
+      </ul>
+
+      <p
+        className="mt-6 flex items-center justify-center gap-3 text-[10px] uppercase tracking-[0.2em] sm:text-[12px]"
+        style={{ color: BODY }}
+      >
+        <span className="h-[2px] w-10 bg-gradient-to-r from-transparent to-[#338DFD]/50" />
+
+        <span>Communication · Confidence · Growth</span>
+
+        <span className="h-[2px] w-10 bg-gradient-to-r from-[#49C4A5]/50 to-transparent" />
+      </p>
+    </motion.div>
+  );
+}
+
+/* =========================================================
+   CLOUD BUBBLE
+========================================================= */
+
+function CloudBubble({ label, offset, index }) {
+  const { colors, times, duration } = buildCloudColorCycle(offset);
+
+  const syncedColor = {
+    style: {
+      backgroundColor: colors[0],
+    },
+    animate: {
+      backgroundColor: colors,
+    },
+    transition: {
+      duration,
+      times,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.07 }}
+      transition={{
+        delay: 1.3 + index * 0.1,
+        duration: 0.6,
+        ease: "easeOut",
+      }}
+    >
+      <motion.div
+        animate={{ y: [0, -6, 0] }}
+        transition={{
+          duration: 4 + index * 0.4,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: index * 0.5,
+        }}
+        className="relative drop-shadow-[0_10px_18px_rgba(16,36,62,0.14)]"
+      >
+        {/* TOP PUFFS */}
+
+        <motion.span
+          aria-hidden="true"
+          {...syncedColor}
+          className="pointer-events-none absolute -top-2.5 left-[14%] h-7 w-7 rounded-full"
+        />
+
+        <motion.span
+          aria-hidden="true"
+          {...syncedColor}
+          className="pointer-events-none absolute -top-4 left-[38%] h-10 w-10 rounded-full"
+        />
+
+        <motion.span
+          aria-hidden="true"
+          {...syncedColor}
+          className="pointer-events-none absolute -top-2 right-[14%] h-6 w-6 rounded-full"
+        />
+
+        {/* BOTTOM PUFFS */}
+
+        <motion.span
+          aria-hidden="true"
+          {...syncedColor}
+          className="pointer-events-none absolute -bottom-1.5 left-[22%] h-5 w-5 rounded-full"
+        />
+
+        <motion.span
+          aria-hidden="true"
+          {...syncedColor}
+          className="pointer-events-none absolute -bottom-2 right-[26%] h-6 w-6 rounded-full"
+        />
+
+        {/* KEYWORD */}
+
+        <motion.div
+          {...syncedColor}
+          className="relative flex items-center justify-center rounded-full px-6 py-3 sm:px-7 sm:py-3.5 lg:px-8"
+        >
+          <span className="relative z-10 whitespace-nowrap text-center text-[12px] uppercase tracking-[0.1em] text-white drop-shadow-[0_1px_2px_rgba(11,27,51,0.5)] sm:text-[13px] lg:text-[14px]">
+            {label}
+          </span>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -879,101 +609,34 @@ function Hero() {
 
 function TrustItem({ text }) {
   return (
-    <span
-      className="
-        flex
-        items-center
-        gap-2
-      "
-    >
-      <span
-        className="
-          h-1.5
-          w-1.5
-
-          shrink-0
-
-          rounded-full
-
-          bg-[#49C4A5]
-
-          shadow-[0_0_9px_rgba(73,196,165,0.35)]
-        "
+    <li className="flex items-center gap-2">
+      <CheckCircle2
+        size={18}
+        className="shrink-0 text-[#0FA37F]"
       />
 
       {text}
-    </span>
+    </li>
   );
 }
 
 /* =========================================================
    HERO VIDEO
+   YouTube embed with a premium branded frame.
 ========================================================= */
 
-function HeroVideo({ videoRef, isPlaying, toggleVideo }) {
+function HeroVideo({ isPlaying, onVideoAction }) {
   return (
-    <div
-      className="
-        relative
+    <div className="relative mx-auto w-full px-1 py-7 sm:px-3 sm:py-8 lg:py-9">
+      {/* BRAND GLOW */}
 
-        mx-auto
+      <div className="pointer-events-none absolute -inset-8 rounded-[50px] bg-gradient-to-br from-[#338DFD]/20 via-transparent to-[#49C4A5]/20 blur-3xl" />
 
-        w-full
-
-        px-1
-
-        py-7
-
-        sm:px-3
-        sm:py-8
-
-        lg:py-10
-      "
-    >
-      {/* =====================================================
-          LARGE SOFT BRAND GLOW
-      ====================================================== */}
-
-      <div
-        className="
-          pointer-events-none
-
-          absolute
-          -inset-8
-
-          rounded-[50px]
-
-          bg-gradient-to-br
-          from-[#338DFD]/14
-          via-transparent
-          to-[#49C4A5]/14
-
-          blur-3xl
-        "
-      />
-
-      {/* =====================================================
-          ROTATING OUTER LIGHT RING
-      ====================================================== */}
+      {/* ROTATING OUTER RING */}
 
       <motion.div
-        className="
-          pointer-events-none
-
-          absolute
-          -inset-[5px]
-
-          rounded-[36px]
-
-          opacity-80
-
-          bg-[conic-gradient(from_0deg,transparent_0deg,#338DFD_70deg,transparent_130deg,transparent_180deg,#49C4A5_250deg,transparent_310deg,transparent_360deg)]
-
-          blur-[1px]
-        "
-        animate={{
-          rotate: 360,
-        }}
+        className="pointer-events-none absolute -inset-[5px] rounded-[36px] bg-[conic-gradient(from_0deg,transparent_0deg,#338DFD_70deg,transparent_130deg,transparent_180deg,#49C4A5_250deg,transparent_310deg,transparent_360deg)] opacity-80 blur-[1px]"
+        animate={{ rotate: 360 }}
         transition={{
           duration: 12,
           repeat: Infinity,
@@ -981,320 +644,77 @@ function HeroVideo({ videoRef, isPlaying, toggleVideo }) {
         }}
       />
 
-      {/* =====================================================
-          MAIN VIDEO FRAME
-      ====================================================== */}
+      {/* MAIN FRAME */}
 
-      <div
-        className="
-          relative
+      <div className="relative rounded-[34px] bg-gradient-to-br from-[#338DFD]/80 via-jashna-navy to-[#49C4A5]/80 p-[2px] shadow-[0_30px_80px_rgba(16,36,62,0.24)]">
+        <div className="relative overflow-hidden rounded-[32px] bg-jashna-navy">
+          {/* VIDEO */}
 
-          rounded-[34px]
+          <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#07152B]">
+            <iframe
+              src={HERO_EMBED_URL}
+              title="Jashna Edu — English Communication and Learning"
+              className="absolute inset-0 h-full w-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              loading="eager"
+            />
+          </div>
 
-          bg-gradient-to-br
-          from-[#338DFD]/80
-          via-jashna-navy
-          to-[#49C4A5]/80
+          {/* CINEMATIC OVERLAY */}
 
-          p-[2px]
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-jashna-navy/50 via-transparent to-jashna-navy/10" />
 
-          shadow-[0_30px_80px_rgba(16,36,62,0.20)]
-        "
-      >
-        <div
-          className="
-            relative
+          {/* TOP LABEL */}
 
-            overflow-hidden
-
-            rounded-[32px]
-
-            bg-jashna-navy
-          "
-        >
-          {/* =================================================
-              VIDEO
-          ================================================= */}
-
-          <video
-            ref={videoRef}
-            src={heroVideo}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            className="
-              block
-
-              aspect-[16/10]
-
-              h-full
-              w-full
-
-              object-cover
-
-              scale-[1.015]
-
-              transition-transform
-              duration-700
-
-              hover:scale-[1.025]
-
-              sm:aspect-[16/10]
-
-              lg:aspect-[16/10]
-            "
-            aria-label="Jashna Edu learning and communication experience"
-          />
-
-          {/* =================================================
-              GENERAL CINEMATIC OVERLAY
-          ================================================= */}
-
-          <div
-            className="
-              pointer-events-none
-
-              absolute
-              inset-0
-
-              bg-gradient-to-t
-              from-jashna-navy/65
-              via-transparent
-              to-jashna-navy/10
-            "
-          />
-
-          {/* =================================================
-              MOBILE CLEAN-UP MASK
-
-              Stronger at the bottom so the temporary MP4's
-              embedded text is less visually distracting.
-          ================================================= */}
-
-          <div
-            className="
-              pointer-events-none
-
-              absolute
-              inset-x-0
-              bottom-0
-
-              h-[34%]
-
-              bg-gradient-to-t
-              from-jashna-navy/95
-              via-jashna-navy/45
-              to-transparent
-
-              sm:h-[22%]
-              sm:from-jashna-navy/85
-              sm:via-jashna-navy/30
-            "
-          />
-
-          {/* =================================================
-              TOP LEFT LIVE LABEL
-          ================================================= */}
-
-          <div
-            className="
-              absolute
-              left-4
-              top-4
-
-              flex
-              items-center
-              gap-2
-
-              rounded-full
-
-              border
-              border-white/20
-
-              bg-jashna-navy/55
-
-              px-3
-              py-1.5
-
-              shadow-lg
-
-              backdrop-blur-md
-
-              sm:left-5
-              sm:top-5
-            "
-          >
+          <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-full border border-white/20 bg-[#102B4E]/80 px-3 py-1.5 shadow-lg backdrop-blur-md sm:left-5 sm:top-5 sm:px-3.5">
             <motion.span
-              animate={{
-                opacity: [0.35, 1, 0.35],
-              }}
+              animate={{ opacity: [0.35, 1, 0.35] }}
               transition={{
                 duration: 2,
                 repeat: Infinity,
               }}
-              className="
-                h-1.5
-                w-1.5
-
-                rounded-full
-
-                bg-[#49C4A5]
-
-                shadow-[0_0_9px_rgba(73,196,165,0.9)]
-              "
+              className="h-2 w-2 rounded-full bg-[#49C4A5] shadow-[0_0_9px_rgba(73,196,165,0.9)]"
             />
 
-            <span
-              className="
-                text-[8px]
-                font-bold
-                uppercase
-                tracking-[0.2em]
-
-                text-white/90
-
-                sm:text-[9px]
-              "
-            >
-              JASHNA EDU IN ACTION
+            <span className="text-[9px] uppercase tracking-[0.15em] text-white sm:text-[11px] sm:tracking-[0.18em]">
+              Jashna Edu in action
             </span>
           </div>
 
-          {/* =================================================
-              DESKTOP VIDEO MESSAGE
+          {/* VIDEO CAPTION */}
 
-              Kept off mobile because the current temporary
-              MP4 already contains text.
-          ================================================= */}
-
-          <div
-            className="
-              absolute
-
-              bottom-5
-              left-5
-
-              hidden
-
-              max-w-[310px]
-
-              sm:block
-            "
-          >
-            <p
-              className="
-                text-[9px]
-                font-bold
-                uppercase
-                tracking-[0.22em]
-
-                text-[#49C4A5]
-              "
-            >
+          <div className="pointer-events-none absolute bottom-4 left-4 max-w-[65%] sm:bottom-5 sm:left-5">
+            <p className="text-[9px] uppercase tracking-[0.16em] text-[#7FE6C8] sm:text-[10px] sm:tracking-[0.2em]">
               Learn • Practice • Master
             </p>
 
-            <p
-              className="
-                mt-1.5
-
-                font-display
-
-                text-xl
-                leading-tight
-
-                text-white
-
-                drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]
-
-                lg:text-2xl
-              "
-            >
-              The Art of 
+            <p className="mt-1 text-lg leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)] sm:text-xl lg:text-2xl">
+              The Art of
               <br />
               vocal assurance.
             </p>
           </div>
 
-          {/* =================================================
-              PLAY / PAUSE
-          ================================================= */}
+          {/* OPEN ON YOUTUBE */}
 
-          <button
-            type="button"
-            onClick={toggleVideo}
-            aria-label={isPlaying ? "Pause hero video" : "Play hero video"}
-            className="
-              absolute
-
-              bottom-4
-              right-4
-
-              flex
-              h-10
-              w-10
-
-              items-center
-              justify-center
-
-              rounded-full
-
-              border
-              border-white/25
-
-              bg-white/10
-
-              text-white
-
-              shadow-lg
-
-              backdrop-blur-md
-
-              transition-all
-              duration-300
-
-              hover:scale-110
-
-              hover:border-[#49C4A5]/70
-
-              hover:bg-[#49C4A5]/20
-
-              sm:bottom-5
-              sm:right-5
-            "
+          <a
+            href={HERO_WATCH_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Watch the Jashna Edu video on YouTube"
+            title="Watch on YouTube"
+            className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/35 bg-white/15 text-white shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-110 hover:border-[#49C4A5] hover:bg-[#49C4A5]/30 sm:bottom-5 sm:right-5"
           >
-            {isPlaying ? (
-              <Pause size={15} />
-            ) : (
-              <Play size={15} fill="currentColor" />
-            )}
-          </button>
+            <ExternalLink size={16} />
+          </a>
 
-          {/* =================================================
-              SMALL SHIMMER LINE
-          ================================================= */}
+          {/* SUBTLE SHIMMER */}
 
           <motion.div
-            className="
-              pointer-events-none
-
-              absolute
-              left-0
-              right-0
-              top-0
-
-              h-px
-
-              bg-gradient-to-r
-              from-transparent
-              via-white/60
-              to-transparent
-            "
-            animate={{
-              x: ["-100%", "100%"],
-            }}
+            className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent"
+            animate={{ x: ["-100%", "100%"] }}
             transition={{
               duration: 4,
               repeat: Infinity,
@@ -1305,96 +725,36 @@ function HeroVideo({ videoRef, isPlaying, toggleVideo }) {
         </div>
       </div>
 
-      {/* =====================================================
-          FLOATING COMMUNICATION BUBBLES
-      ====================================================== */}
-
-      {/* MIC */}
+      {/* FLOATING COMMUNICATION BUBBLES */}
 
       <FloatingBubble
         icon={<Mic size={16} />}
         label="Speak"
-        className="
-          -left-3
-          top-[16%]
-
-          sm:-left-7
-          sm:top-[18%]
-        "
+        className="-left-3 top-[16%] sm:-left-8 sm:top-[18%]"
         color="blue"
         delay={0}
       />
 
-      {/* MESSAGE */}
-
       <FloatingBubble
         icon={<MessageCircle size={16} />}
         label="Connect"
-        className="
-          -right-3
-          top-[30%]
-
-          sm:-right-7
-          sm:top-[29%]
-        "
+        className="-right-3 top-[34%] sm:-right-8 sm:top-[36%]"
         color="green"
         delay={0.8}
       />
 
-      {/* GLOBE */}
-
       <FloatingBubble
         icon={<Globe2 size={15} />}
         label="Global"
-        className="
-          right-[3%]
-          -bottom-2
-
-          sm:right-[4%]
-          -bottom-4
-        "
+        className="right-[8%] -top-3 sm:right-[10%] sm:-top-2"
         color="gold"
         delay={1.5}
       />
 
-      {/* SPARKLE */}
-
-      <FloatingBubble
-        icon={<Sparkles size={15} />}
-        label="Grow"
-        className="
-          left-[5%]
-          -bottom-2
-
-          sm:left-[7%]
-          -bottom-4
-        "
-        color="blue"
-        delay={2.2}
-      />
-
-      {/* =====================================================
-          ORBITING DOTS
-      ====================================================== */}
+      {/* ORBITING DOTS */}
 
       <motion.span
-        className="
-          pointer-events-none
-
-          absolute
-
-          left-[15%]
-          top-[7%]
-
-          h-2.5
-          w-2.5
-
-          rounded-full
-
-          bg-[#338DFD]
-
-          shadow-[0_0_18px_rgba(51,141,253,0.7)]
-        "
+        className="pointer-events-none absolute left-[15%] top-[7%] h-2.5 w-2.5 rounded-full bg-[#338DFD] shadow-[0_0_18px_rgba(51,141,253,0.7)]"
         animate={{
           y: [0, -9, 0],
           opacity: [0.5, 1, 0.5],
@@ -1407,23 +767,7 @@ function HeroVideo({ videoRef, isPlaying, toggleVideo }) {
       />
 
       <motion.span
-        className="
-          pointer-events-none
-
-          absolute
-
-          right-[16%]
-          top-[8%]
-
-          h-2
-          w-2
-
-          rounded-full
-
-          bg-[#49C4A5]
-
-          shadow-[0_0_18px_rgba(73,196,165,0.75)]
-        "
+        className="pointer-events-none absolute bottom-[10%] right-[16%] h-2 w-2 rounded-full bg-[#49C4A5] shadow-[0_0_18px_rgba(73,196,165,0.75)]"
         animate={{
           y: [0, 10, 0],
           opacity: [0.4, 1, 0.4],
@@ -1442,24 +786,25 @@ function HeroVideo({ videoRef, isPlaying, toggleVideo }) {
    FLOATING BUBBLE
 ========================================================= */
 
-function FloatingBubble({ icon, label, className, color, delay }) {
+function FloatingBubble({
+  icon,
+  label,
+  className,
+  color,
+  delay,
+}) {
   const colorStyles = {
     blue: {
-      border: "border-[#338DFD]/30",
-      icon: "bg-[#338DFD]/10 text-[#338DFD]",
-      dot: "bg-[#338DFD]",
+      border: "border-[#338DFD]/40",
+      icon: "bg-[#338DFD]/15 text-[#0D4FB3]",
     },
-
     green: {
-      border: "border-[#49C4A5]/35",
-      icon: "bg-[#49C4A5]/10 text-[#2caa8c]",
-      dot: "bg-[#49C4A5]",
+      border: "border-[#49C4A5]/45",
+      icon: "bg-[#49C4A5]/15 text-[#0B7F69]",
     },
-
     gold: {
-      border: "border-jashna-gold/35",
-      icon: "bg-jashna-gold/10 text-jashna-gold",
-      dot: "bg-jashna-gold",
+      border: "border-jashna-gold/45",
+      icon: "bg-jashna-gold/15 text-[#8A6410]",
     },
   };
 
@@ -1467,90 +812,34 @@ function FloatingBubble({ icon, label, className, color, delay }) {
 
   return (
     <motion.div
-      initial={{
-        opacity: 0,
-        scale: 0.8,
-      }}
-      animate={{
-        opacity: 1,
-        scale: 1,
-      }}
+      aria-hidden="true"
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{
         delay,
         duration: 0.6,
       }}
-      className={`
-        pointer-events-none
-
-        absolute
-        z-30
-
-        ${className}
-
-        hidden
-
-        sm:block
-      `}
+      className={`pointer-events-none absolute z-30 hidden sm:block ${className}`}
     >
       <motion.div
-        animate={{
-          y: [0, -6, 0],
-        }}
+        animate={{ y: [0, -6, 0] }}
         transition={{
           duration: 3.5,
           repeat: Infinity,
           ease: "easeInOut",
           delay,
         }}
-        className={`
-          flex
-          items-center
-          gap-2
-
-          rounded-full
-
-          border
-
-          ${styles.border}
-
-          bg-white/75
-
-          px-2
-          py-2
-
-          shadow-[0_10px_30px_rgba(16,36,62,0.10)]
-
-          backdrop-blur-md
-        `}
+        className={`flex items-center gap-2 rounded-full border-2 bg-white/85 px-2 py-2 shadow-[0_10px_30px_rgba(16,36,62,0.12)] backdrop-blur-md ${styles.border}`}
       >
         <span
-          className={`
-            flex
-            h-8
-            w-8
-
-            items-center
-            justify-center
-
-            rounded-full
-
-            ${styles.icon}
-          `}
+          className={`flex h-8 w-8 items-center justify-center rounded-full ${styles.icon}`}
         >
           {icon}
         </span>
 
         <span
-          className="
-            pr-1
-
-            text-[9px]
-            font-bold
-            uppercase
-            tracking-[0.14em]
-
-            text-[#536174]
-          "
+          className="pr-2 text-[10px] uppercase tracking-[0.12em]"
+          style={{ color: INK }}
         >
           {label}
         </span>

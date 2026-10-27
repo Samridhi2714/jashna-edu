@@ -506,6 +506,81 @@ const resourcesData = [
     buttonLink: "/programs",
   },
 },
+
+  {
+    id: "it-students-attitude-learning-english",
+
+    category: "Student Psychology & Learning",
+
+    type: "Research Paper",
+
+    readTime: "5 min read",
+
+    title: "Why IT Students Underestimate the Importance of English",
+
+    image:
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop",
+
+    shortDescription:
+      "A study of B.Sc. IT students explores why some learners prioritise technical subjects, postpone English learning, and experience low confidence when speaking. The findings point towards practical, career-relevant language learning.",
+
+    content: [
+      {
+        heading: "What the Research Examines",
+
+        paragraphs: [
+          "The paper, “A Study of IT Students’ Attitude Towards Learning English — Analyzing the Causes to March Towards a Need Based Curriculum,” by Dr. Jagdish Joshi and Dr. Dilber Gulestan (Mehta), examines IT students’ attitudes towards learning English and the factors that shape those attitudes.",
+          "The study surveyed 100 B.Sc. IT students who had completed their third semester. Its findings should be understood in the context of this sample and setting, rather than as a conclusion about every IT student or every non-medical student."
+        ]
+      },
+      {
+        heading: "Why English May Be Put on the Back Burner",
+
+        paragraphs: [
+          "The paper discusses attitudes in which students may believe that English can be learned later, while technical subjects are treated as the more immediate priority. It also points to limited awareness of how English communication can matter in professional and workplace situations.",
+          "Speaking-related barriers discussed in the study include fear, shyness, low confidence, limited vocabulary, and insufficient opportunities to practise. These factors can make learners hesitate even when they recognise that English is useful."
+        ]
+      },
+      {
+        heading: "From Classroom Knowledge to Practical Communication",
+
+        paragraphs: [
+          "The authors argue for a need-based, practical approach to English learning. Activities such as presentations, group discussions, and workplace-oriented scenarios can give learners opportunities to use language for realistic purposes rather than focusing only on textbook knowledge.",
+          "For learners preparing for technical careers, the takeaway is not to choose between technical expertise and communication. Both can be developed together, with regular practice helping students explain ideas, participate in discussions, and prepare for professional situations."
+        ]
+      },
+      {
+        heading: "How to Read These Findings",
+
+        paragraphs: [
+          "This paper offers a useful perspective on one group of IT students, but its sample is limited to 100 B.Sc. IT students in a particular setting. It does not compare medical and non-medical students, and it addresses attitudes towards learning English more broadly rather than spoken English alone.",
+          "Use the paper as a starting point for reflection—not as proof that all IT students share the same attitudes or face the same barriers."
+        ]
+      }
+    ],
+
+    citation:
+      "Joshi, J., & Gulestan (Mehta), D. (2020). “A Study of IT Students’ Attitude Towards Learning English — Analyzing the Causes to March Towards a Need Based Curriculum.” Towards Excellence, December 2020. Original paper hosted by Gujarat University.",
+
+    sourceUrl:
+      "https://hrdc.gujaratuniversity.ac.in/Uploads/EJournalDetail/29/1044/43.pdf",
+
+    sourceLabel: "Read Original Research Paper",
+
+    cardCta: {
+      eyebrow: "Jashna Learning Path",
+
+      title: "Build technical skills and communication together",
+
+      description:
+        "Practise expressing ideas clearly, participating in discussions, and communicating with confidence in study and workplace settings.",
+
+      buttonText: "EXPLORE JASHNA PROGRAMS",
+
+      buttonLink: "/programs"
+    }
+  },
+
 ];
 
 export { resourcesData };

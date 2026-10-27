@@ -7,32 +7,25 @@ import {
   Zap,
   CheckCircle2,
   RefreshCw,
-  Star,
   LoaderCircle,
   Target,
+  MessageCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { getWhatsAppLink } from "../data/contact";
+
 /* =========================================================
-   API
+   CONFIG
 ========================================================= */
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = import.meta.env?.VITE_API_URL || "http://localhost:5000/api";
 
-/*
-  TEMPORARY:
-
-  We are currently testing the completion system without
-  a real user/account system.
-
-  Later this can come from authentication / user profile.
-*/
+/* TEMPORARY until real accounts exist. */
 const PLAYER_NAME = "Test User";
 
-/* =========================================================
-   WHEEL VISUAL SEGMENTS
-========================================================= */
+const SPIN_DURATION = 4.2; // seconds
 
 const WHEEL_LABELS = [
   "VOCABULARY",
@@ -45,6 +38,41 @@ const WHEEL_LABELS = [
   "WRITING",
 ];
 
+/*
+  PALETTE — light blue and light teal, alternating around the wheel.
+  "soft" is the resting colour of a segment, "deep" is what the
+  winning segment turns into after the spin.
+*/
+const SHADES = [
+  { name: "blue", soft: "#D9EAFD", deep: "#338DFD", grad: "segBlue" },
+  { name: "teal", soft: "#D3F0EB", deep: "#2A9D8F", grad: "segTeal" },
+];
+
+/* Matching tints for cards, chips and buttons (alternated by index). */
+const TONES = {
+  blue: {
+    chip: "border-[#CFE3F8] bg-[#EEF6FF] text-[#2A78D6] hover:bg-[#E2EFFE]",
+    panel: "border-[#D3E4F6] bg-[#F1F7FF]",
+    label: "text-[#338DFD]",
+    icon: "border-[#CFE3F8] bg-[#EAF3FF] text-[#338DFD]",
+    option:
+      "border-[#DCE8F5] bg-white text-[#536174] hover:border-[#338DFD]/40 hover:bg-[#F1F7FF]",
+  },
+  teal: {
+    chip: "border-[#C7E8E2] bg-[#EAF8F5] text-[#23867A] hover:bg-[#DDF3EE]",
+    panel: "border-[#D0EAE5] bg-[#EFFAF7]",
+    label: "text-[#2A9D8F]",
+    icon: "border-[#C7E8E2] bg-[#E6F7F3] text-[#2A9D8F]",
+    option:
+      "border-[#D9ECE8] bg-white text-[#536174] hover:border-[#2A9D8F]/40 hover:bg-[#EFFAF7]",
+  },
+};
+
+const toneOf = (index) => (index % 2 === 0 ? TONES.blue : TONES.teal);
+
+const SEGMENT_ANGLE = 360 / WHEEL_LABELS.length;
+const BULB_COUNT = 24;
+
 /* =========================================================
    MAIN COMPONENT
 ========================================================= */
@@ -52,63 +80,35 @@ const WHEEL_LABELS = [
 export default function WeeklyChallenge() {
   const navigate = useNavigate();
 
-  /* =======================================================
-     API STATE
-  ======================================================= */
-
-  /*
-    Backend-selected challenge.
-
-    IMPORTANT:
-    This is NOT an admin-published challenge.
-  */
+  /* API state */
   const [currentChallenge, setCurrentChallenge] = useState(null);
-
   const [loadingChallenge, setLoadingChallenge] = useState(false);
-
   const [challengeError, setChallengeError] = useState("");
 
-  /* =======================================================
-     UI STATE
-  ======================================================= */
-
+  /* UI state */
   const [selectedChallenge, setSelectedChallenge] = useState(null);
-
   const [selectedTopic, setSelectedTopic] = useState("");
-
   const [isSpinning, setIsSpinning] = useState(false);
-
   const [rotation, setRotation] = useState(0);
-
   const [taskInput, setTaskInput] = useState("");
-
   const [selectedOption, setSelectedOption] = useState(null);
-
   const [taskChecked, setTaskChecked] = useState(false);
-
-  /*
-    null
-    "correct"
-    "wrong"
-    "submitted"
-  */
-  const [answerStatus, setAnswerStatus] = useState(null);
-
+  const [answerStatus, setAnswerStatus] = useState(null); // null | correct | wrong | submitted
   const [completed, setCompleted] = useState(false);
 
-  /* =======================================================
-     BACKEND EVALUATION STATE
-  ======================================================= */
+  /* Wheel interactivity */
+  const [hoverIndex, setHoverIndex] = useState(-1);
+  const [burstKey, setBurstKey] = useState(0);
+  const [spinCount, setSpinCount] = useState(0);
 
+  /* Backend evaluation state */
   const [evaluationResult, setEvaluationResult] = useState(null);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [submitError, setSubmitError] = useState("");
 
-  /* =========================================================
+  /* =======================================================
      FETCH RANDOM CHALLENGE
-  ========================================================= */
+  ======================================================= */
 
   const fetchRandomChallenge = async () => {
     try {
@@ -116,7 +116,6 @@ export default function WeeklyChallenge() {
       setChallengeError("");
 
       const response = await fetch(`${API_BASE}/challenges/random`);
-
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -131,285 +130,181 @@ export default function WeeklyChallenge() {
 
       const topic =
         data.topic || challenge.evaluationCategory || challenge.label || "";
-
       const topicLabel = data.topicLabel || String(topic).toUpperCase();
-
-      /*
-        Backend remains the source of truth.
-      */
 
       setCurrentChallenge(challenge);
 
-      setSelectedTopic(topicLabel);
-
-      return {
-        challenge,
-        topic,
-        topicLabel,
-      };
+      return { challenge, topic, topicLabel };
     } catch (error) {
       console.error("Random challenge fetch error:", error);
-
       setChallengeError(error.message || "Unable to load a new challenge.");
-
       return null;
     } finally {
       setLoadingChallenge(false);
     }
   };
 
-  /* =========================================================
-     INITIAL LOAD
-     ---------------------------------------------------------
-     We prefetch one challenge so the first interaction
-     doesn't have to wait for the API.
-
-     It is NOT displayed until the wheel is spun.
-  ========================================================= */
-
+  /* Prefetch one challenge so the first spin feels instant. */
   useEffect(() => {
     fetchRandomChallenge();
   }, []);
 
-  /* =========================================================
+  /* =======================================================
      WHEEL SEGMENTS
-  ========================================================= */
+  ======================================================= */
 
-  const wheelSegments = useMemo(() => {
-    const segmentAngle = 360 / WHEEL_LABELS.length;
+  const wheelSegments = useMemo(
+    () =>
+      WHEEL_LABELS.map((label, index) => {
+        const startAngle = index * SEGMENT_ANGLE;
+        const endAngle = startAngle + SEGMENT_ANGLE;
 
-    return WHEEL_LABELS.map((label, index) => {
-      const startAngle = index * segmentAngle;
+        return {
+          id: label.toLowerCase(),
+          label,
+          index,
+          startAngle,
+          endAngle,
+          midAngle: startAngle + SEGMENT_ANGLE / 2,
+          shade: SHADES[index % SHADES.length],
+        };
+      }),
+    [],
+  );
 
-      const endAngle = startAngle + segmentAngle;
+  const bulbs = useMemo(
+    () =>
+      Array.from({ length: BULB_COUNT }, (_, i) => {
+        const angle = ((i * 360) / BULB_COUNT - 90) * (Math.PI / 180);
+        return {
+          i,
+          x: 200 + 207 * Math.cos(angle),
+          y: 200 + 207 * Math.sin(angle),
+        };
+      }),
+    [],
+  );
 
-      return {
-        id: label.toLowerCase(),
-        label,
-        index,
-        startAngle,
-        endAngle,
-        midAngle: startAngle + segmentAngle / 2,
-      };
-    });
-  }, []);
-
-  /* =========================================================
-     FIND VISUAL WHEEL POSITION
-  ========================================================= */
+  const burstDots = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => {
+        const angle = (i * 360) / 14 * (Math.PI / 180);
+        const dist = 120 + (i % 3) * 28;
+        return {
+          i,
+          x: Math.cos(angle) * dist,
+          y: Math.sin(angle) * dist,
+          size: 6 + (i % 3) * 3,
+        };
+      }),
+    [],
+  );
 
   const getChallengeWheelIndex = (challenge, topic) => {
-    if (!challenge && !topic) {
-      return 0;
-    }
-
     const topicValue = String(
       topic || challenge?.evaluationCategory || challenge?.label || "",
     )
       .trim()
       .toUpperCase();
 
-    /*
-      Known normalization.
-    */
-
-    const normalizedTopic =
+    const normalized =
       topicValue === "IDIOM"
         ? "IDIOMS"
         : topicValue === "VOCAB"
           ? "VOCABULARY"
           : topicValue;
 
-    const exactMatch = WHEEL_LABELS.findIndex(
-      (label) => label === normalizedTopic,
-    );
-
-    /*
-      Because the backend now uses the fixed
-      eight-topic system, an exact match should
-      normally always exist.
-
-      Returning 0 is safer than inventing a
-      different visual topic.
-    */
-
-    return exactMatch !== -1 ? exactMatch : 0;
+    const match = WHEEL_LABELS.indexOf(normalized);
+    return match !== -1 ? match : 0;
   };
 
-  /* =========================================================
-     RESET CHALLENGE STATE
-  ========================================================= */
+  const activeIndex =
+    selectedChallenge && !isSpinning
+      ? getChallengeWheelIndex(selectedChallenge, selectedTopic)
+      : -1;
+
+  /* Colour tone of the active challenge follows its wheel segment. */
+  const activeTone = toneOf(activeIndex >= 0 ? activeIndex : 0);
+
+  /* =======================================================
+     WHATSAPP
+  ======================================================= */
+
+  const consultLink = getWhatsAppLink();
+
+  const challengeHelpLink = getWhatsAppLink(
+    selectedChallenge
+      ? `Hello Dr. Shivam Sir, I'm trying the Jashna Edu Weekly Challenge "${selectedChallenge.title}"${
+          selectedTopic ? ` (${selectedTopic})` : ""
+        } and would like some guidance.`
+      : "Hello Dr. Shivam Sir, I'm trying the Jashna Edu Weekly Challenge and would like some guidance.",
+  );
+
+  /* =======================================================
+     HELPERS
+  ======================================================= */
 
   const resetChallengeState = () => {
     setCompleted(false);
-
     setTaskChecked(false);
-
     setAnswerStatus(null);
-
     setTaskInput("");
-
     setSelectedOption(null);
-
     setEvaluationResult(null);
-
     setSubmitError("");
-
     setIsSubmitting(false);
   };
 
-  /* =========================================================
-     OPEN ANALYSIS PAGE
-     ---------------------------------------------------------
-     This is now the ONLY destination after a successful
-     challenge completion.
-
-     We also store the result in sessionStorage so that
-     refreshing /weekly-analysis does not immediately
-     lose the evaluation data.
-  ========================================================= */
-
-
-  /* =========================================================
-     SPIN WHEEL
-     ---------------------------------------------------------
-     FLOW:
-
-       User clicks:
-         centre OR CTA
-
-              ↓
-
-       Fetch fresh challenge
-
-              ↓
-
-       Backend chooses:
-         topic
-         +
-         question
-
-              ↓
-
-       Frontend finds topic segment
-
-              ↓
-
-       Wheel spins
-
-              ↓
-
-       Challenge appears
-  ========================================================= */
   const navigateToAnalysis = (challenge, completion) => {
-  const payload = {
-    challenge,
-    completion,
-    completedAt: new Date().toISOString(),
-  };
+    const payload = {
+      challenge,
+      completion,
+      completedAt: new Date().toISOString(),
+    };
 
-  console.log(
-    "Preparing weekly analysis payload:",
-    payload
-  );
-
-  try {
-    sessionStorage.setItem(
-      "jashnaWeeklyAnalysis",
-      JSON.stringify(payload)
-    );
-
-    console.log(
-      "Weekly analysis saved to sessionStorage."
-    );
-  } catch (error) {
-    console.error(
-      "Failed to save weekly analysis:",
-      error
-    );
-  }
-
-  navigate("/weekly-analysis", {
-    state: payload,
-  });
-};
-  const spinWheel = async () => {
-    if (isSpinning || loadingChallenge) {
-      return;
+    try {
+      sessionStorage.setItem("jashnaWeeklyAnalysis", JSON.stringify(payload));
+    } catch (error) {
+      console.error("Failed to save weekly analysis:", error);
     }
 
+    navigate("/weekly-analysis", { state: payload });
+  };
+
+  /* =======================================================
+     SPIN
+  ======================================================= */
+
+  const spinWheel = async () => {
+    if (isSpinning || loadingChallenge || isSubmitting) return;
+
     playSound("spin");
-
     setIsSpinning(true);
-
+    setHoverIndex(-1);
     resetChallengeState();
-
     setSelectedChallenge(null);
-
     setSelectedTopic("");
-
-    /*
-      IMPORTANT:
-
-      Always request a NEW challenge when
-      the user deliberately spins again.
-    */
 
     const result = await fetchRandomChallenge();
 
     if (!result) {
       setIsSpinning(false);
-
       playSound("error");
-
       return;
     }
 
     const { challenge, topic, topicLabel } = result;
 
-    /* =====================================================
-       DETERMINE VISUAL SEGMENT
-    ====================================================== */
+    const selectedIndex = getChallengeWheelIndex(challenge, topic || topicLabel);
+    const midAngle = wheelSegments[selectedIndex].midAngle;
 
-    const selectedIndex = getChallengeWheelIndex(
-      challenge,
-      topic || topicLabel,
-    );
+    const currentNormalized = ((rotation % 360) + 360) % 360;
+    const requiredRotation = (360 - midAngle - currentNormalized + 360) % 360;
 
-    const selectedSegment = wheelSegments[selectedIndex];
-
-    const selectedMidAngle = selectedSegment.midAngle;
-
-    /* =====================================================
-       CURRENT WHEEL ORIENTATION
-    ====================================================== */
-
-    const currentNormalizedRotation = ((rotation % 360) + 360) % 360;
-
-    /* =====================================================
-       CALCULATE ROTATION
-    ====================================================== */
-
-    const requiredRotation =
-      (360 - selectedMidAngle - currentNormalizedRotation + 360) % 360;
-
-    /*
-      Five complete rotations + target.
-    */
-
-    const targetAngle = 360 * 5 + requiredRotation;
-
-    const newRotation = rotation + targetAngle;
-
-    setRotation(newRotation);
-
-    /* =====================================================
-       AFTER WHEEL FINISHES
-    ====================================================== */
+    setRotation(rotation + 360 * 5 + requiredRotation);
 
     setTimeout(() => {
       setSelectedChallenge(challenge);
-
       setSelectedTopic(
         String(
           topicLabel ||
@@ -419,145 +314,68 @@ export default function WeeklyChallenge() {
             "",
         ).toUpperCase(),
       );
-
       setIsSpinning(false);
-
+      setSpinCount((n) => n + 1);
+      setBurstKey((k) => k + 1);
       playSound("select");
-    }, 4200);
+    }, SPIN_DURATION * 1000);
   };
 
-  /* =========================================================
-     NEW CHALLENGE
-     ---------------------------------------------------------
-     This is now a REAL new challenge.
-
-     It does NOT merely clear the screen.
-  ========================================================= */
-
-  const handleNewChallenge = () => {
-    if (isSubmitting || isSpinning) {
-      return;
-    }
-
-    spinWheel();
-  };
-
-  /* =========================================================
-     SELECT MCQ OPTION
-  ========================================================= */
+  /* =======================================================
+     MCQ OPTION
+  ======================================================= */
 
   const handleOptionSelect = (index) => {
-    /*
-      If the challenge has already been correctly
-      completed, don't allow another answer.
-    */
-
-    if (taskChecked || isSubmitting || completed) {
-      return;
-    }
+    if (taskChecked || isSubmitting || completed) return;
 
     setSelectedOption(index);
-
-    /*
-      A new selection starts a fresh attempt visually.
-    */
-
     setAnswerStatus(null);
-
     setSubmitError("");
-
-    /*
-      Remove the previous evaluation from view
-      while the learner is trying another answer.
-    */
-
     setEvaluationResult(null);
   };
 
-  /* =========================================================
-     SUBMIT CHALLENGE
-     ---------------------------------------------------------
-     FRONTEND NEVER EVALUATES CORRECTNESS.
-
-     Backend receives:
-
-       playerName
-       challengeId
-       answer
-
-     Backend:
-
-       → evaluates
-       → scores
-       → generates feedback
-       → stores completion
-       → returns result
-
-     SUCCESSFUL COMPLETION:
-       → redirect to /weekly-analysis
-
-     MCQ WRONG:
-       → remain on this page
-  ========================================================= */
+  /* =======================================================
+     SUBMIT — backend evaluates everything
+  ======================================================= */
 
   const submitChallenge = async () => {
     if (!selectedChallenge?._id) {
       setSubmitError("Challenge information is missing.");
-
       return;
     }
 
-    if (isSubmitting || taskChecked || completed) {
-      return;
-    }
-
-    /* =====================================================
-       PREPARE ANSWER
-    ====================================================== */
+    if (isSubmitting || taskChecked || completed) return;
 
     let answer;
 
     if (selectedChallenge.type === "mcq") {
       if (selectedOption === null) {
         setSubmitError("Please select an answer.");
-
         return;
       }
-
       answer = selectedOption;
     } else if (selectedChallenge.type === "text") {
       if (!taskInput.trim()) {
         setSubmitError("Please enter your response.");
-
         return;
       }
-
       answer = taskInput.trim();
     } else {
       setSubmitError("This challenge type is not supported yet.");
-
       return;
     }
 
     try {
       setIsSubmitting(true);
-
       setSubmitError("");
-
       setEvaluationResult(null);
 
       const response = await fetch(`${API_BASE}/challenges/complete`, {
         method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           playerName: PLAYER_NAME,
-
           challengeId: selectedChallenge._id,
-
           answer,
         }),
       });
@@ -576,597 +394,369 @@ export default function WeeklyChallenge() {
 
       setEvaluationResult(completion);
 
-      /* ===================================================
-         TEXT CHALLENGE
-         ---------------------------------------------------
-         Any successful AI evaluation counts as a completed
-         challenge.
-
-         We immediately move to the dedicated analysis page.
-      ================================================== */
-
       if (selectedChallenge.type === "text") {
         setAnswerStatus("submitted");
-
         setTaskChecked(true);
-
         setCompleted(true);
-
         playSound("success");
-
-        /*
-          IMPORTANT:
-          Analysis/download/share now happens on the
-          dedicated /weekly-analysis page.
-        */
-
         navigateToAnalysis(selectedChallenge, completion);
-
         return;
       }
 
-      /* ===================================================
-         MCQ
-         ---------------------------------------------------
-         Correct → redirect to analysis.
-
-         Wrong → stay on wheel page so learner can retry.
-      ================================================== */
-
       if (completion.isCorrect) {
         setAnswerStatus("correct");
-
         setTaskChecked(true);
-
         setCompleted(true);
-
         playSound("success");
-
-        /*
-          Redirect only after the backend confirms
-          the MCQ answer is correct.
-        */
-
         navigateToAnalysis(selectedChallenge, completion);
       } else {
         setAnswerStatus("wrong");
-
         setTaskChecked(false);
-
         setCompleted(false);
-
         playSound("error");
       }
     } catch (error) {
       console.error("Challenge submission error:", error);
-
       setSubmitError(
         error.message ||
           "Something went wrong while submitting your challenge.",
       );
-
       playSound("error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  /* =========================================================
+  const spinDisabled = isSpinning || loadingChallenge;
+  const hoveredLabel =
+    hoverIndex >= 0 && !isSpinning ? WHEEL_LABELS[hoverIndex] : "";
+
+  /* =======================================================
      RENDER
-  ========================================================= */
+  ======================================================= */
 
   return (
     <section
       id="weekly-challenge"
-      className="relative overflow-hidden bg-[#F7FBFA] py-24 sm:py-28 lg:py-22"
+      className="relative overflow-hidden bg-[#F4FAFC] py-14 sm:py-20 lg:py-24"
     >
-      {/* =====================================================
-          BACKGROUND
-      ====================================================== */}
-
+      {/* BACKGROUND — alternating blue / teal washes */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -left-40 top-20 h-[420px] w-[420px] rounded-full bg-[#338DFD]/[0.07] blur-[120px]"
-          animate={{
-            scale: [1, 1.08, 1],
-            opacity: [0.5, 0.8, 0.5],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-
-        <motion.div
-          className="absolute -right-40 bottom-0 h-[460px] w-[460px] rounded-full bg-[#49C4A5]/[0.09] blur-[120px]"
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.45, 0.75, 0.45],
-          }}
-          transition={{
-            duration: 9,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-
-        <motion.div
-          className="absolute left-1/2 top-1/2 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/70 blur-[110px]"
-          animate={{
-            scale: [1, 1.04, 1],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+        <div className="absolute -left-40 top-16 h-[420px] w-[420px] rounded-full bg-[#338DFD]/[0.09] blur-[120px]" />
+        <div className="absolute -right-40 top-[30%] h-[420px] w-[420px] rounded-full bg-[#2A9D8F]/[0.10] blur-[120px]" />
+        <div className="absolute -left-32 bottom-0 h-[380px] w-[380px] rounded-full bg-[#2A9D8F]/[0.07] blur-[120px]" />
+        <div className="absolute -right-32 bottom-[-60px] h-[420px] w-[420px] rounded-full bg-[#338DFD]/[0.08] blur-[120px]" />
       </div>
 
-      {/* =====================================================
-          DOT PATTERN
-      ====================================================== */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.2] [background-image:radial-gradient(circle_at_1px_1px,rgba(16,36,62,0.10)_1px,transparent_0)] [background-size:30px_30px] [mask-image:linear-gradient(to_bottom,black,transparent_75%)]" />
 
-      <div className="pointer-events-none absolute inset-0 opacity-[0.22] [background-image:radial-gradient(circle_at_1px_1px,rgba(16,36,62,0.10)_1px,transparent_0)] [background-size:30px_30px] [mask-image:linear-gradient(to_bottom,black,transparent_75%)]" />
-
-      {/* =====================================================
-          CONTENT
-      ====================================================== */}
-
-      <div className="relative z-10 mx-auto max-w-[1280px] px-5 sm:px-6 lg:px-10">
-        {/* ===================================================
-            HEADER
-        ==================================================== */}
-
+      {/* CONTENT */}
+      <div className="relative z-10 mx-auto w-[92%] max-w-[1600px] sm:w-[90%]">
+        {/* HEADER */}
         <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.25,
-          }}
-          transition={{
-            duration: 0.7,
-          }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.7 }}
           className="mx-auto max-w-3xl text-center"
         >
           <div className="mb-5 flex items-center justify-center gap-3">
-            <span className="h-px w-10 bg-gradient-to-r from-[#338DFD] to-[#49C4A5]" />
-
-            <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-[#31516C] sm:text-xs">
-              <Sparkles size={13} className="text-[#49C4A5]" />
-              THE JASHNA WEEKLY CHALLENGE
+            <span className="h-px w-8 bg-gradient-to-r from-[#338DFD] to-[#2A9D8F] sm:w-10" />
+            <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[#31516C] sm:text-xs sm:tracking-[0.28em]">
+              <Sparkles size={13} className="text-[#2A9D8F]" />
+              The Jashna Weekly Challenge
             </span>
-
-            <span className="h-px w-10 bg-gradient-to-r from-[#49C4A5] to-[#338DFD]" />
+            <span className="h-px w-8 bg-gradient-to-r from-[#2A9D8F] to-[#338DFD] sm:w-10" />
           </div>
 
-          <h2 className="font-serif text-4xl font-semibold leading-[1.05] tracking-[-0.035em] text-[#17213A] sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl font-semibold leading-[1.05] tracking-[-0.035em] text-[#17213A] sm:text-5xl xl:text-6xl">
             Ready for your
-            <span className="block bg-gradient-to-r from-[#338DFD] to-[#49C4A5] bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-[#338DFD] to-[#2A9D8F] bg-clip-text text-transparent">
               next challenge?
             </span>
           </h2>
 
-          <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-[#536174] sm:text-base sm:leading-8">
-            Spin the wheel, discover a fresh English-language activity and put
-            your skills into practice.
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#536174] sm:text-base sm:leading-8">
+            Spin the wheel, get a fresh English activity, and put your skills
+            into practice.
           </p>
         </motion.div>
 
-        {/* ===================================================
-            MAIN EXPERIENCE CARD
-        ==================================================== */}
-
+        {/* MAIN CARD */}
         <motion.div
-          initial={{
-            opacity: 0,
-            y: 30,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            amount: 0.15,
-          }}
-          transition={{
-            duration: 0.8,
-            delay: 0.15,
-          }}
-          className="relative mx-auto mt-14 max-w-6xl"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="relative mx-auto mt-10 sm:mt-14"
         >
-          <div className="pointer-events-none absolute -inset-3 rounded-[2.5rem] border border-[#49C4A5]/10" />
-
-          <div className="relative overflow-hidden rounded-[2.2rem] border border-[#D9E7E4] bg-white/80 shadow-[0_30px_90px_rgba(16,36,62,0.10)] backdrop-blur-xl">
-            <div className="grid lg:grid-cols-[0.98fr_1.02fr]">
-              {/* =================================================
+          <div className="overflow-hidden rounded-[1.75rem] border border-[#D3E6EE] bg-white shadow-[0_24px_70px_rgba(16,36,62,0.09)] sm:rounded-[2rem]">
+            <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+              {/* ===============================================
                   LEFT — WHEEL
-              ================================================== */}
-
-              <div className="relative flex min-h-[540px] items-center justify-center overflow-hidden bg-gradient-to-br from-[#F4FAFF] via-white to-[#F0FBF7] p-8 sm:min-h-[620px] sm:p-10 lg:min-h-[680px]">
-                {/* ORBITS */}
-
+              ================================================ */}
+              <div className="relative flex flex-col items-center justify-center gap-7 overflow-hidden border-b border-[#DCEBEF] bg-gradient-to-br from-[#EAF4FF] via-white to-[#E6F7F3] px-6 py-12 sm:px-10 sm:py-14 lg:border-b-0 lg:border-r">
+                {/* soft alternating glow behind wheel */}
                 <motion.div
-                  className="absolute h-[390px] w-[390px] rounded-full border border-[#338DFD]/10 sm:h-[470px] sm:w-[470px] lg:h-[510px] lg:w-[510px]"
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
                   animate={{
-                    rotate: 360,
+                    backgroundColor: isSpinning
+                      ? ["rgba(51,141,253,0.18)", "rgba(42,157,143,0.18)", "rgba(51,141,253,0.18)"]
+                      : activeIndex >= 0 && activeIndex % 2 === 1
+                        ? "rgba(42,157,143,0.14)"
+                        : "rgba(51,141,253,0.12)",
                   }}
                   transition={{
-                    duration: 30,
-                    repeat: Infinity,
-                    ease: "linear",
+                    duration: isSpinning ? 1.4 : 0.8,
+                    repeat: isSpinning ? Infinity : 0,
                   }}
                 />
 
-                <motion.div
-                  className="absolute h-[450px] w-[450px] rounded-full border border-dashed border-[#49C4A5]/10 sm:h-[530px] sm:w-[530px] lg:h-[570px] lg:w-[570px]"
-                  animate={{
-                    rotate: -360,
-                  }}
-                  transition={{
-                    duration: 40,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                />
-
-                {/* SPARKLES */}
-
-                <FloatingSparkle
-                  className="left-[13%] top-[19%]"
-                  delay={0}
-                  size={19}
-                />
-
-                <FloatingSparkle
-                  className="right-[14%] top-[24%]"
-                  delay={0.8}
-                  size={16}
-                />
-
-                <FloatingSparkle
-                  className="left-[18%] bottom-[21%]"
-                  delay={1.4}
-                  size={14}
-                />
-
-                <FloatingSparkle
-                  className="right-[17%] bottom-[18%]"
-                  delay={2}
-                  size={18}
-                />
-
-                <FloatingSparkle
-                  className="left-[7%] top-[42%]"
-                  delay={2.7}
-                  size={11}
-                />
-
-                <FloatingSparkle
-                  className="right-[8%] top-[47%]"
-                  delay={1.9}
-                  size={12}
-                />
-
-                <FloatingSparkle
-                  className="left-[29%] top-[13%]"
-                  delay={3.1}
-                  size={9}
-                />
-
-                <FloatingSparkle
-                  className="right-[28%] bottom-[13%]"
-                  delay={2.4}
-                  size={10}
-                />
-
-                {/* DOTS */}
-
-                <motion.span
-                  className="absolute left-[24%] top-[15%] h-1.5 w-1.5 rounded-full bg-[#338DFD]"
-                  animate={{
-                    y: [0, -7, 0],
-                    opacity: [0.3, 1, 0.3],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                  }}
-                />
-
-                <motion.span
-                  className="absolute right-[24%] top-[31%] h-1 w-1 rounded-full bg-[#49C4A5]"
-                  animate={{
-                    y: [0, 7, 0],
-                    opacity: [0.25, 1, 0.25],
-                  }}
-                  transition={{
-                    duration: 3.4,
-                    repeat: Infinity,
-                  }}
-                />
-
-                <motion.span
-                  className="absolute right-[25%] bottom-[15%] h-1.5 w-1.5 rounded-full bg-[#49C4A5]"
-                  animate={{
-                    y: [0, 7, 0],
-                    opacity: [0.3, 1, 0.3],
-                  }}
-                  transition={{
-                    duration: 3.5,
-                    repeat: Infinity,
-                  }}
-                />
-
-                <motion.span
-                  className="absolute left-[24%] bottom-[16%] h-1 w-1 rounded-full bg-[#338DFD]"
-                  animate={{
-                    y: [0, -6, 0],
-                    opacity: [0.25, 1, 0.25],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                  }}
-                />
-
-                {/* CENTRAL GLOW */}
-
-                <motion.div
-                  className="absolute h-[340px] w-[340px] rounded-full bg-gradient-to-br from-[#338DFD]/10 to-[#49C4A5]/10 blur-3xl sm:h-[400px] sm:w-[400px] lg:h-[450px] lg:w-[450px]"
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    opacity: [0.6, 0.9, 0.6],
-                  }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-
-                {/* POINTER */}
-
-                <div className="absolute left-1/2 top-[calc(50%-181px)] z-40 -translate-x-1/2 sm:top-[calc(50%-211px)] lg:top-[calc(50%-231px)]">
+                {/* Wheel stage */}
+                <div className="relative aspect-square w-full max-w-[300px] sm:max-w-[360px] xl:max-w-[400px]">
+                  {/* orbit ring */}
                   <motion.div
-                    animate={
-                      isSpinning
-                        ? {
-                            scale: [1, 1.15, 1],
-                          }
-                        : {}
-                    }
+                    className="pointer-events-none absolute -inset-[9%] rounded-full border border-dashed border-[#338DFD]/25"
+                    animate={{ rotate: 360 }}
                     transition={{
-                      duration: 0.3,
+                      duration: isSpinning ? 8 : 40,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+                  <motion.div
+                    className="pointer-events-none absolute -inset-[15%] rounded-full border border-dashed border-[#2A9D8F]/20"
+                    animate={{ rotate: -360 }}
+                    transition={{
+                      duration: isSpinning ? 12 : 60,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+
+                  {/* POINTER */}
+                  <motion.div
+                    className="absolute left-1/2 top-0 z-40 -translate-x-1/2 -translate-y-[45%]"
+                    animate={isSpinning ? { y: [0, 3, 0] } : { y: 0 }}
+                    transition={{
+                      duration: 0.25,
                       repeat: isSpinning ? Infinity : 0,
                     }}
-                    className="relative"
                   >
-                    <div className="h-0 w-0 border-l-[12px] border-r-[12px] border-t-[23px] border-l-transparent border-r-transparent border-t-[#17213A] drop-shadow-[0_4px_8px_rgba(16,36,62,0.25)]" />
+                    <div className="h-0 w-0 border-l-[10px] border-r-[10px] border-t-[22px] border-l-transparent border-r-transparent border-t-[#17213A] drop-shadow-[0_3px_6px_rgba(16,36,62,0.25)] sm:border-l-[12px] sm:border-r-[12px] sm:border-t-[26px]" />
                   </motion.div>
-                </div>
 
-                {/* =================================================
-                    WHEEL
-                ================================================== */}
+                  {/* LANDING BURST */}
+                  {burstKey > 0 && (
+                    <div
+                      key={burstKey}
+                      className="pointer-events-none absolute left-1/2 top-1/2 z-30"
+                    >
+                      {burstDots.map((d) => (
+                        <motion.span
+                          key={d.i}
+                          className="absolute rounded-full"
+                          style={{
+                            width: d.size,
+                            height: d.size,
+                            marginLeft: -d.size / 2,
+                            marginTop: -d.size / 2,
+                            background: d.i % 2 === 0 ? "#338DFD" : "#2A9D8F",
+                          }}
+                          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+                          animate={{ x: d.x, y: d.y, opacity: 0, scale: 0.4 }}
+                          transition={{ duration: 0.9, ease: "easeOut" }}
+                        />
+                      ))}
+                    </div>
+                  )}
 
-                <motion.button
-                  type="button"
-                  onClick={spinWheel}
-                  disabled={isSpinning || loadingChallenge}
-                  aria-label={
-                    isSpinning
-                      ? "Wheel is spinning"
-                      : "Spin the challenge wheel"
-                  }
-                  whileHover={
-                    !isSpinning && !loadingChallenge
-                      ? {
-                          scale: 1.015,
-                        }
-                      : {}
-                  }
-                  whileTap={
-                    !isSpinning && !loadingChallenge
-                      ? {
-                          scale: 0.985,
-                        }
-                      : {}
-                  }
-                  className={`relative z-20 h-[320px] w-[320px] rounded-full outline-none sm:h-[380px] sm:w-[380px] lg:h-[420px] lg:w-[420px] ${
-                    isSpinning || loadingChallenge
-                      ? "cursor-not-allowed"
-                      : "cursor-pointer"
-                  }`}
-                >
-                  <motion.div
-                    className="h-full w-full"
-                    animate={{
-                      rotate: rotation,
-                    }}
-                    transition={{
-                      duration: 4.2,
-                      ease: [0.12, 0.8, 0.2, 1],
-                    }}
-                    style={{
-                      transformOrigin: "center center",
-                    }}
+                  {/* WHEEL */}
+                  <motion.button
+                    type="button"
+                    onClick={spinWheel}
+                    disabled={spinDisabled}
+                    aria-label={
+                      isSpinning ? "Wheel is spinning" : "Spin the challenge wheel"
+                    }
+                    whileHover={!spinDisabled ? { scale: 1.02 } : {}}
+                    whileTap={!spinDisabled ? { scale: 0.975 } : {}}
+                    onMouseLeave={() => setHoverIndex(-1)}
+                    className={`absolute inset-0 z-20 rounded-full outline-none focus-visible:ring-4 focus-visible:ring-[#338DFD]/30 ${
+                      spinDisabled ? "cursor-not-allowed" : "cursor-pointer"
+                    }`}
                   >
                     <svg
                       viewBox="0 0 400 400"
-                      className="h-full w-full overflow-visible drop-shadow-[0_25px_45px_rgba(51,141,253,0.20)]"
+                      className="h-full w-full overflow-visible drop-shadow-[0_14px_28px_rgba(16,36,62,0.16)]"
                     >
-                      {/* OUTER RINGS */}
+                      <defs>
+                        <radialGradient id="segBlue" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor="#EEF6FF" />
+                          <stop offset="100%" stopColor="#CBE2FB" />
+                        </radialGradient>
+                        <radialGradient id="segTeal" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor="#EAF9F6" />
+                          <stop offset="100%" stopColor="#C2EAE3" />
+                        </radialGradient>
+                        <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#338DFD" />
+                          <stop offset="100%" stopColor="#2A9D8F" />
+                        </linearGradient>
+                      </defs>
 
+                      {/* Static rim with chasing bulbs */}
                       <circle
                         cx="200"
                         cy="200"
-                        r="194"
-                        fill="white"
-                        stroke="rgba(51,141,253,0.10)"
-                        strokeWidth="2"
-                      />
-
-                      <circle
-                        cx="200"
-                        cy="200"
-                        r="187"
+                        r="207"
                         fill="none"
-                        stroke="rgba(73,196,165,0.10)"
-                        strokeWidth="2"
+                        stroke="url(#rimGrad)"
+                        strokeWidth="14"
+                        opacity="0.9"
                       />
+                      {bulbs.map((b) => (
+                        <motion.circle
+                          key={b.i}
+                          cx={b.x}
+                          cy={b.y}
+                          r="3.2"
+                          fill={b.i % 2 === 0 ? "#FFFFFF" : "#DDF6F1"}
+                          animate={
+                            isSpinning
+                              ? { opacity: [0.3, 1, 0.3] }
+                              : activeIndex >= 0
+                                ? { opacity: [0.55, 1, 0.55] }
+                                : { opacity: 0.85 }
+                          }
+                          transition={{
+                            duration: isSpinning ? 0.5 : 1.6,
+                            repeat: isSpinning || activeIndex >= 0 ? Infinity : 0,
+                            delay: b.i * (isSpinning ? 0.02 : 0.06),
+                          }}
+                        />
+                      ))}
 
-                      {/* SEGMENTS */}
+                      {/* Rotating part */}
+                      <motion.g
+                        animate={{ rotate: rotation }}
+                        transition={{
+                          duration: SPIN_DURATION,
+                          ease: [0.12, 0.8, 0.2, 1],
+                        }}
+                        style={{ transformOrigin: "200px 200px" }}
+                      >
+                        <circle cx="200" cy="200" r="198" fill="#FFFFFF" />
+                        <circle
+                          cx="200"
+                          cy="200"
+                          r="198"
+                          fill="none"
+                          stroke="#CFE0EC"
+                          strokeWidth="2"
+                        />
 
-                      {wheelSegments.map((segment, index) => {
-                        const radius = 175;
+                        {wheelSegments.map((segment) => {
+                          const radius = 188;
+                          const start = ((segment.startAngle - 90) * Math.PI) / 180;
+                          const end = ((segment.endAngle - 90) * Math.PI) / 180;
 
-                        const startRadians =
-                          ((segment.startAngle - 90) * Math.PI) / 180;
+                          const x1 = 200 + radius * Math.cos(start);
+                          const y1 = 200 + radius * Math.sin(start);
+                          const x2 = 200 + radius * Math.cos(end);
+                          const y2 = 200 + radius * Math.sin(end);
 
-                        const endRadians =
-                          ((segment.endAngle - 90) * Math.PI) / 180;
+                          const path = `M 200 200 L ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2} Z`;
 
-                        const x1 = 200 + radius * Math.cos(startRadians);
+                          const labelRadius = 128;
+                          const mid = ((segment.midAngle - 90) * Math.PI) / 180;
+                          const lx = 200 + labelRadius * Math.cos(mid);
+                          const ly = 200 + labelRadius * Math.sin(mid);
 
-                        const y1 = 200 + radius * Math.sin(startRadians);
+                          const isActive = segment.index === activeIndex;
+                          const isHover =
+                            segment.index === hoverIndex && !isSpinning && !isActive;
 
-                        const x2 = 200 + radius * Math.cos(endRadians);
-
-                        const y2 = 200 + radius * Math.sin(endRadians);
-
-                        const largeArcFlag =
-                          segment.endAngle - segment.startAngle > 180 ? 1 : 0;
-
-                        const path = `
-                            M 200 200
-                            L ${x1} ${y1}
-                            A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}
-                            Z
-                          `;
-
-                        const labelRadius = 130;
-
-                        const labelRadians =
-                          ((segment.midAngle - 90) * Math.PI) / 180;
-
-                        const labelX =
-                          200 + labelRadius * Math.cos(labelRadians);
-
-                        const labelY =
-                          200 + labelRadius * Math.sin(labelRadians);
-
-                        let textRotation = segment.midAngle;
-
-                        if (textRotation > 90 && textRotation < 270) {
-                          textRotation += 180;
-                        }
-
-                        return (
-                          <g key={segment.id}>
-                            {/* SEGMENT */}
-
-                            <path
-                              d={path}
-                              fill={index % 2 === 0 ? "#338DFD" : "#49C4A5"}
-                              stroke="white"
-                              strokeWidth="2.5"
-                            />
-
-                            {/* INNER HIGHLIGHT */}
-
-                            <path
-                              d={path}
-                              fill="none"
-                              stroke="rgba(255,255,255,0.16)"
-                              strokeWidth="7"
-                            />
-
-                            {/* LABEL */}
-
-                            <motion.g
-                              animate={{
-                                rotate: -rotation,
-                              }}
-                              transition={{
-                                duration: 4.2,
-                                ease: [0.12, 0.8, 0.2, 1],
-                              }}
-                              style={{
-                                transformOrigin: `${labelX}px ${labelY}px`,
-                              }}
+                          return (
+                            <g
+                              key={segment.id}
+                              onMouseEnter={() => setHoverIndex(segment.index)}
                             >
+                              <path
+                                d={path}
+                                fill={
+                                  isActive
+                                    ? segment.shade.deep
+                                    : `url(#${segment.shade.grad})`
+                                }
+                                stroke="white"
+                                strokeWidth="3"
+                                style={{ transition: "fill 0.4s ease" }}
+                              />
+
+                              {/* hover tint */}
+                              <path
+                                d={path}
+                                fill={segment.shade.deep}
+                                opacity={isHover ? 0.22 : 0}
+                                style={{
+                                  transition: "opacity 0.25s ease",
+                                  pointerEvents: "none",
+                                }}
+                              />
+
+                              {/* radial label */}
                               <text
-                                x={labelX}
-                                y={labelY}
-                                fill="white"
-                                fontSize="10.5"
-                                fontWeight="800"
-                                letterSpacing="0.7"
+                                x={lx}
+                                y={ly}
+                                fill={isActive ? "#FFFFFF" : "#27435E"}
+                                fontSize="11.5"
+                                fontWeight="700"
+                                letterSpacing="0.8"
                                 textAnchor="middle"
                                 dominantBaseline="middle"
-                                transform={`rotate(${textRotation} ${labelX} ${labelY})`}
+                                transform={`rotate(${segment.midAngle - 90} ${lx} ${ly})`}
                                 style={{
-                                  textShadow: "0 1px 3px rgba(16,36,62,0.28)",
+                                  transition: "fill 0.4s ease",
+                                  pointerEvents: "none",
                                 }}
                               >
                                 {segment.label}
                               </text>
-                            </motion.g>
-                          </g>
-                        );
-                      })}
+                            </g>
+                          );
+                        })}
+                      </motion.g>
 
-                      {/* INNER CIRCLE */}
-
+                      {/* Static hub */}
+                      <circle cx="200" cy="200" r="58" fill="white" />
                       <circle
                         cx="200"
                         cy="200"
-                        r="64"
-                        fill="white"
-                        stroke="rgba(51,141,253,0.15)"
-                        strokeWidth="2"
+                        r="58"
+                        fill="none"
+                        stroke="url(#rimGrad)"
+                        strokeWidth="3"
                       />
-
-                      <circle cx="200" cy="200" r="53" fill="#F9FCFB" />
-
-                      {/* CENTER INTERACTION */}
+                      <circle cx="200" cy="200" r="48" fill="#F1F9F8" />
 
                       <motion.g
                         animate={{
-                          scale: isSpinning ? [1, 1.05, 1] : [1, 1.025, 1],
+                          scale: isSpinning ? [1, 1.08, 1] : [1, 1.04, 1],
                         }}
                         transition={{
                           duration: isSpinning ? 0.7 : 2.4,
                           repeat: Infinity,
                           ease: "easeInOut",
                         }}
-                        style={{
-                          transformOrigin: "200px 200px",
-                        }}
+                        style={{ transformOrigin: "200px 200px" }}
                       >
-                        <circle
-                          cx="200"
-                          cy="190"
-                          r="18"
-                          fill="#338DFD"
-                          opacity="0.08"
-                        />
-
                         <text
                           x="200"
-                          y="197"
+                          y="196"
                           textAnchor="middle"
-                          fontSize="23"
+                          fontSize="26"
                           fill="#338DFD"
                         >
                           ↻
@@ -1175,125 +765,100 @@ export default function WeeklyChallenge() {
 
                       <text
                         x="200"
-                        y="224"
+                        y="222"
                         textAnchor="middle"
-                        fontSize="9"
+                        fontSize="10.5"
                         fontWeight="800"
-                        letterSpacing="1.5"
+                        letterSpacing="1.8"
                         fill="#17213A"
                       >
-                        {loadingChallenge && !isSpinning
-                          ? "READY"
-                          : isSpinning
-                            ? "SPINNING"
+                        {isSpinning
+                          ? "SPINNING"
+                          : loadingChallenge
+                            ? "LOADING"
                             : "SPIN"}
                       </text>
                     </svg>
-                  </motion.div>
-                </motion.button>
+                  </motion.button>
+                </div>
 
-                {/* =================================================
-                    SELECTED BADGE
-                ================================================== */}
+                {/* Status chip + spin counter */}
+                <div className="flex min-h-[36px] flex-col items-center gap-3">
+                  <AnimatePresence mode="wait">
+                    {selectedChallenge && !isSpinning ? (
+                      <motion.div
+                        key="selected"
+                        initial={{ opacity: 0, y: 8, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                        className="flex items-center gap-2 whitespace-nowrap rounded-full border border-[#2A9D8F]/25 bg-white px-4 py-2 shadow-sm"
+                      >
+                        <CheckCircle2 size={14} className="text-[#2A9D8F]" />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#31516C] sm:text-xs">
+                          {selectedTopic || "Challenge selected"}
+                        </span>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key={hoveredLabel || (isSpinning ? "spinning" : "hint")}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="whitespace-nowrap rounded-full border border-[#D5E6E9] bg-white px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#718092] sm:text-xs"
+                      >
+                        {isSpinning
+                          ? "Choosing your topic…"
+                          : hoveredLabel
+                            ? `Could land on ${hoveredLabel}`
+                            : "Tap the wheel to spin"}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                <AnimatePresence>
-                  {selectedChallenge && !isSpinning && (
-                    <motion.div
-                      initial={{
-                        opacity: 0,
-                        y: 10,
-                        scale: 0.9,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        y: 0,
-                        scale: 1,
-                      }}
-                      exit={{
-                        opacity: 0,
-                        y: 10,
-                      }}
-                      className="absolute bottom-8 left-1/2 z-30 hidden -translate-x-1/2 translate-y-[10px] items-center gap-2 rounded-full border border-[#49C4A5]/25 bg-white/90 px-4 py-2 shadow-[0_10px_25px_rgba(16,36,62,0.10)] backdrop-blur-md sm:flex"
+                  {spinCount > 0 && (
+                    <motion.span
+                      key={spinCount}
+                      initial={{ scale: 1.25, opacity: 0.4 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="rounded-full bg-[#E3F1FD] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#2A78D6]"
                     >
-                      <Star
-                        size={12}
-                        className="fill-[#49C4A5] text-[#49C4A5]"
-                      />
-
-                      <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#527086]">
-                        {selectedTopic || "Challenge selected"}
-                      </span>
-                    </motion.div>
+                      {spinCount} {spinCount === 1 ? "spin" : "spins"} this session
+                    </motion.span>
                   )}
-                </AnimatePresence>
-
-                {/* =================================================
-                    SMALL HINT
-                ================================================== */}
-
-                <AnimatePresence>
-                  {!selectedChallenge && !isSpinning && !loadingChallenge && (
-                    <motion.div
-                      initial={{
-                        opacity: 0,
-                        y: 6,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        y: 0,
-                      }}
-                      className="absolute bottom-7 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#DDE9E6] bg-white/80 px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#718092] shadow-[0_8px_20px_rgba(16,36,62,0.06)] backdrop-blur-md"
-                    >
-                      Click the wheel to spin
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                </div>
               </div>
 
-              {/* =================================================
+              {/* ===============================================
                   RIGHT — CHALLENGE AREA
-              ================================================== */}
-
-              <div className="relative flex flex-col justify-center px-7 py-10 sm:px-10 sm:py-14 lg:px-14">
-                {/* TOP LABEL */}
-
+              ================================================ */}
+              <div className="relative flex flex-col justify-center px-6 py-10 sm:px-10 sm:py-12 xl:px-14">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#49C4A5]/10 text-[#2CA98A]">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2A9D8F]/10 text-[#2A9D8F]">
                     <Zap size={16} />
                   </span>
-
-                  <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#527086]">
-                    A fresh challenge, every spin.
+                  <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#527086] sm:text-xs">
+                    A fresh challenge, every spin
                   </span>
                 </div>
 
                 <AnimatePresence mode="wait">
-                  {/* =================================================
-                      LOADING
-                  ================================================== */}
-
                   {loadingChallenge && !selectedChallenge ? (
                     <motion.div
                       key="loading"
-                      initial={{
-                        opacity: 0,
-                      }}
-                      animate={{
-                        opacity: 1,
-                      }}
-                      exit={{
-                        opacity: 0,
-                      }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       className="mt-10"
                     >
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#DDEAE7] border-t-[#338DFD]" />
-
                         <div>
                           <p className="text-sm font-semibold text-[#26384D]">
-                            Preparing your challenge...
+                            {isSpinning
+                              ? "Choosing your topic…"
+                              : "Preparing your challenge…"}
                           </p>
-
                           <p className="mt-1 text-xs text-[#7A8795]">
                             Finding a fresh activity for you.
                           </p>
@@ -1301,384 +866,315 @@ export default function WeeklyChallenge() {
                       </div>
                     </motion.div>
                   ) : challengeError && !currentChallenge ? (
-                    /* ERROR */
-
                     <motion.div
                       key="error"
-                      initial={{
-                        opacity: 0,
-                        y: 15,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        y: 0,
-                      }}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
                       className="mt-8"
                     >
                       <div className="rounded-2xl border border-[#E8BABA] bg-[#FFF6F6] p-5">
                         <p className="text-sm font-bold text-[#B44E4E]">
                           Challenge unavailable
                         </p>
-
                         <p className="mt-2 text-xs leading-6 text-[#8D6464]">
                           {challengeError}
                         </p>
-
-                        <button
-                          type="button"
-                          onClick={() => fetchRandomChallenge()}
-                          className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#338DFD] to-[#49C4A5] px-4 py-2.5 text-xs font-semibold text-white shadow-[0_8px_20px_rgba(51,141,253,0.15)]"
-                        >
-                          <RefreshCw size={14} />
-                          Try Again
-                        </button>
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => fetchRandomChallenge()}
+                            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#338DFD] to-[#2A9D8F] px-4 py-2.5 text-xs font-semibold text-white"
+                          >
+                            <RefreshCw size={14} />
+                            Try again
+                          </button>
+                          <a
+                            href={getWhatsAppLink(
+                              "Hello Dr. Shivam Sir, the Weekly Challenge isn't loading for me. Could you help?",
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-xs font-semibold text-[#1a8f49] underline-offset-4 hover:underline"
+                          >
+                            <MessageCircle size={14} />
+                            Message Dr. Shivam Sir
+                          </a>
+                        </div>
                       </div>
                     </motion.div>
                   ) : !selectedChallenge ? (
-                    /* =================================================
-                       BEFORE SPIN
-                    ================================================== */
-
+                    /* ---------- BEFORE SPIN ---------- */
                     <motion.div
                       key="empty"
-                      initial={{
-                        opacity: 0,
-                        y: 15,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        y: 0,
-                      }}
-                      exit={{
-                        opacity: 0,
-                        y: -15,
-                      }}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
                       className="mt-8"
                     >
-                      <h3 className="max-w-xl font-serif text-3xl font-semibold leading-[1.08] tracking-[-0.025em] text-[#17213A] sm:text-4xl">
+                      <h3 className="font-serif text-3xl font-semibold leading-[1.1] tracking-[-0.025em] text-[#17213A] sm:text-4xl xl:text-5xl">
                         Learn something.
-                        <span className="block text-[#338DFD]">
-                          Test yourself.
-                        </span>
-                        <span className="block text-[#49A98F]">
-                          Earn your win.
-                        </span>
+                        <span className="block text-[#338DFD]">Test yourself.</span>
+                        <span className="block text-[#2A9D8F]">Earn your win.</span>
                       </h3>
 
-                      <p className="mt-6 max-w-lg text-sm leading-7 text-[#566174] sm:text-base sm:leading-8">
-                        Every spin reveals a fresh English-language activity,
-                        with the topic and question selected specifically for
-                        your attempt.
+                      <p className="mt-5 max-w-xl text-sm leading-7 text-[#566174] sm:text-base sm:leading-8">
+                        Every spin picks a skill and a question just for you,
+                        then gives you feedback on your answer.
                       </p>
 
-                      <div className="mt-8 space-y-4">
+                      {/* topic chips — alternating blue / teal, hover to preview on the wheel */}
+                      <div className="mt-6 flex flex-wrap gap-2">
+                        {wheelSegments.map((segment) => (
+                          <motion.span
+                            key={segment.id}
+                            whileHover={{ y: -2, scale: 1.04 }}
+                            onMouseEnter={() => setHoverIndex(segment.index)}
+                            onMouseLeave={() => setHoverIndex(-1)}
+                            className={`cursor-default rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors ${
+                              toneOf(segment.index).chip
+                            }`}
+                          >
+                            {segment.label}
+                          </motion.span>
+                        ))}
+                      </div>
+
+                      <div className="mt-8 grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                         <ChallengeFeature
+                          tone={0}
                           icon={<RotateCw size={16} />}
                           title="Spin"
-                          description="Let the wheel reveal your skill area."
+                          description="Let the wheel pick your skill area."
                         />
-
                         <ChallengeFeature
+                          tone={1}
                           icon={<Target size={16} />}
                           title="Attempt"
-                          description="Complete the activity shown on screen."
+                          description="Answer the activity on screen."
                         />
-
                         <ChallengeFeature
+                          tone={0}
                           icon={<Trophy size={16} />}
                           title="Grow"
-                          description="Receive feedback and keep building your English."
+                          description="Get feedback and improve."
                         />
                       </div>
 
-                      {/* =================================================
-                          SINGLE RIGHT-SIDE SPIN CTA
-                      ================================================== */}
-
-                      <div className="mt-9">
-                        <motion.button
-                          type="button"
-                          onClick={spinWheel}
-                          disabled={isSpinning || loadingChallenge}
-                          whileHover={{
-                            y: -3,
-                            scale: 1.01,
-                          }}
-                          whileTap={{
-                            scale: 0.98,
-                          }}
-                          className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#338DFD] to-[#49C4A5] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(51,141,253,0.20)] transition-all duration-300 hover:shadow-[0_18px_40px_rgba(51,141,253,0.28)] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {loadingChallenge ? (
-                            <>
-                              <LoaderCircle
-                                size={17}
-                                className="animate-spin"
-                              />
-                              Preparing...
-                            </>
-                          ) : (
-                            <>
-                              Spin the Wheel
-                              <ArrowRight
-                                size={17}
-                                className="transition-transform duration-300 group-hover:translate-x-1"
-                              />
-                            </>
-                          )}
-                        </motion.button>
-                      </div>
+                      <motion.button
+                        type="button"
+                        onClick={spinWheel}
+                        disabled={spinDisabled}
+                        whileHover={{ y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="group mt-9 inline-flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#338DFD] to-[#2A9D8F] px-7 py-4 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(51,141,253,0.2)] transition-shadow duration-300 hover:shadow-[0_16px_36px_rgba(51,141,253,0.28)] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                      >
+                        {loadingChallenge ? (
+                          <>
+                            <LoaderCircle size={17} className="animate-spin" />
+                            Preparing…
+                          </>
+                        ) : (
+                          <>
+                            Spin the wheel
+                            <ArrowRight
+                              size={17}
+                              className="transition-transform duration-300 group-hover:translate-x-1"
+                            />
+                          </>
+                        )}
+                      </motion.button>
                     </motion.div>
                   ) : (
-                    /* =================================================
-                       ACTIVE CHALLENGE
-                    ================================================== */
-
+                    /* ---------- ACTIVE CHALLENGE ---------- */
                     <motion.div
                       key={selectedChallenge._id || selectedChallenge.id}
-                      initial={{
-                        opacity: 0,
-                        x: 20,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        x: 0,
-                      }}
-                      transition={{
-                        duration: 0.5,
-                      }}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5 }}
                       className="mt-7"
                     >
-                      {/* =================================================
-                          TOP META
-                      ================================================== */}
-
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-[#49C4A5]/20 bg-[#F1FBF8] px-3.5 py-2">
-                          <CheckCircle2 size={13} className="text-[#49A98F]" />
-
-                          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#338B78]">
-                            Your challenge
-                          </span>
-                        </div>
+                        <span className="inline-flex items-center gap-2 rounded-full border border-[#2A9D8F]/20 bg-[#EAF8F5] px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#23867A]">
+                          <CheckCircle2 size={13} className="text-[#2A9D8F]" />
+                          Your challenge
+                        </span>
 
                         {selectedTopic && (
-                          <span className="rounded-full border border-[#DCE7F2] bg-[#F7FAFE] px-3 py-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#338DFD]">
+                          <span className="rounded-full border border-[#CFE3F8] bg-[#EEF6FF] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#338DFD]">
                             {selectedTopic}
                           </span>
                         )}
 
                         {selectedChallenge.difficulty && (
-                          <span className="rounded-full border border-[#E6E2D8] bg-[#FFFCF5] px-3 py-2 text-[9px] font-bold uppercase tracking-[0.16em] text-[#9A7A3D]">
+                          <span className="rounded-full border border-[#D5E6E9] bg-[#F4FAFC] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#527086]">
                             {selectedChallenge.difficulty}
                           </span>
                         )}
                       </div>
 
-                      {/* TITLE */}
-
-                      <h3 className="mt-5 font-serif text-3xl font-semibold leading-[1.08] tracking-[-0.025em] text-[#17213A] sm:text-4xl">
+                      <h3 className="mt-5 font-serif text-3xl font-semibold leading-[1.1] tracking-[-0.025em] text-[#17213A] sm:text-4xl">
                         {selectedChallenge.title}
                       </h3>
 
-                      <p className="mt-4 max-w-lg text-sm leading-7 text-[#566174] sm:text-base sm:leading-8">
+                      <p className="mt-4 max-w-2xl text-sm leading-7 text-[#566174] sm:text-base sm:leading-8">
                         {selectedChallenge.description}
                       </p>
 
-                      {/* =================================================
-                          TASK CARD
-                      ================================================== */}
-
-                      <div className="mt-6 rounded-2xl border border-[#E1ECE9] bg-[#F8FCFB] p-5">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#338DFD]">
+                      {/* TASK CARD — tint follows the wheel segment */}
+                      <div
+                        className={`mt-6 rounded-2xl border p-4 sm:p-6 ${activeTone.panel}`}
+                      >
+                        <p
+                          className={`text-[10px] font-bold uppercase tracking-[0.18em] ${activeTone.label}`}
+                        >
                           Your task
                         </p>
 
-                        <p className="mt-2 text-sm font-semibold leading-6 text-[#26384D]">
+                        <p className="mt-2 text-sm font-semibold leading-6 text-[#26384D] sm:text-base sm:leading-7">
                           {selectedChallenge.task}
                         </p>
 
-                        {/* =================================================
-                            MCQ
-                        ================================================== */}
-
+                        {/* MCQ */}
                         {selectedChallenge.type === "mcq" &&
                           Array.isArray(selectedChallenge.options) && (
                             <div className="mt-5 space-y-2.5">
-                              {selectedChallenge.options.map(
-                                (option, index) => {
-                                  const isSelected = selectedOption === index;
+                              {selectedChallenge.options.map((option, index) => {
+                                const isSelected = selectedOption === index;
+                                const showCorrect =
+                                  taskChecked &&
+                                  answerStatus === "correct" &&
+                                  isSelected;
+                                const showWrong =
+                                  answerStatus === "wrong" && isSelected;
 
-                                  /*
-                                    IMPORTANT:
-
-                                    We NEVER inspect
-                                    selectedChallenge.correct.
-                                  */
-
-                                  const showCorrect =
-                                    taskChecked &&
-                                    answerStatus === "correct" &&
-                                    isSelected;
-
-                                  const showWrong =
-                                    answerStatus === "wrong" && isSelected;
-
-                                  return (
-                                    <button
-                                      key={`${option}-${index}`}
-                                      type="button"
-                                      onClick={() => handleOptionSelect(index)}
-                                      disabled={
-                                        taskChecked || isSubmitting || completed
-                                      }
-                                      className={`w-full rounded-xl border px-4 py-3 text-left text-xs font-medium transition-all ${
-                                        showCorrect
-                                          ? "border-[#49C4A5]/60 bg-[#E8F9F4] text-[#20866F] shadow-[0_5px_18px_rgba(73,196,165,0.10)]"
-                                          : showWrong
-                                            ? "border-[#E58B8B]/60 bg-[#FFF1F1] text-[#B44E4E]"
-                                            : isSelected
-                                              ? "border-[#338DFD]/40 bg-[#EEF6FF] text-[#236CC0]"
-                                              : "border-[#E0E9E7] bg-white text-[#536174] hover:border-[#338DFD]/25 hover:bg-[#F8FBFF]"
+                                return (
+                                  <motion.button
+                                    key={`${option}-${index}`}
+                                    type="button"
+                                    onClick={() => handleOptionSelect(index)}
+                                    disabled={taskChecked || isSubmitting || completed}
+                                    initial={{ opacity: 0, x: 12 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.08 * index }}
+                                    whileHover={
+                                      !taskChecked && !isSubmitting && !completed
+                                        ? { x: 4 }
+                                        : {}
+                                    }
+                                    whileTap={{ scale: 0.99 }}
+                                    className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
+                                      showCorrect
+                                        ? "border-[#2A9D8F]/60 bg-[#E8F7F4] text-[#1F7F73]"
+                                        : showWrong
+                                          ? "border-[#E58B8B]/60 bg-[#FFF1F1] text-[#B44E4E]"
+                                          : isSelected
+                                            ? index % 2 === 0
+                                              ? "border-[#338DFD]/50 bg-[#E6F1FF] text-[#236CC0]"
+                                              : "border-[#2A9D8F]/50 bg-[#E3F6F2] text-[#1F7F73]"
+                                            : toneOf(index).option
+                                    }`}
+                                  >
+                                    <span
+                                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                                        index % 2 === 0
+                                          ? "bg-[#DCEBFD] text-[#2A78D6]"
+                                          : "bg-[#D5F0EB] text-[#23867A]"
                                       }`}
                                     >
-                                      <span className="mr-2 font-bold">
-                                        {String.fromCharCode(65 + index)}.
+                                      {String.fromCharCode(65 + index)}
+                                    </span>
+                                    <span className="flex-1 pt-0.5">{option}</span>
+                                    {showCorrect && (
+                                      <CheckCircle2 size={16} className="shrink-0 text-[#2A9D8F]" />
+                                    )}
+                                    {showWrong && (
+                                      <span className="shrink-0 text-base font-bold text-[#C35C5C]">
+                                        ×
                                       </span>
-
-                                      {option}
-
-                                      {showCorrect && (
-                                        <CheckCircle2
-                                          size={15}
-                                          className="float-right mt-[-1px] text-[#49A98F]"
-                                        />
-                                      )}
-
-                                      {showWrong && (
-                                        <span className="float-right text-sm font-bold text-[#C35C5C]">
-                                          ×
-                                        </span>
-                                      )}
-                                    </button>
-                                  );
-                                },
-                              )}
+                                    )}
+                                  </motion.button>
+                                );
+                              })}
                             </div>
                           )}
 
-                        {/* =================================================
-                            TEXT INPUT
-                        ================================================== */}
-
+                        {/* TEXT */}
                         {selectedChallenge.type === "text" && (
-                          <textarea
-                            value={taskInput}
-                            onChange={(e) => {
-                              if (taskChecked || isSubmitting || completed) {
-                                return;
+                          <div className="relative">
+                            <textarea
+                              value={taskInput}
+                              onChange={(e) => {
+                                if (taskChecked || isSubmitting || completed) return;
+                                setTaskInput(e.target.value);
+                                if (answerStatus) setAnswerStatus(null);
+                                setEvaluationResult(null);
+                                setSubmitError("");
+                              }}
+                              disabled={taskChecked || isSubmitting || completed}
+                              rows={5}
+                              placeholder={
+                                selectedChallenge.placeholder ||
+                                "Type your answer here…"
                               }
-
-                              setTaskInput(e.target.value);
-
-                              if (answerStatus) {
-                                setAnswerStatus(null);
-                              }
-
-                              setEvaluationResult(null);
-
-                              setSubmitError("");
-                            }}
-                            disabled={taskChecked || isSubmitting || completed}
-                            rows={4}
-                            placeholder={
-                              selectedChallenge.placeholder ||
-                              "Type your answer here..."
-                            }
-                            className="mt-5 w-full resize-none rounded-xl border border-[#DCE8E5] bg-white px-4 py-3 text-sm leading-6 text-[#26384D] outline-none transition-all placeholder:text-[#9AA5B0] focus:border-[#338DFD]/40 focus:ring-4 focus:ring-[#338DFD]/[0.06] disabled:bg-[#F3F8F6]"
-                          />
+                              className="mt-5 w-full resize-none rounded-xl border border-[#D3E4F0] bg-white px-4 py-3 text-sm leading-6 text-[#26384D] outline-none transition-all placeholder:text-[#9AA5B0] focus:border-[#338DFD]/50 focus:ring-4 focus:ring-[#338DFD]/[0.08] disabled:bg-[#F3F8F6] sm:text-base sm:leading-7"
+                            />
+                            <p className="mt-2 text-right text-[11px] font-medium text-[#7A8795]">
+                              {taskInput.trim()
+                                ? `${taskInput.trim().split(/\s+/).length} words`
+                                : "Write in your own words"}
+                            </p>
+                          </div>
                         )}
 
-                        {/* SUBMISSION ERROR */}
-
+                        {/* ERRORS */}
                         <AnimatePresence>
                           {submitError && (
                             <motion.div
-                              initial={{
-                                opacity: 0,
-                                y: 5,
-                              }}
-                              animate={{
-                                opacity: 1,
-                                y: 0,
-                              }}
-                              exit={{
-                                opacity: 0,
-                                y: -5,
-                              }}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -5 }}
                               className="mt-4 rounded-xl border border-[#E8BABA] bg-[#FFF4F4] px-4 py-3"
                             >
-                              <div className="flex items-start gap-2">
-                                <span className="mt-0.5 text-sm text-[#B44E4E]">
-                                  ✕
-                                </span>
-
-                                <p className="text-xs font-semibold leading-5 text-[#B44E4E]">
-                                  {submitError}
-                                </p>
-                              </div>
+                              <p className="text-xs font-semibold leading-5 text-[#B44E4E]">
+                                ✕ {submitError}
+                              </p>
                             </motion.div>
                           )}
                         </AnimatePresence>
 
-                        {/* =================================================
-                            MCQ WRONG ATTEMPT FEEDBACK
-                            -------------------------------------------------
-                            We keep this because a wrong MCQ answer
-                            does NOT complete the challenge.
-                        ================================================== */}
-
+                        {/* MCQ WRONG */}
                         <AnimatePresence mode="wait">
                           {answerStatus === "wrong" &&
                             selectedChallenge.type === "mcq" &&
                             evaluationResult && (
                               <motion.div
                                 key="wrong"
-                                initial={{
-                                  opacity: 0,
-                                  y: 5,
-                                }}
-                                animate={{
-                                  opacity: 1,
-                                  y: 0,
-                                }}
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 className="mt-4 rounded-xl border border-[#E8BABA] bg-[#FFF4F4] px-4 py-3"
                               >
-                                <div className="flex items-start gap-2">
-                                  <span className="mt-0.5 text-sm text-[#B44E4E]">
-                                    ✕
-                                  </span>
-
-                                  <div>
-                                    <p className="text-xs font-bold text-[#B44E4E]">
-                                      Not quite.
-                                    </p>
-
-                                    <p className="mt-0.5 text-[11px] leading-5 text-[#8D6464]">
-                                      {evaluationResult.feedback ||
-                                        "Review the concept and try another answer."}
-                                    </p>
-                                  </div>
-                                </div>
+                                <p className="text-xs font-bold text-[#B44E4E]">
+                                  Not quite. Try another answer.
+                                </p>
+                                <p className="mt-1 text-xs leading-5 text-[#8D6464]">
+                                  {evaluationResult.feedback ||
+                                    "Review the concept and pick again."}
+                                </p>
+                                <a
+                                  href={challengeHelpLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#1a8f49] underline-offset-4 hover:underline"
+                                >
+                                  <MessageCircle size={13} />
+                                  Ask Dr. Shivam Sir to explain this
+                                </a>
                               </motion.div>
                             )}
                         </AnimatePresence>
 
-                        {/* =================================================
-                            CHECK / SUBMIT BUTTON
-                        ================================================== */}
-
-                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                        {/* ACTIONS */}
+                        <div className="mt-5 flex flex-wrap items-center gap-3">
                           <motion.button
                             type="button"
                             onClick={submitChallenge}
@@ -1690,155 +1186,124 @@ export default function WeeklyChallenge() {
                                 ? selectedOption === null
                                 : !taskInput.trim())
                             }
-                            whileHover={{
-                              y: -2,
-                            }}
-                            whileTap={{
-                              scale: 0.97,
-                            }}
-                            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#338DFD] to-[#49C4A5] px-5 py-2.5 text-xs font-semibold text-white shadow-[0_10px_25px_rgba(51,141,253,0.16)] transition-all hover:shadow-[0_14px_30px_rgba(51,141,253,0.24)] disabled:cursor-not-allowed disabled:opacity-45"
+                            whileHover={{ y: -2 }}
+                            whileTap={{ scale: 0.97 }}
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#338DFD] to-[#2A9D8F] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(51,141,253,0.18)] transition-shadow hover:shadow-[0_12px_28px_rgba(51,141,253,0.26)] disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
                           >
                             {isSubmitting ? (
                               <>
-                                <LoaderCircle
-                                  size={15}
-                                  className="animate-spin"
-                                />
-                                Evaluating...
+                                <LoaderCircle size={16} className="animate-spin" />
+                                Evaluating…
                               </>
                             ) : (
                               <>
-                                <Zap size={15} />
-                                Check Answer
+                                <Zap size={16} />
+                                Check answer
                               </>
                             )}
                           </motion.button>
 
-                          {!isSubmitting &&
-                            selectedChallenge.type === "mcq" &&
-                            selectedOption !== null && (
-                              <span className="text-[10px] font-medium text-[#87929E]">
-                                Submit your best answer.
-                              </span>
-                            )}
+                          <button
+                            type="button"
+                            onClick={spinWheel}
+                            disabled={spinDisabled || isSubmitting}
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#CFE3EC] bg-white px-5 py-3 text-sm font-semibold text-[#4B6076] transition-colors hover:bg-[#EEF6FF] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                          >
+                            <RotateCw size={15} />
+                            Spin again
+                          </button>
                         </div>
+
+                        {/* WhatsApp help for this challenge */}
+                        <a
+                          href={challengeHelpLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#1a8f49] underline-offset-4 hover:underline sm:text-sm"
+                        >
+                          <MessageCircle size={15} />
+                          Stuck? Ask Dr. Shivam Sir on WhatsApp
+                        </a>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {/* MINI LABEL */}
-
                 <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7A8795]">
                   <span>Weekly</span>
-
-                  <span className="h-1 w-1 rounded-full bg-[#49C4A5]" />
-
+                  <span className="h-1 w-1 rounded-full bg-[#2A9D8F]" />
                   <span>Interactive</span>
-
                   <span className="h-1 w-1 rounded-full bg-[#338DFD]" />
-
                   <span>Skill-based</span>
-
-                  <span className="h-1 w-1 rounded-full bg-[#49C4A5]" />
-
+                  <span className="h-1 w-1 rounded-full bg-[#2A9D8F]" />
                   <span>Free to try</span>
                 </div>
               </div>
             </div>
+
+            {/* ===============================================
+                CONSULTATION STRIP — WhatsApp
+            ================================================ */}
+            <div className="flex flex-col items-start gap-4 border-t border-[#DCEBEF] bg-gradient-to-r from-[#EAF4FF] via-[#EEF9F7] to-[#E3F6F2] px-6 py-6 sm:px-10 md:flex-row md:items-center md:justify-between xl:px-14">
+              <div className="flex items-start gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[#1FA855] shadow-sm">
+                  <MessageCircle size={20} />
+                </span>
+                <div>
+                  <p className="text-sm font-bold text-[#17213A] sm:text-base">
+                    Want guided practice beyond the wheel?
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-[#566174] sm:text-sm">
+                    Book a free consultation with Dr. Shivam Sir for the
+                    English communication programme.
+                  </p>
+                </div>
+              </div>
+
+              <motion.a
+                href={consultLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#1FA855] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(31,168,85,0.25)] md:w-auto"
+              >
+                <MessageCircle size={16} />
+                Book free consultation
+              </motion.a>
+            </div>
           </div>
         </motion.div>
 
-        {/* =====================================================
-            BOTTOM TEASER
-        ====================================================== */}
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 15,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-          }}
-          transition={{
-            duration: 0.7,
-            delay: 0.25,
-          }}
-          className="mx-auto mt-8 flex max-w-xl items-center justify-center gap-3 text-center"
-        >
-          <span className="h-px w-8 bg-[#D6E3E0]" />
-
-          <p className="text-[11px] font-medium leading-5 text-[#687586] sm:text-xs">
-            A small challenge today can build a stronger skill tomorrow.
-          </p>
-
-          <span className="h-px w-8 bg-[#D6E3E0]" />
-        </motion.div>
+        <p className="mx-auto mt-8 max-w-xl text-center text-xs font-medium leading-5 text-[#687586]">
+          A small challenge today can build a stronger skill tomorrow.
+        </p>
       </div>
     </section>
   );
 }
 
 /* =========================================================
-   CHALLENGE FEATURE
+   SMALL COMPONENTS
 ========================================================= */
 
-function ChallengeFeature({ icon, title, description }) {
+function ChallengeFeature({ icon, title, description, tone = 0 }) {
+  const t = toneOf(tone);
+
   return (
     <motion.div
-      whileHover={{
-        x: 4,
-      }}
-      className="flex items-start gap-3"
+      whileHover={{ y: -3 }}
+      className={`flex items-start gap-3 rounded-2xl border p-3 transition-colors ${t.panel}`}
     >
-      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#D8E8E4] bg-[#F6FBF9] text-[#338DFD]">
+      <span
+        className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${t.icon}`}
+      >
         {icon}
       </span>
-
       <div>
         <h4 className="text-sm font-semibold text-[#26384D]">{title}</h4>
-
         <p className="mt-0.5 text-xs leading-5 text-[#687586]">{description}</p>
       </div>
-    </motion.div>
-  );
-}
-
-/* =========================================================
-   FLOATING SPARKLE
-========================================================= */
-
-function FloatingSparkle({ className, delay, size }) {
-  return (
-    <motion.div
-      className={`pointer-events-none absolute z-10 ${className}`}
-      initial={{
-        opacity: 0,
-        scale: 0.5,
-      }}
-      animate={{
-        opacity: [0.25, 1, 0.35, 0.8, 0.25],
-        scale: [0.7, 1, 0.85, 1.05, 0.7],
-        y: [0, -7, 2, -5, 0],
-        rotate: [0, 15, -10, 10, 0],
-      }}
-      transition={{
-        duration: 4,
-        delay,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    >
-      <Sparkles
-        size={size}
-        strokeWidth={1.5}
-        className="text-[#338DFD] drop-shadow-[0_0_8px_rgba(51,141,253,0.25)]"
-      />
     </motion.div>
   );
 }
@@ -1849,102 +1314,48 @@ function FloatingSparkle({ className, delay, size }) {
 
 function playSound(type) {
   try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
 
-    if (!AudioContext) {
-      return;
-    }
-
-    const ctx = new AudioContext();
-
-    const oscillator = ctx.createOscillator();
-
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const t = ctx.currentTime;
 
-    oscillator.connect(gain);
-
+    osc.connect(gain);
     gain.connect(ctx.destination);
+    osc.type = "sine";
 
-    /* SPIN */
+    const envelope = (peak, attack, end) => {
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(peak, t + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + end);
+    };
+
+    let stopAt = 0.2;
 
     if (type === "spin") {
-      oscillator.type = "sine";
-
-      oscillator.frequency.setValueAtTime(280, ctx.currentTime);
-
-      oscillator.frequency.exponentialRampToValueAtTime(
-        720,
-        ctx.currentTime + 0.18,
-      );
-
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-
-      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-
-      oscillator.start();
-
-      oscillator.stop(ctx.currentTime + 0.24);
+      osc.frequency.setValueAtTime(280, t);
+      osc.frequency.exponentialRampToValueAtTime(720, t + 0.18);
+      envelope(0.08, 0.02, 0.22);
+      stopAt = 0.24;
+    } else if (type === "select") {
+      osc.frequency.setValueAtTime(520, t);
+      envelope(0.08, 0.02, 0.18);
+    } else if (type === "success") {
+      osc.frequency.setValueAtTime(523, t);
+      osc.frequency.setValueAtTime(659, t + 0.1);
+      osc.frequency.setValueAtTime(784, t + 0.2);
+      envelope(0.08, 0.03, 0.4);
+      stopAt = 0.42;
+    } else if (type === "error") {
+      osc.frequency.setValueAtTime(220, t);
+      envelope(0.05, 0.02, 0.18);
     }
 
-    /* SELECT */
-
-    if (type === "select") {
-      oscillator.type = "sine";
-
-      oscillator.frequency.setValueAtTime(520, ctx.currentTime);
-
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-
-      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
-
-      oscillator.start();
-
-      oscillator.stop(ctx.currentTime + 0.2);
-    }
-
-    /* SUCCESS */
-
-    if (type === "success") {
-      oscillator.type = "sine";
-
-      oscillator.frequency.setValueAtTime(523, ctx.currentTime);
-
-      oscillator.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
-
-      oscillator.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
-
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-
-      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.03);
-
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
-
-      oscillator.start();
-
-      oscillator.stop(ctx.currentTime + 0.42);
-    }
-
-    /* ERROR */
-
-    if (type === "error") {
-      oscillator.type = "sine";
-
-      oscillator.frequency.setValueAtTime(220, ctx.currentTime);
-
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-
-      gain.gain.exponentialRampToValueAtTime(0.05, ctx.currentTime + 0.02);
-
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
-
-      oscillator.start();
-
-      oscillator.stop(ctx.currentTime + 0.2);
-    }
+    osc.start();
+    osc.stop(t + stopAt);
+    osc.onended = () => ctx.close();
   } catch {
     // Audio is optional.
   }

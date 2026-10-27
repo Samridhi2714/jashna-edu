@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowUpRight,
   ArrowRight,
-  X,
   Check,
   GraduationCap,
   Target,
@@ -14,285 +12,179 @@ import {
   BookOpen,
   Compass,
   Lightbulb,
-  Building2,
+  Plus,
 } from "lucide-react";
 
 import drShivam from "../assets/about/dr-shivam.webp";
 
 /* =========================================================
-   DISCOVER JASHNA CARDS
+   QUOTE CARDS (replaces the old "Discover Jashna" section)
+   Four quotes on learning and growth. Tap or click a card to
+   see how the idea applies to learning to speak.
 ========================================================= */
 
-const informationCards = [
+const quoteCards = [
   {
-    id: "story",
-    number: "01",
-    label: "OUR STORY",
-    title: "Why Jashna exists",
-    short:
-      "A communication education brand built around clarity, confidence and real-world expression.",
-    accent: "maroon",
+    id: "learning",
+    topic: "Learning",
     icon: BookOpen,
-    content: (
-      <div>
-        <p className="max-w-2xl text-base leading-7 text-jashna-muted">
-          Jashna Edu was built on a simple belief: communication is not merely
-          about knowing a language. It is about being able to express ideas,
-          thoughts and expertise with clarity and confidence.
-        </p>
-
-        <div className="mt-9 grid gap-3 sm:grid-cols-2">
-          {[
-            {
-              number: "01",
-              title: "Language",
-              text: "Build a strong foundation for effective communication.",
-            },
-            {
-              number: "02",
-              title: "Expression",
-              text: "Turn knowledge and ideas into clear, meaningful words.",
-            },
-            {
-              number: "03",
-              title: "Confidence",
-              text: "Develop the assurance to communicate in different settings.",
-            },
-            {
-              number: "04",
-              title: "Real-world use",
-              text: "Take communication skills beyond the classroom.",
-            },
-          ].map((item) => (
-            <div
-              key={item.number}
-              className="group rounded-2xl border border-jashna-stone bg-[#efebe3] p-5 transition duration-300 hover:border-jashna-maroon/30 hover:bg-white"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-[0.15em] text-jashna-gold">
-                  {item.number}
-                </span>
-
-                <ArrowUpRight
-                  size={15}
-                  className="text-jashna-muted transition group-hover:text-jashna-maroon"
-                />
-              </div>
-
-              <h4 className="mt-7 font-serif text-xl text-jashna-navy">
-                {item.title}
-              </h4>
-
-              <p className="mt-2 text-sm leading-6 text-jashna-muted">
-                {item.text}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
+    quote:
+      "The beautiful thing about learning is that no one can take it away from you.",
+    author: "B.B. King",
+    role: "Blues musician",
+    takeaway:
+      "Every sentence you practise becomes a skill that stays with you for good.",
+    accent: {
+      bar: "bg-jashna-maroon",
+      chip: "bg-jashna-maroon/10 text-jashna-maroon",
+      mark: "text-jashna-maroon/[0.09]",
+      border: "hover:border-jashna-maroon/50",
+      open: "border-jashna-maroon/60",
+      button: "group-hover:bg-jashna-maroon group-hover:text-white",
+      buttonOpen: "bg-jashna-maroon text-white",
+    },
   },
-
   {
-    id: "approach",
-    number: "02",
-    label: "OUR APPROACH",
-    title: "Learn it. Practise it. Use it.",
-    short: "Communication becomes powerful when learning moves beyond theory.",
-    accent: "gold",
-    icon: Compass,
-    content: (
-      <div>
-        <p className="max-w-2xl text-base leading-7 text-jashna-muted">
-          Jashna's approach combines structured learning with practical
-          application. The focus is on understanding where a learner is,
-          building the right skills and then applying them in situations that
-          mirror the real world.
-        </p>
-
-        <div className="relative mt-10">
-          <div className="absolute bottom-5 left-[18px] top-5 w-px bg-jashna-gold/30" />
-
-          <div className="space-y-6">
-            {[
-              {
-                number: "01",
-                title: "Diagnose",
-                text: "Understand the learner's communication needs and starting point.",
-              },
-              {
-                number: "02",
-                title: "Build",
-                text: "Develop the language and communication foundation required.",
-              },
-              {
-                number: "03",
-                title: "Practise",
-                text: "Work through structured activities and personalised coaching.",
-              },
-              {
-                number: "04",
-                title: "Apply",
-                text: "Use communication skills confidently in real-world situations.",
-              },
-            ].map((item) => (
-              <div
-                key={item.number}
-                className="relative flex gap-5 rounded-2xl border border-transparent p-2 transition hover:border-jashna-stone hover:bg-[#efebe3]"
-              >
-                <div className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-jashna-gold bg-jashna-ivory text-xs font-semibold text-jashna-navy">
-                  {item.number}
-                </div>
-
-                <div>
-                  <h4 className="font-serif text-xl text-jashna-navy">
-                    {item.title}
-                  </h4>
-
-                  <p className="mt-1 text-sm leading-6 text-jashna-muted">
-                    {item.text}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
+    id: "education",
+    topic: "Education",
+    icon: GraduationCap,
+    quote:
+      "Education is the most powerful weapon which you can use to change the world.",
+    author: "Nelson Mandela",
+    role: "Anti-apartheid leader and former President of South Africa",
+    takeaway:
+      "Clear communication turns what you know into real opportunity.",
+    accent: {
+      bar: "bg-jashna-gold",
+      chip: "bg-jashna-gold/20 text-jashna-navy",
+      mark: "text-jashna-gold/[0.18]",
+      border: "hover:border-jashna-gold/70",
+      open: "border-jashna-gold/80",
+      button: "group-hover:bg-jashna-gold group-hover:text-jashna-navy",
+      buttonOpen: "bg-jashna-gold text-jashna-navy",
+    },
   },
-
   {
-    id: "difference",
-    number: "03",
-    label: "THE JASHNA DIFFERENCE",
-    title: "From knowing to expressing",
-    short:
-      "The real transformation happens when knowledge becomes confident expression.",
-    accent: "navy",
+    id: "change",
+    topic: "Growth",
     icon: Sparkles,
-    content: (
-      <div>
-        <div className="rounded-[24px] bg-jashna-navy p-6 text-jashna-ivory sm:p-8">
-          <p className="text-xs font-semibold tracking-[0.2em] text-jashna-gold">
-            THE JASHNA PATH
-          </p>
-
-          <div className="mt-8 grid gap-5 sm:grid-cols-4">
-            {[
-              ["01", "Language", "Build"],
-              ["02", "Expression", "Shape"],
-              ["03", "Confidence", "Own"],
-              ["04", "Influence", "Connect"],
-            ].map(([number, title, action], index) => (
-              <div key={number} className="relative">
-                {index < 3 && (
-                  <ArrowRight
-                    size={16}
-                    className="absolute -right-3 top-5 hidden text-jashna-gold sm:block"
-                  />
-                )}
-
-                <span className="text-xs text-jashna-gold">{number}</span>
-
-                <p className="mt-4 font-serif text-xl">{title}</p>
-
-                <p className="mt-1 text-xs uppercase tracking-[0.15em] text-white/45">
-                  {action}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <p className="mt-7 max-w-2xl text-base leading-7 text-jashna-muted">
-          Jashna looks at communication as a progression. The goal is not only
-          to know what to say, but to develop the confidence and awareness to
-          express it effectively.
-        </p>
-
-        <div className="mt-7 flex flex-wrap gap-2">
-          {["Language", "Expression", "Confidence", "Influence"].map((item) => (
-            <span
-              key={item}
-              className="rounded-full border border-jashna-stone bg-[#efebe3] px-4 py-2 text-xs font-medium text-jashna-navy"
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
-    ),
+    quote:
+      "The only person who is educated is the one who has learned how to learn and change.",
+    author: "Carl Rogers",
+    role: "Psychologist",
+    takeaway:
+      "Be willing to unlearn old habits, like the fear of speaking up.",
+    accent: {
+      bar: "bg-jashna-navy",
+      chip: "bg-jashna-navy/10 text-jashna-navy",
+      mark: "text-jashna-navy/[0.07]",
+      border: "hover:border-jashna-navy/50",
+      open: "border-jashna-navy/60",
+      button: "group-hover:bg-jashna-navy group-hover:text-white",
+      buttonOpen: "bg-jashna-navy text-white",
+    },
   },
-
   {
-    id: "impact",
-    number: "04",
-    label: "OUR IMPACT",
-    title: "Communication for the real world",
-    short:
-      "Learning is designed to travel with you — into classrooms, workplaces and leadership spaces.",
-    accent: "maroon",
-    icon: Building2,
-    content: (
-      <div>
-        <p className="max-w-2xl text-base leading-7 text-jashna-muted">
-          Jashna works across language learning, academic communication,
-          professional communication and leadership-oriented communication.
-        </p>
-
-        <div className="mt-9 grid gap-3">
-          {[
-            {
-              icon: GraduationCap,
-              label: "ACADEMIC",
-              title: "Students & learners",
-              text: "Communication skills that support learning, interviews, presentations and academic confidence.",
-            },
-            {
-              icon: Users,
-              label: "PROFESSIONAL",
-              title: "Working professionals",
-              text: "Clearer communication for meetings, presentations, workplace interaction and leadership.",
-            },
-            {
-              icon: Building2,
-              label: "ORGANISATIONAL",
-              title: "Institutions & organisations",
-              text: "Communication training designed around practical professional requirements.",
-            },
-          ].map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <div
-                key={item.label}
-                className="group flex gap-5 rounded-2xl border border-jashna-stone bg-[#efebe3] p-5 transition duration-300 hover:border-jashna-gold/50 hover:bg-white"
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-jashna-navy text-jashna-gold transition group-hover:bg-jashna-maroon">
-                  <Icon size={18} />
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-semibold tracking-[0.2em] text-jashna-gold">
-                    {item.label}
-                  </p>
-
-                  <h4 className="mt-1 font-serif text-xl text-jashna-navy">
-                    {item.title}
-                  </h4>
-
-                  <p className="mt-1 text-sm leading-6 text-jashna-muted">
-                    {item.text}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    ),
+    id: "consistency",
+    topic: "Consistency",
+    icon: Target,
+    quote:
+      "It does not matter how slowly you go as long as you do not stop.",
+    author: "Confucius",
+    role: "Chinese philosopher",
+    takeaway:
+      "A few minutes of speaking practice every day beats one big effort a month.",
+    accent: {
+      bar: "bg-jashna-maroon",
+      chip: "bg-jashna-maroon/10 text-jashna-maroon",
+      mark: "text-jashna-maroon/[0.09]",
+      border: "hover:border-jashna-maroon/50",
+      open: "border-jashna-maroon/60",
+      button: "group-hover:bg-jashna-maroon group-hover:text-white",
+      buttonOpen: "bg-jashna-maroon text-white",
+    },
   },
 ];
+
+function QuoteCard({ card, index, isOpen, onToggle }) {
+  const Icon = card.icon;
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={isOpen}
+      className={`group relative flex h-full w-full flex-col overflow-hidden rounded-[24px] border bg-[#fbfaf6] p-6 text-left shadow-[0_10px_30px_-18px_rgba(16,36,62,0.35)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_22px_50px_-22px_rgba(16,36,62,0.45)] focus:outline-none focus-visible:ring-2 focus-visible:ring-jashna-navy focus-visible:ring-offset-2 focus-visible:ring-offset-[#f1eee7] sm:p-8 ${
+        isOpen ? card.accent.open : `border-jashna-navy/15 ${card.accent.border}`
+      }`}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.55, delay: index * 0.08, ease: "easeOut" }}
+    >
+      {/* oversized quote mark */}
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute -right-1 -top-6 select-none font-serif text-[9rem] leading-none transition-transform duration-700 group-hover:scale-110 sm:text-[11rem] ${card.accent.mark}`}
+      >
+        ”
+      </span>
+
+      <div className="relative z-10 flex items-center justify-between gap-4">
+        <span
+          className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold ${card.accent.chip}`}
+        >
+          <Icon size={14} />
+          {card.topic}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-jashna-navy/20 text-jashna-navy transition-all duration-300 ${
+            isOpen
+              ? `rotate-45 ${card.accent.buttonOpen}`
+              : card.accent.button
+          }`}
+        >
+          <Plus size={16} />
+        </span>
+      </div>
+
+      <blockquote className="relative z-10 mt-8 flex-1 font-serif text-[1.6rem] font-bold leading-[1.25] text-jashna-navy sm:text-[1.9rem]">
+        “{card.quote}”
+      </blockquote>
+
+      {/* writer name below the quote */}
+      <div className="relative z-10 mt-8 flex items-center gap-4">
+        <span
+          className={`h-[3px] w-10 shrink-0 rounded-full transition-all duration-500 group-hover:w-16 ${card.accent.bar}`}
+        />
+        <div className="min-w-0">
+          <p className="text-base font-bold text-jashna-navy sm:text-lg">
+            {card.author}
+          </p>
+          <p className="text-sm font-medium text-jashna-charcoal/80">
+            {card.role}
+          </p>
+        </div>
+      </div>
+
+      {/* reveal: what it means for learning to speak */}
+      <div
+        className={`relative z-10 grid transition-[grid-template-rows,opacity] duration-500 ease-out ${
+          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <p className="mt-6 border-t border-jashna-navy/15 pt-5 text-base font-semibold leading-7 text-jashna-navy">
+            <span className="text-jashna-maroon">In practice: </span>
+            {card.takeaway}
+          </p>
+        </div>
+      </div>
+    </motion.button>
+  );
+}
 
 /* =========================================================
    FOUNDER CREDENTIALS
@@ -351,209 +243,397 @@ const philosophyCards = [
 ];
 
 /* =========================================================
-   TRANSFORMATION
+   TRANSFORMATION — "THE JASHNA SHIFT" DATA
 ========================================================= */
 
-const transformation = [
-  ["Hesitation", "Clarity"],
-  ["Self-doubt", "Confidence"],
-  ["Knowing", "Expressing"],
-  ["Speaking", "Connecting"],
+const shifts = [
+  {
+    id: "clarity",
+    before: "Hesitation",
+    after: "Clarity",
+    icon: Lightbulb,
+    line: "From stopping mid-sentence to speaking in clear steps.",
+    beforeQuote: "Umm… what I wanted to say is… actually, never mind.",
+    afterQuote:
+      "My point is simple: here are the three steps, and here is the outcome.",
+    help: "Structured speaking frameworks, vocabulary building and guided practice.",
+    skills: ["Structure", "Vocabulary", "Pace"],
+  },
+  {
+    id: "confidence",
+    before: "Self-doubt",
+    after: "Confidence",
+    icon: Sparkles,
+    line: "From staying silent to being the one who speaks up.",
+    beforeQuote: "I don't think my English is good enough to speak in front of everyone.",
+    afterQuote: "I'll take this one. I'm ready to present.",
+    help: "Personalised coaching, mock sessions and encouraging feedback.",
+    skills: ["Coaching", "Mock Sessions", "Feedback"],
+  },
+  {
+    id: "expressing",
+    before: "Knowing",
+    after: "Expressing",
+    icon: MessageCircle,
+    line: "From having the answer to being able to explain it.",
+    beforeQuote: "I know the answer… but the right words just don't come.",
+    afterQuote: "Let me explain it in a way that everyone can follow.",
+    help: "Real-life speaking activities and expression practice.",
+    skills: ["Speaking Drills", "Fluency", "Expression"],
+  },
+  {
+    id: "connecting",
+    before: "Speaking",
+    after: "Connecting",
+    icon: Users,
+    line: "From delivering lines to creating understanding.",
+    beforeQuote: "I just recited what I had prepared and sat down.",
+    afterQuote:
+      "I listened, responded and brought the whole room along with me.",
+    help: "Interactive discussions, storytelling and public speaking practice.",
+    skills: ["Storytelling", "Discussion", "Public Speaking"],
+  },
 ];
 
+const SHIFT_AUTO_MS = 8000;
+const WAVE_BARS = 32;
+
+/* Irregular, jittery heights = unsteady voice */
+const BEFORE_HEIGHTS = Array.from(
+  { length: WAVE_BARS },
+  (_, i) => 16 + ((i * 37) % 29) * 2.2,
+);
+
+/* Smooth, rhythmic heights = clear, confident voice */
+const AFTER_HEIGHTS = Array.from(
+  { length: WAVE_BARS },
+  (_, i) => 22 + Math.abs(Math.sin((i / (WAVE_BARS - 1)) * Math.PI * 2)) * 58,
+);
+
 /* =========================================================
-   INFORMATION MODAL
+   VOICE WAVE (visual: messy voice -> smooth voice)
 ========================================================= */
 
-function InfoModal({ card, onClose }) {
-  if (!card) return null;
-
-  const CardIcon = card.icon;
+function VoiceWave({ mode }) {
+  const isBefore = mode === "before";
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-jashna-navy/70 px-4 py-6 backdrop-blur-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
-        <motion.div
-          className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[30px] bg-jashna-ivory shadow-2xl"
-          initial={{ opacity: 0, y: 30, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.98 }}
-          transition={{ duration: 0.35 }}
-          onClick={(event) => event.stopPropagation()}
-        >
-          {/* Modal top accent */}
-          <div
-            className={`h-1.5 ${
-              card.accent === "gold"
-                ? "bg-jashna-gold"
-                : card.accent === "navy"
-                  ? "bg-jashna-navy"
-                  : "bg-jashna-maroon"
+    <div
+      className="flex h-[110px] items-center justify-center gap-[3px] sm:gap-1"
+      aria-hidden="true"
+    >
+      {Array.from({ length: WAVE_BARS }).map((_, i) => {
+        const base = isBefore ? BEFORE_HEIGHTS[i] : AFTER_HEIGHTS[i];
+
+        return (
+          <motion.span
+            key={`${mode}-${i}`}
+            className={`w-[4px] rounded-full sm:w-[5px] ${
+              isBefore
+                ? "bg-white/35"
+                : "bg-gradient-to-t from-jashna-gold to-[#f3dca4]"
             }`}
+            initial={{
+              height: isBefore ? AFTER_HEIGHTS[i] * 0.4 : BEFORE_HEIGHTS[i],
+            }}
+            animate={{
+              height: isBefore
+                ? [base, base * 0.55, base * 1.1, base]
+                : [base, base * 0.82, base],
+            }}
+            transition={{
+              duration: isBefore ? 0.7 + (i % 5) * 0.18 : 2.4,
+              delay: isBefore ? 0 : i * 0.04,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
           />
-
-          <div className="relative p-7 sm:p-10">
-            <button
-              type="button"
-              onClick={onClose}
-              className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-jashna-stone text-jashna-charcoal transition hover:border-jashna-navy hover:bg-jashna-navy hover:text-jashna-ivory"
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
-
-            <div className="flex items-start gap-5 pr-12">
-              <div
-                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${
-                  card.accent === "gold"
-                    ? "bg-jashna-gold/15 text-jashna-gold"
-                    : card.accent === "navy"
-                      ? "bg-jashna-navy text-jashna-ivory"
-                      : "bg-jashna-maroon text-jashna-ivory"
-                }`}
-              >
-                <CardIcon size={23} />
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold tracking-[0.2em] text-jashna-gold">
-                  {card.number} — {card.label}
-                </p>
-
-                <h2 className="mt-2 max-w-xl font-serif text-3xl leading-tight text-jashna-navy sm:text-4xl">
-                  {card.title}
-                </h2>
-              </div>
-            </div>
-
-            <div className="mt-9">{card.content}</div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        );
+      })}
+    </div>
   );
 }
 
 /* =========================================================
-   TRANSFORMATION ROW
+   TRANSFORMATION SHOWCASE (interactive)
 ========================================================= */
 
-function TransformationRow({ before, after, index }) {
+function TransformationShowcase() {
+  const [active, setActive] = useState(0);
+  const [view, setView] = useState("before");
+  const [paused, setPaused] = useState(false);
+
+  const current = shifts[active];
+  const CurrentIcon = current.icon;
+
+  /* Every shift first shows BEFORE, then flips to AFTER */
+  useEffect(() => {
+    setView("before");
+
+    const timer = setTimeout(() => setView("after"), 2400);
+
+    return () => clearTimeout(timer);
+  }, [active]);
+
+  /* Auto-advance (pauses while the user hovers) */
+  useEffect(() => {
+    if (paused) return;
+
+    const timer = setTimeout(
+      () => setActive((index) => (index + 1) % shifts.length),
+      SHIFT_AUTO_MS,
+    );
+
+    return () => clearTimeout(timer);
+  }, [active, paused]);
+
   return (
-    <div className="group relative overflow-hidden border-b border-jashna-navy/10 last:border-b-0">
-      {/* Large background number */}
-      <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 select-none text-[90px] font-bold leading-none text-jashna-navy/[0.035] sm:right-10 sm:text-[120px]">
-        {String(index + 1).padStart(2, "0")}
-      </div>
+    <div
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <p className="mb-5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-jashna-muted">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-jashna-gold" />
+        Select a shift — and listen to how the voice changes
+      </p>
 
-      <div className="relative flex min-h-[150px] items-center gap-5 px-5 py-7 sm:min-h-[170px] sm:px-8 lg:px-12">
-        {/* Number */}
-        <div className="hidden shrink-0 sm:flex">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-jashna-gold/40 text-[10px] font-bold tracking-wider text-jashna-gold">
-            {String(index + 1).padStart(2, "0")}
-          </span>
+      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-8">
+        {/* ==============================================
+            LEFT — SHIFT LIST
+        ============================================== */}
+
+        <div className="space-y-3">
+          {shifts.map((item, index) => {
+            const isActive = index === active;
+            const ItemIcon = item.icon;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActive(index)}
+                aria-pressed={isActive}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-500 sm:p-5 ${
+                  isActive
+                    ? "border-jashna-gold/60 bg-white shadow-[0_16px_40px_rgba(16,36,62,0.12)]"
+                    : "border-jashna-navy/10 bg-[#f5f1e9]/70 hover:-translate-y-0.5 hover:border-jashna-gold/40 hover:bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <span
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all duration-500 ${
+                      isActive
+                        ? "bg-jashna-navy text-jashna-gold"
+                        : "bg-jashna-navy/[0.06] text-jashna-muted group-hover:text-jashna-gold"
+                    }`}
+                  >
+                    <ItemIcon size={19} />
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="font-serif text-xl leading-tight sm:text-[22px]">
+                      <span
+                        className={`transition-colors duration-500 ${
+                          isActive
+                            ? "text-jashna-muted line-through decoration-jashna-gold/60"
+                            : "text-jashna-muted"
+                        }`}
+                      >
+                        {item.before}
+                      </span>
+
+                      <ArrowRight
+                        size={16}
+                        className="mx-2 inline-block text-jashna-gold"
+                      />
+
+                      <span className="font-bold text-jashna-navy">
+                        {item.after}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 text-[13px] leading-5 text-jashna-charcoal/60">
+                      {item.line}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`hidden text-[11px] font-bold tracking-[0.18em] sm:block ${
+                      isActive ? "text-jashna-gold" : "text-jashna-navy/25"
+                    }`}
+                  >
+                    0{index + 1}
+                  </span>
+                </div>
+
+                {/* Auto-play progress line */}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 h-[3px] w-full bg-jashna-gold/15">
+                    {!paused && (
+                      <motion.span
+                        key={`progress-${active}`}
+                        className="block h-full bg-jashna-gold"
+                        initial={{ width: "0%" }}
+                        animate={{ width: "100%" }}
+                        transition={{
+                          duration: SHIFT_AUTO_MS / 1000,
+                          ease: "linear",
+                        }}
+                      />
+                    )}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* BEFORE */}
-        <div className="flex w-[110px] shrink-0 justify-center sm:w-[150px] lg:w-[180px]">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{
-              duration: 0.8,
-              delay: index * 0.15,
-            }}
-            className="relative"
-          >
-            {/* Glow */}
-            <div className="absolute inset-0 rounded-full bg-jashna-gold/10 blur-xl" />
+        {/* ==============================================
+            RIGHT — SHOWCASE CARD
+        ============================================== */}
 
-            {/* Bubble */}
-            <div className="relative flex h-[82px] w-[82px] items-center justify-center rounded-full border border-jashna-navy/15 bg-[#ebe7df] px-2 text-center shadow-sm transition-all duration-500 group-hover:border-jashna-gold/50 group-hover:bg-jashna-gold/10 sm:h-[96px] sm:w-[96px]">
-              <span className="text-sm font-semibold text-jashna-navy sm:text-base">
-                {before}
-              </span>
+        <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-jashna-navy p-6 text-white shadow-[0_30px_70px_-20px_rgba(16,36,62,0.55)] sm:p-8 lg:min-h-[540px]">
+          {/* Decorative glows */}
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-jashna-gold/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-white/[0.06] blur-3xl" />
+
+          <div className="relative z-10">
+            {/* Top row */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-jashna-gold/40 text-jashna-gold">
+                  <CurrentIcon size={18} />
+                </span>
+
+                <p className="text-[11px] font-bold tracking-[0.2em] text-jashna-gold">
+                  SHIFT 0{active + 1} / 0{shifts.length}
+                </p>
+              </div>
+
+              {/* Before / After toggle */}
+              <div className="inline-flex rounded-full border border-white/15 bg-white/[0.06] p-1">
+                {["before", "after"].map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setView(mode)}
+                    aria-pressed={view === mode}
+                    className={`rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition-all duration-300 ${
+                      view === mode
+                        ? "bg-jashna-gold text-jashna-navy"
+                        : "text-white/60 hover:text-white"
+                    }`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
             </div>
-          </motion.div>
-        </div>
 
-        {/* ARROW / JOURNEY */}
-        <div className="relative flex flex-1 items-center">
-          {/* Line */}
-          <div className="relative h-px w-full bg-jashna-navy/15">
-            {/* Gold progress line */}
-            <motion.div
-              initial={{ width: "0%" }}
-              whileInView={{ width: "100%" }}
-              viewport={{ once: true, amount: 0.6 }}
-              transition={{
-                duration: 3.2,
-                delay: index * 0.45 + 0.3,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="absolute left-0 top-0 h-px bg-jashna-gold"
-            />
+            {/* Title */}
+            <h3 className="mt-8 font-serif text-3xl leading-tight sm:text-4xl">
+              {view === "before" ? (
+                <span className="text-white/55">{current.before}</span>
+              ) : (
+                <span>
+                  {current.after}
+                  <span className="text-jashna-gold">.</span>
+                </span>
+              )}
+            </h3>
 
-            {/* Moving dot */}
-            <motion.div
-              initial={{ left: "0%", opacity: 0 }}
-              whileInView={{
-                left: "100%",
-                opacity: [0, 1, 1, 0],
-              }}
-              viewport={{ once: true, amount: 0.6 }}
-              transition={{
-                duration: 3.2,
-                delay: index * 0.45 + 0.3,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-jashna-gold shadow-[0_0_0_5px_rgba(198,161,91,0.12)]"
-            />
+            {/* Voice wave */}
+            <div className="mt-7 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5">
+              <VoiceWave mode={view} />
 
-            {/* Arrow */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2">
-              <ArrowRight
-                size={18}
-                strokeWidth={1.5}
-                className="text-jashna-gold"
-              />
+              <div className="mt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                <span>{view === "before" ? "Unsteady voice" : "Clear voice"}</span>
+                <span className={view === "after" ? "text-jashna-gold" : ""}>
+                  {view === "before" ? "Before Jashna" : "With Jashna"}
+                </span>
+              </div>
+            </div>
+
+            {/* Quote bubble */}
+            <div className="mt-6 min-h-[104px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${active}-${view}`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className={`rounded-2xl border p-5 ${
+                    view === "before"
+                      ? "border-white/10 bg-white/[0.04]"
+                      : "border-jashna-gold/50 bg-jashna-gold/[0.12]"
+                  }`}
+                >
+                  <p
+                    className={`text-[10px] font-bold uppercase tracking-[0.2em] ${
+                      view === "before" ? "text-white/40" : "text-jashna-gold"
+                    }`}
+                  >
+                    {view === "before" ? "What it sounds like" : "What it sounds like now"}
+                  </p>
+
+                  <p
+                    className={`mt-2 font-serif text-lg leading-7 sm:text-xl ${
+                      view === "before"
+                        ? "italic text-white/60"
+                        : "text-white"
+                    }`}
+                  >
+                    “{view === "before" ? current.beforeQuote : current.afterQuote}”
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* How Jashna helps */}
+            <div className="mt-6 border-t border-white/10 pt-5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-jashna-gold">
+                How Jashna helps
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-white/70">
+                {current.help}
+              </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {current.skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white/80"
+                  >
+                    <Check size={12} className="text-jashna-gold" />
+                    {skill}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
-        {/* AFTER */}
-        <div className="flex w-[125px] shrink-0 items-center justify-center sm:w-[180px] lg:w-[220px]">
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{
-              duration: 0.7,
-              delay: index * 0.45 + 3.1,
-              ease: "easeOut",
-            }}
-            className="relative"
-          >
-            {/* Outer ring */}
-            <div className="absolute -inset-2 rounded-full border border-jashna-gold/20" />
-
-            {/* Result bubble */}
-            <div className="relative flex min-h-[68px] min-w-[110px] items-center justify-center rounded-full bg-jashna-navy px-5 py-3 shadow-lg transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-xl sm:min-h-[76px] sm:min-w-[145px]">
-              <span className="text-center text-sm font-bold text-white sm:text-base">
-                {after}
-              </span>
-            </div>
-          </motion.div>
-        </div>
       </div>
     </div>
+  );
+}
+
+/* =========================================================
+   INLINE HIGHLIGHT HELPERS (Founder paragraph)
+========================================================= */
+
+/* Bold white — key credentials / roles */
+function Strong({ children }) {
+  return <strong className="font-bold text-white">{children}</strong>;
+}
+
+/* Gold highlighter — key outcomes */
+function Mark({ children }) {
+  return (
+    <span className="rounded-[4px] bg-jashna-gold/25 px-1.5 py-0.5 font-semibold text-white [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">
+      {children}
+    </span>
   );
 }
 
@@ -562,7 +642,7 @@ function TransformationRow({ before, after, index }) {
 ========================================================= */
 
 function About() {
-  const [activeCard, setActiveCard] = useState(null);
+  const [openQuote, setOpenQuote] = useState(null);
 
   return (
     <div className="min-h-screen overflow-hidden bg-jashna-ivory text-jashna-charcoal">
@@ -709,17 +789,6 @@ function About() {
                   transition={{ duration: 1, delay: 0.9 }}
                   className="mt-12 max-w-md border-t border-jashna-navy/10 pt-5"
                 >
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-bold tracking-[0.2em] text-jashna-muted">
-                      THE JASHNA PHILOSOPHY
-                    </p>
-
-                    <ArrowUpRight
-                      size={16}
-                      strokeWidth={1.5}
-                      className="text-jashna-gold"
-                    />
-                  </div>
                 </motion.div>
               </motion.div>
 
@@ -824,101 +893,28 @@ function About() {
       </div>
 
       {/* ==================================================
-          DISCOVER JASHNA
+          LEARNING & GROWTH QUOTES
       ================================================== */}
 
-      <section className="border-y border-jashna-stone bg-[#f1eee7] px-6 py-24 sm:px-10 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-12 max-w-2xl">
-            <p className="text-xs font-semibold tracking-[0.22em] text-jashna-gold">
-              DISCOVER JASHNA
-            </p>
-
-            <p className="mt-4 text-lg leading-7 text-jashna-muted">
-              There is more to Jashna than a course or a classroom. Open a
-              chapter to understand the thinking behind the brand.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {informationCards.map((card, index) => {
-              const CardIcon = card.icon;
-
-              return (
-                <motion.button
-                  key={card.id}
-                  type="button"
-                  onClick={() => setActiveCard(card)}
-                  className="group relative min-h-[285px] overflow-hidden rounded-[28px] border border-jashna-stone bg-jashna-ivory p-7 text-left transition-all duration-500 hover:-translate-y-1 hover:border-jashna-gold/50 hover:shadow-[0_18px_45px_rgba(16,36,62,0.10)] sm:p-8"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{
-                    duration: 0.5,
-                    delay: index * 0.07,
-                  }}
-                >
-                  {/* Decorative background element */}
-                  <div
-                    className={`absolute -right-12 -top-12 h-32 w-32 rounded-full transition-all duration-700 group-hover:scale-150 ${
-                      card.accent === "navy"
-                        ? "bg-jashna-navy/[0.06]"
-                        : card.accent === "gold"
-                          ? "bg-jashna-gold/[0.10]"
-                          : "bg-jashna-maroon/[0.06]"
-                    }`}
-                  />
-
-                  {/* Small corner line */}
-                  <div
-                    className={`absolute right-0 top-0 h-24 w-px origin-top scale-y-0 transition-transform duration-500 group-hover:scale-y-100 ${
-                      card.accent === "navy"
-                        ? "bg-jashna-navy"
-                        : card.accent === "gold"
-                          ? "bg-jashna-gold"
-                          : "bg-jashna-maroon"
-                    }`}
-                  />
-
-                  <div className="relative z-10 flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs font-semibold tracking-[0.18em] text-jashna-gold">
-                        {card.number}
-                      </span>
-
-                      <span className="h-px w-7 bg-jashna-stone transition-all duration-500 group-hover:w-12 group-hover:bg-jashna-gold" />
-                    </div>
-
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full border border-jashna-stone bg-jashna-ivory transition-all duration-300 group-hover:border-jashna-navy group-hover:bg-jashna-navy group-hover:text-white">
-                      <ArrowUpRight size={17} />
-                    </span>
-                  </div>
-
-                  <div className="relative z-10 mt-12 flex items-end justify-between gap-5">
-                    <div className="max-w-md">
-                      <p className="text-xs font-semibold tracking-[0.18em] text-jashna-muted">
-                        {card.label}
-                      </p>
-
-                      <h3 className="mt-3 font-serif text-2xl text-jashna-navy transition-colors duration-300 group-hover:text-jashna-maroon">
-                        {card.title}
-                      </h3>
-
-                      <p className="mt-3 text-sm leading-6 text-jashna-muted">
-                        {card.short}
-                      </p>
-                    </div>
-
-                    <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-jashna-stone text-jashna-gold transition-all duration-500 group-hover:-translate-y-1 group-hover:border-jashna-gold sm:flex">
-                      <CardIcon size={19} />
-                    </div>
-                  </div>
-
-                  {/* Bottom hover line */}
-                  <span className="absolute bottom-0 left-0 h-1 w-0 bg-jashna-gold transition-all duration-700 group-hover:w-full" />
-                </motion.button>
-              );
-            })}
+      <section
+        aria-label="Quotes on learning and growth"
+        className="border-y border-jashna-stone bg-[#f1eee7] px-4 py-14 sm:px-6 sm:py-16 lg:px-8"
+      >
+        <div className="mx-auto max-w-[1240px]">
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
+            {quoteCards.map((card, index) => (
+              <QuoteCard
+                key={card.id}
+                card={card}
+                index={index}
+                isOpen={openQuote === card.id}
+                onToggle={() =>
+                  setOpenQuote((current) =>
+                    current === card.id ? null : card.id,
+                  )
+                }
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -932,7 +928,7 @@ function About() {
           <div className="grid gap-14 lg:grid-cols-[0.75fr_1.25fr] lg:items-center">
             <div>
               <p className="text-xs font-semibold tracking-[0.22em] text-jashna-gold">
-                THE FOUNDER
+                THE FOUNDER & PRINCIPAL
               </p>
 
               <div className="relative mt-7">
@@ -955,13 +951,21 @@ function About() {
               </p>
 
               <h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">
-                Dr. Shivam
+                Meet Dr. Shivam
               </h2>
 
-              <p className="mt-5 max-w-2xl text-base leading-7 text-white/70">
-                A Cambridge CELTA-certified trainer and PhD holder in English
-                Language, Dr. Shivam brings more than a decade of experience to
-                language and communication education.
+              <p className="mt-5 max-w-2xl text-base leading-8 text-white/70">
+                He is a globally recognized <Strong>linguist</Strong> and{" "}
+                <Strong>communication strategist</Strong>. Holding a{" "}
+                <Mark>PhD in Linguistics</Mark> and the prestigious{" "}
+                <Mark>Cambridge CELTA</Mark> certification, he bridges the gap
+                between <Strong>academic rigor</Strong> and{" "}
+                <Strong>corporate reality</Strong>. Specializing in{" "}
+                <Strong>Public Speaking</Strong> and{" "}
+                <Strong>Presentation Skills</Strong>, he has coached over{" "}
+                <Mark>20,000 professionals</Mark>, from startup founders to
+                diplomats, helping them <Strong>find their voice</Strong> and{" "}
+                <Strong>command the stage</Strong>.
               </p>
 
               {/* Improved credentials */}
@@ -1020,7 +1024,7 @@ function About() {
       </section>
 
       {/* ==================================================
-          TRANSFORMATION
+          TRANSFORMATION — THE JASHNA SHIFT
       ================================================== */}
       <section className="relative overflow-hidden bg-[#e8e4dc] px-6 py-24 sm:px-10 lg:px-16">
         {/* Decorative background */}
@@ -1029,7 +1033,7 @@ function About() {
 
         <div className="relative mx-auto max-w-6xl">
           {/* Section introduction */}
-          <div className="mb-14 max-w-2xl">
+          <div className="mb-12 max-w-2xl">
             <div className="mb-5 flex items-center gap-3">
               <span className="h-px w-10 bg-jashna-gold" />
 
@@ -1049,89 +1053,31 @@ function About() {
             </p>
           </div>
 
-          {/* Transformation card */}
-          <div className="relative overflow-hidden rounded-[32px] border border-jashna-navy/10 bg-[#f5f1e9] shadow-[0_20px_60px_rgba(16,36,62,0.07)]">
-            {/* Top label */}
-            <div className="flex items-center justify-between border-b border-jashna-navy/10 px-6 py-5 sm:px-8">
-              <p className="text-xs font-semibold tracking-[0.18em] text-jashna-muted">
-                THE JASHNA SHIFT
-              </p>
+          {/* Interactive showcase */}
+          <TransformationShowcase />
 
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-jashna-gold" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-jashna-muted">
-                  Before → Beyond
-                </span>
-              </div>
-            </div>
-
-            {/* Rows */}
-            <div>
-              {transformation.map(([before, after], index) => (
-                <TransformationRow
-                  key={before}
-                  before={before}
-                  after={after}
-                  index={index}
-                />
-              ))}
-            </div>
-
-            {/* Bottom statement */}
-            <div className="border-t border-jashna-navy/10 bg-jashna-navy px-6 py-6 sm:px-8">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-medium leading-6 text-white/75">
-                  Language becomes powerful when it becomes purposeful.
-                </p>
-
-                <span className="text-xs font-bold tracking-[0.18em] text-jashna-gold">
-                  JASHNA EDU
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ==================================================
-          CLOSING
-      ================================================== */}
-
-      <section className="bg-jashna-maroon px-6 py-28 text-center text-jashna-ivory sm:px-10">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-xs font-semibold tracking-[0.24em] text-jashna-gold">
-            THE JASHNA JOURNEY
-          </p>
-
-          <p className="mt-7 font-serif text-3xl leading-tight sm:text-4xl">
-            Better communication starts with understanding how you want to be
-            heard.
-          </p>
-
-          <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/70 sm:text-base">
-            Explore Jashna's programs, events and approach to communication
-            education.
-          </p>
-
-          <a
-            href="/events"
-            className="mt-9 inline-flex items-center gap-2 rounded-full border border-jashna-gold px-6 py-3 text-sm font-medium text-white transition hover:bg-jashna-gold hover:text-jashna-navy"
+          {/* Bottom statement */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6 }}
+            className="mt-8 flex flex-col gap-3 rounded-2xl border border-jashna-navy/10 bg-[#f5f1e9] px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8"
           >
-            Explore Jashna
-            <ArrowUpRight size={17} />
-          </a>
+            <p className="text-sm font-medium leading-6 text-jashna-charcoal/75 sm:text-base">
+              Language becomes powerful when it becomes{" "}
+              <span className="rounded-[4px] bg-jashna-gold/30 px-1.5 font-bold text-jashna-navy">
+                purposeful
+              </span>
+              .
+            </p>
+
+            <span className="text-xs font-bold tracking-[0.18em] text-jashna-gold">
+              JASHNA EDU
+            </span>
+          </motion.div>
         </div>
       </section>
-
-      {/* ==================================================
-          MODAL
-      ================================================== */}
-
-      <AnimatePresence>
-        {activeCard && (
-          <InfoModal card={activeCard} onClose={() => setActiveCard(null)} />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -6,6 +6,7 @@
   /* Jashna core */
   --color-jashna-navy: #10243e;
   --color-jashna-navy-dark: #09182b;
+  
 
   /* New premium palette */
   --color-jashna-maroon: #641f2d;
@@ -25,8 +26,8 @@
   --color-jashna-muted: #68717d;
 
   /* Fonts */
-  --font-display: "Playfair Display", serif;
-  --font-body: "DM Sans", sans-serif;
+  --font-display: "Times New Roman", Times, serif;
+  --font-body: "Times New Roman", Times, serif;
 }
 
 html {
