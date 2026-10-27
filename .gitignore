@@ -1,14 +1,25 @@
-Updated root .gitignore
-Activity videos hosted externally
+# Dependencies
+node_modules/
 
-client/src/assets/videos/Ice-Melt-2.mp4
-client/src/assets/videos/Spin_2.mp4
-client/src/assets/videos/Spin_2_original.mp4
+# Environment files
+.env
+.env.*
+!.env.example
 
-Homepage hero video - now embedded from YouTube
+# Build outputs
+dist/
+dist-ssr/
 
-client/src/assets/videos/jashna-hero.mp4
+# Media files
+*.mp4
+client/src/assets/videos/*.mp4
 
-Old Git history backup
-
+# Backups
 .git_old_backup/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

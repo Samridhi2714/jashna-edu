@@ -266,7 +266,7 @@ function IELTS() {
               </p>
 
               <h1 className="mt-6 text-[2.6rem] font-bold leading-[1.04] tracking-tight sm:text-6xl xl:text-[4.4rem] 2xl:text-[5.2rem]">
-                Prepare for IELTS.
+                Prepare for IELTS,
                 <span className="ie-shine block pb-2">Register with confidence.</span>
               </h1>
 
@@ -305,7 +305,7 @@ function IELTS() {
               </div>
 
               <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-lg font-bold text-[#0E1A2B]/90">
-                {["Academic & General Training", "Personalised preparation", "Registration guidance"].map((t) => (
+                {["Academic & General Training", "Personalised Preparation", "Registration Guidance"].map((t) => (
                   <li key={t} className="flex items-center gap-2">
                     <Check size={16} className="text-[#2a9d8f]" />
                     {t}
@@ -519,7 +519,7 @@ function IELTS() {
           <Reveal>
             <div className="text-center">
               <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-                To Know, <span className="text-[#215e93]">More</span>
+                To Know <span className="text-[#215e93]">More</span>
               </h2>
               <p className="mx-auto mt-4 max-w-3xl text-xl font-medium leading-8 text-[#0E1A2B]/90">
                 Pick a question. Tap, compare and try it yourself.
