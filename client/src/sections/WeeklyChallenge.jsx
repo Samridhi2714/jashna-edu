@@ -15,12 +15,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getWhatsAppLink } from "../data/contact";
+import { API_BASE } from "../config";
 
 /* =========================================================
    CONFIG
 ========================================================= */
 
-const API_BASE = import.meta.env?.VITE_API_URL || "http://localhost:5000/api";
+// API_BASE imported from config
 
 /* TEMPORARY until real accounts exist. */
 const PLAYER_NAME = "Test User";

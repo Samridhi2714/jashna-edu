@@ -1,3 +1,4 @@
+import { API_URL } from "../config";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -45,7 +46,7 @@ function StudentLogin() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/student/login",
+        `${API_URL}/api/auth/student/login`,
         {
           method: "POST",
           headers: {

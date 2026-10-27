@@ -1,3 +1,4 @@
+import { API_BASE as BASE_URL } from "../config";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -21,7 +22,7 @@ import {
   Trophy,
 } from "lucide-react";
 
-const API_BASE = "http://localhost:5000/api/tasks";
+const API_BASE = `${BASE_URL}/tasks`;
 
 const FONT_FAMILY = '"Times New Roman", Times, serif';
 

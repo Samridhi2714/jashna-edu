@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { API_URL } from "../config";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -1661,7 +1662,7 @@ export default function JashnaAiWidget() {
         content: item.content,
       }));
 
-      const response = await fetch("http://localhost:5000/api/ai/chat", {
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1741,7 +1742,7 @@ export default function JashnaAiWidget() {
     setLeadStatus("submitting");
 
     try {
-      const response = await fetch("http://localhost:5000/api/ai/lead", {
+      const response = await fetch(`${API_URL}/api/ai/lead`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

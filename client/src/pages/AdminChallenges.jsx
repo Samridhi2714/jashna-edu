@@ -1,3 +1,4 @@
+import { API_BASE } from "../config";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -18,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = API_BASE;
 
 const FONT_FAMILY = '"Times New Roman", Times, serif';
 

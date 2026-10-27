@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Briefcase, Pencil, Plus, Trash2, X } from "lucide-react";
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 const BASE = `${API_URL}/api/admin/careers`;
 
 const JOB_TYPES = ["Full-time", "Part-time", "Internship", "Contract"];

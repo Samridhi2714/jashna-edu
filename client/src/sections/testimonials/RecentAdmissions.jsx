@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, GraduationCap, Sparkles, Users } from "lucide-react";
+import { API_BASE } from "../../config";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = API_BASE;
 
 /* Scoped styles: fonts + left-to-right floating animation */
 const styles = `

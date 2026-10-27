@@ -20,7 +20,7 @@ LockKeyhole,
 Eye,
 } from "lucide-react";
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 
 const EMPTY_FORM = {
 timing: "",

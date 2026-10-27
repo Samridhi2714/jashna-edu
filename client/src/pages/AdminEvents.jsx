@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import eventImages from "../data/eventImages";
+import { API_URL } from "../config";
 
 import {
   CalendarDays,
@@ -129,7 +130,7 @@ function AdminEvents() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/events/admin/all",
+        `${API_URL}/api/events/admin/all`,
         {
           method: "GET",
           headers: {
@@ -190,7 +191,7 @@ function AdminEvents() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/events/${eventId}`,
+        `${API_URL}/api/events/${eventId}`,
         {
           method: "DELETE",
           headers: {

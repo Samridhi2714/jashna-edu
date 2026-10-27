@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 const SEEN_KEY = "learningGoalsLastSeenAt";
 const SEEN_EVENT = "learning-goals-seen";
 const POLL_INTERVAL_MS = 60 * 1000;

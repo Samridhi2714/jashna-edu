@@ -20,8 +20,9 @@ import {
 } from "lucide-react";
 
 import eventImages from "../data/eventImages";
+import { API_BASE } from "../config";
 
-const API_URL = "http://localhost:5000/api/events";
+const API_URL = `${API_BASE}/events`;
 
 const YEARS = ["all", "2026", "2025", "2024", "2023"];
 

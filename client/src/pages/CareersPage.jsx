@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 const TIMES = { fontFamily: '"Times New Roman", Times, serif' };
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 
 const LINKEDIN_REGEX =
   /^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/(in|pub)\/[\w\-%.]+\/?(\?.*)?$/i;

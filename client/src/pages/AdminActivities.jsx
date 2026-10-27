@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import DESCRIPTORS, { CEFR_LEVELS } from "../data/Descriptors";
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 const LEVELS = CEFR_LEVELS; // ["A1","A2","B1","B2","C1","C2"]
 
 /* =====================================================================

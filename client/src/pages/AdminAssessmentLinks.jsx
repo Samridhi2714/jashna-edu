@@ -1,3 +1,4 @@
+import { API_URL as BASE_URL } from "../config";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -16,7 +17,7 @@ import {
 } from "lucide-react";
 
 const API_BASE_URL = (
-  import.meta.env.VITE_API_URL || "http://localhost:5000"
+  BASE_URL
 ).replace(/\/+$/, "");
 
 const API_URL = `${API_BASE_URL}/api/assessment-links/admin`;

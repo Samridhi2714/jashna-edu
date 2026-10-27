@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/images/logo.webp";
 
 const TIMES = { fontFamily: '"Times New Roman", Times, serif' };
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 
 const FOUNDER_LINKEDIN =
   "https://www.linkedin.com/in/dr-shivam-jhamb-42070517a?utm_source=share_via&utm_content=profile&utm_medium=member_android";

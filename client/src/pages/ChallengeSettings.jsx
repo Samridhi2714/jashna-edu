@@ -1,3 +1,4 @@
+import { API_BASE } from "../config";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -12,7 +13,7 @@ import {
   Lock,
 } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = API_BASE;
 
 const getAuthHeaders = () => {
   const token =

@@ -1,3 +1,4 @@
+import { API_URL } from "../config";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -83,7 +84,7 @@ function StudentChangePassword() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/auth/student/change-password",
+        `${API_URL}/api/auth/student/change-password`,
         {
           method: "POST",
           headers: {

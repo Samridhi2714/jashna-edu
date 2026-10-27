@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../config";
 import { Navigate, Outlet } from "react-router-dom";
 
 function StudentProtectedRoute() {
@@ -18,7 +19,7 @@ function StudentProtectedRoute() {
 
       try {
         const response = await fetch(
-          "http://localhost:5000/api/auth/student/verify",
+          `${API_URL}/api/auth/student/verify`,
           {
             method: "GET",
             headers: {

@@ -12,9 +12,10 @@ import {
 } from "lucide-react";
 
 import { getWhatsAppLink } from "../data/contact";
+import { API_URL } from "../config";
 
 const API_BASE_URL = (
-  import.meta.env.VITE_API_URL || "http://localhost:5000"
+  API_URL
 ).replace(/\/+$/, "");
 
 const FAQ_API_URL = `${API_BASE_URL}/api/faqs`;

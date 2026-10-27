@@ -30,7 +30,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import DESCRIPTORS, { CEFR_LEVELS } from "../data/Descriptors";
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 const LEVELS = CEFR_LEVELS;
 
 /* =====================================================================

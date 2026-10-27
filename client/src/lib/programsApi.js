@@ -1,11 +1,12 @@
+import { API_BASE } from "../config";
 /*
   All program API calls live here so auth / base URL changes happen in ONE place.
 
-  TODO: set VITE_API_URL in client/.env (e.g. VITE_API_URL=http://localhost:5000/api)
+  Base API configured in src/config.js
   Admin token is read from localStorage ("adminToken") and sent as a Bearer header, same as the dashboard.
 */
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+export const API_URL = API_BASE;
 
 const getToken = () =>
   localStorage.getItem("adminToken") || localStorage.getItem("token") || "";

@@ -22,7 +22,7 @@ import {
   Trophy,
 } from "lucide-react";
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 
 const formatDate = (date) => {
   if (!date) return "Not available";

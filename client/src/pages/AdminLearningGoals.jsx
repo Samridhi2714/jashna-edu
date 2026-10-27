@@ -31,7 +31,7 @@ import {
   sortByLatest,
 } from "../hooks/useLearningGoalsNotifications";
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 const FONT_FAMILY = '"Times New Roman", Times, serif';
 const FIELD_CLASS =
   "w-full rounded-xl border-2 border-[#D9E1EC] bg-white px-4 py-3.5 text-[17px] font-bold text-[#10243E] outline-none transition-all duration-200 placeholder:font-semibold placeholder:text-[#8A97A8] hover:border-[#8DB8F7] hover:shadow-md focus:border-[#338DFD] focus:shadow-lg focus:ring-4 focus:ring-[#338DFD]/15";

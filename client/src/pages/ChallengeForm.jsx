@@ -1,3 +1,4 @@
+import { API_BASE } from "../config";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -12,7 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 
-const API_URL = "http://localhost:5000/api/challenges";
+const API_URL = `${API_BASE}/challenges`;
 
 const EMPTY_FORM = {
   id: "",

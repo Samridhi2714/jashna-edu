@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../config";
 import { Navigate, Outlet } from "react-router-dom";
 
 function ProtectedRoute() {
@@ -17,7 +18,7 @@ function ProtectedRoute() {
 
       try {
         const response = await fetch(
-          "http://localhost:5000/api/auth/verify",
+          `${API_URL}/api/auth/verify`,
           {
             method: "GET",
             headers: {

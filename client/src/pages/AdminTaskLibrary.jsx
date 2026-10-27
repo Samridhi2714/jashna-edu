@@ -37,7 +37,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config";
 const FONT_FAMILY = '"Times New Roman", Times, serif';
 
 const SUBMISSION_TYPES = [
