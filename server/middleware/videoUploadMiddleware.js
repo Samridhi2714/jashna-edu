@@ -6,8 +6,8 @@ const videoUpload = multer({
   storage,
 
   limits: {
-    // 100 MB maximum
-    fileSize: 100 * 1024 * 1024,
+    // 30 MB maximum (protects server memory while allowing short student intro videos)
+    fileSize: 30 * 1024 * 1024,
   },
 
   fileFilter: (req, file, cb) => {
