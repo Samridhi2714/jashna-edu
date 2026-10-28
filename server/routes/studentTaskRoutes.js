@@ -18,7 +18,7 @@ router.get("/", getStudentTasks);
 // Submit text or upload files
 router.post(
   "/:assignmentId/submit",
-  taskUpload.array("files", 10),
+  taskUpload.array("files", 5),
   submitStudentTask
 );
 

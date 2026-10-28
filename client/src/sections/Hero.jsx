@@ -32,13 +32,12 @@ const BODY = "#2B3A55";
 
 const HEADING_GRADIENT =
   "linear-gradient(100deg, #1E3FD8 0%, #0E8FB5 38%, #0FA37F 68%, #1E3FD8 100%)";
-
 /* =========================================================
    YOUTUBE CONFIGURATION
-   Replace this ID with the founder's video ID later.
+   Jashna Edu Hero Video
 ========================================================= */
 
-const HERO_VIDEO_ID = "sKwIdAG7Zi4";
+const HERO_VIDEO_ID = "x61CuY1tGQw";
 
 const HERO_VIDEO_URL = `https://www.youtube.com/embed/${HERO_VIDEO_ID}`;
 
@@ -699,10 +698,6 @@ function HeroVideo({ isPlaying, onVideoAction }) {
           {/* VIDEO CAPTION */}
 
           <div className="pointer-events-none absolute bottom-4 left-4 max-w-[65%] sm:bottom-5 sm:left-5">
-            <p className="text-[9px] uppercase tracking-[0.16em] text-[#7FE6C8] sm:text-[10px] sm:tracking-[0.2em]">
-              Learn • Practice • Master
-            </p>
-
             <p className="mt-1 text-lg leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)] sm:text-xl lg:text-2xl">
               The Art of
               <br />

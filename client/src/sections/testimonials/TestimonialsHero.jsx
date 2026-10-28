@@ -436,7 +436,7 @@ function TestimonialsHero() {
         >
           <span className="hidden h-px w-9 bg-gradient-to-r from-transparent to-[#338DFD]/60 sm:block" />
 
-          <span className="rounded-full border border-[#338DFD]/20 bg-white/60 px-4 py-2 text-center text-[9px] font-bold uppercase tracking-[0.2em] text-[#276FD1] shadow-[0_8px_25px_rgba(51,141,253,0.07)] backdrop-blur-xl sm:tracking-[0.28em]">
+          <span className="rounded-full border border-[#338DFD]/20 bg-white/60 px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-[#276FD1] shadow-[0_8px_25px_rgba(51,141,253,0.07)] backdrop-blur-xl sm:tracking-[0.28em]">
             Jashna Edu Student Testimonials
           </span>
 

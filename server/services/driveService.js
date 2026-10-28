@@ -10,46 +10,57 @@ const REQUIRED_ENV_VARIABLES = [
   "GOOGLE_DRIVE_FOLDER_ID",
 ];
 
-function validateEnvironment() {
+const GOOGLE_FOLDER_MIME_TYPE =
+  "application/vnd.google-apps.folder";
+
+let driveClient = null;
+let rootFolderId = null;
+
+function getDriveClient() {
+  if (driveClient) {
+    return driveClient;
+  }
+
   const missingVariables = REQUIRED_ENV_VARIABLES.filter(
     (variable) => !process.env[variable]
   );
 
   if (missingVariables.length > 0) {
     throw new Error(
-      `Missing Google Drive environment variables: ${missingVariables.join(", ")}`
+      `Google Drive is not configured. Missing required environment variables: ${missingVariables.join(", ")}`
     );
   }
+
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_DRIVE_CLIENT_ID,
+    process.env.GOOGLE_DRIVE_CLIENT_SECRET,
+    process.env.GOOGLE_DRIVE_REDIRECT_URI
+  );
+
+  oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_DRIVE_REFRESH_TOKEN,
+  });
+
+  driveClient = google.drive({
+    version: "v3",
+    auth: oauth2Client,
+  });
+
+  rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+
+  return driveClient;
 }
 
-// Initialize OAuth Client using the existing Phase 1 credentials.
-validateEnvironment();
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_DRIVE_CLIENT_ID,
-  process.env.GOOGLE_DRIVE_CLIENT_SECRET,
-  process.env.GOOGLE_DRIVE_REDIRECT_URI
-);
+// Escape special characters used in Google Drive query strings.
+function escapeDriveQueryValue(value) {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
 
-oauth2Client.setCredentials({
-  refresh_token: process.env.GOOGLE_DRIVE_REFRESH_TOKEN,
-});
-
-// Initialize Google Drive API.
-const drive = google.drive({
-  version: "v3",
-  auth: oauth2Client,
-});
-
-const ROOT_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
-
-const GOOGLE_FOLDER_MIME_TYPE =
-  "application/vnd.google-apps.folder";
 const getUniqueFileName = async (fileName, folderId) => {
+  const drive = getDriveClient();
   const trimmedName = fileName.trim();
-
   const lastDotIndex = trimmedName.lastIndexOf(".");
 
-  // Preserve the extension when generating a numbered filename.
   const hasExtension =
     lastDotIndex > 0 && lastDotIndex < trimmedName.length - 1;
 
@@ -90,15 +101,13 @@ const getUniqueFileName = async (fileName, folderId) => {
     counter += 1;
   }
 };
-// Escape special characters used in Google Drive query strings.
-function escapeDriveQueryValue(value) {
-  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-}
 
 /**
  * Verify access to a Google Drive folder.
  */
 async function verifyFolderAccess(folderId) {
+  const drive = getDriveClient();
+
   if (!folderId || typeof folderId !== "string") {
     throw new Error("A valid Google Drive folder ID is required.");
   }
@@ -129,15 +138,22 @@ async function verifyFolderAccess(folderId) {
  *
  * Returns the folder ID.
  */
-export async function getOrCreateFolder(name, parentId = ROOT_FOLDER_ID) {
+export async function getOrCreateFolder(
+  name,
+  parentId
+) {
+  const drive = getDriveClient();
+  const effectiveParentId = parentId || rootFolderId;
+
   if (!name || typeof name !== "string" || !name.trim()) {
     throw new Error("A valid folder name is required.");
   }
 
-  const parentFolder = await verifyFolderAccess(parentId);
+  const parentFolder = await verifyFolderAccess(
+    effectiveParentId
+  );
 
   const folderName = name.trim();
-
   const escapedName = escapeDriveQueryValue(folderName);
 
   const query = [
@@ -188,8 +204,11 @@ export async function uploadBuffer({
   buffer,
   fileName,
   mimeType,
-  folderId = ROOT_FOLDER_ID,
+  folderId,
 }) {
+  const drive = getDriveClient();
+  const effectiveFolderId = folderId || rootFolderId;
+
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
     throw new Error("A non-empty file buffer is required.");
   }
@@ -206,13 +225,17 @@ export async function uploadBuffer({
     throw new Error("A valid MIME type is required.");
   }
 
-  await verifyFolderAccess(folderId);
+  await verifyFolderAccess(effectiveFolderId);
 
-  const uniqueFileName = await getUniqueFileName(fileName, folderId);
+  const uniqueFileName = await getUniqueFileName(
+    fileName,
+    effectiveFolderId
+  );
+
   const response = await drive.files.create({
     requestBody: {
       name: uniqueFileName,
-      parents: [folderId],
+      parents: [effectiveFolderId],
     },
 
     media: {
@@ -231,6 +254,8 @@ export async function uploadBuffer({
  * Retrieve a Google Drive file as a readable stream.
  */
 export async function getFileStream(fileId) {
+  const drive = getDriveClient();
+
   if (!fileId || typeof fileId !== "string") {
     throw new Error("A valid Google Drive file ID is required.");
   }
@@ -251,6 +276,8 @@ export async function getFileStream(fileId) {
  * Delete a Google Drive file.
  */
 export async function deleteFile(fileId) {
+  const drive = getDriveClient();
+
   if (!fileId || typeof fileId !== "string") {
     throw new Error("A valid Google Drive file ID is required.");
   }
@@ -268,9 +295,10 @@ export async function deleteFile(fileId) {
 
 /**
  * Return information about the authenticated Google account.
- * Useful for diagnostics.
  */
 export async function getDriveAccountInfo() {
+  const drive = getDriveClient();
+
   const response = await drive.about.get({
     fields: "user(emailAddress,displayName)",
   });
@@ -282,5 +310,5 @@ export async function getDriveAccountInfo() {
  * Return information about the configured root folder.
  */
 export async function getRootFolderInfo() {
-  return verifyFolderAccess(ROOT_FOLDER_ID);
+  return verifyFolderAccess(rootFolderId || process.env.GOOGLE_DRIVE_FOLDER_ID);
 }

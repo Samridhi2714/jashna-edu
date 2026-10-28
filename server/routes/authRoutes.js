@@ -1,7 +1,6 @@
 import express from "express";
 
 import {
-  registerAdmin,
   loginAdmin,
   verifyAdmin,
   requestAdminPasswordOtp,
@@ -27,8 +26,8 @@ const router = express.Router();
 /* =========================
    ADMIN AUTH
 ========================= */
-
-router.post("/register", registerAdmin);
+// Public admin registration is disabled for production security.
+// Admin accounts must be created through a trusted, controlled process.
 router.post("/login", loginAdmin);
 router.get("/verify", protect, verifyAdmin);
 /* ADMIN PASSWORD CHANGE WITH EMAIL OTP */
