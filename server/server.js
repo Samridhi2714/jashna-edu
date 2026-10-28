@@ -20,7 +20,7 @@ import taskRoutes from "./routes/taskRoutes.js";
 import studentTaskRoutes from "./routes/studentTaskRoutes.js";
 import batchRoutes from "./routes/batchRoutes.js";
 import driveRoutes from "./routes/driveRoutes.js";
-import instituteInfoRoutes from "./routes/instituteInforoutes.js";
+import instituteInfoRoutes from "./routes/instituteInfoRoutes.js";
 import programRoutes from "./routes/programRoutes.js";
 import recentAdmissionRoutes from "./routes/recentAdmissionRoutes.js";
 import studentLearningGoalsRoutes from "./routes/studentLearningGoalsRoutes.js";
