@@ -21,6 +21,7 @@ import {
 
 import eventImages from "../data/eventImages";
 import { API_BASE } from "../config";
+import eventsBg from "../assets/events/events-bg.webp";
 
 const API_URL = `${API_BASE}/events`;
 
@@ -1211,7 +1212,7 @@ function Events() {
           bg-no-repeat
         "
         style={{
-          backgroundImage: "url('/src/assets/events/events-bg.webp')",
+          backgroundImage: `url("${eventsBg}")`,
         }}
       />
 

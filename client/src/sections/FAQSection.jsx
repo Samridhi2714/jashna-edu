@@ -14,9 +14,7 @@ import {
 import { getWhatsAppLink } from "../data/contact";
 import { API_URL } from "../config";
 
-const API_BASE_URL = (
-  API_URL
-).replace(/\/+$/, "");
+const API_BASE_URL = API_URL.replace(/\/+$/, "");
 
 const FAQ_API_URL = `${API_BASE_URL}/api/faqs`;
 
@@ -26,7 +24,8 @@ const TONES = [
     name: "blue",
     card: "border-[#D3E4F6] bg-gradient-to-br from-[#EEF6FF] to-white",
     cardOpen: "border-[#338DFD]/50 shadow-[0_18px_45px_rgba(51,141,253,0.14)]",
-    cardHover: "hover:border-[#338DFD]/40 hover:shadow-[0_14px_36px_rgba(51,141,253,0.12)]",
+    cardHover:
+      "hover:border-[#338DFD]/40 hover:shadow-[0_14px_36px_rgba(51,141,253,0.12)]",
     accent: "from-[#338DFD] to-[#72b9ff]",
     badge: "bg-[#DCEBFD] text-[#2A78D6]",
     badgeOpen: "bg-[#338DFD] text-white",
@@ -40,7 +39,8 @@ const TONES = [
     name: "teal",
     card: "border-[#CFE9E4] bg-gradient-to-br from-[#E8F8F4] to-white",
     cardOpen: "border-[#2A9D8F]/50 shadow-[0_18px_45px_rgba(42,157,143,0.14)]",
-    cardHover: "hover:border-[#2A9D8F]/40 hover:shadow-[0_14px_36px_rgba(42,157,143,0.12)]",
+    cardHover:
+      "hover:border-[#2A9D8F]/40 hover:shadow-[0_14px_36px_rgba(42,157,143,0.12)]",
     accent: "from-[#2A9D8F] to-[#61D6BD]",
     badge: "bg-[#D2F0EA] text-[#1F7F73]",
     badgeOpen: "bg-[#2A9D8F] text-white",
@@ -92,14 +92,14 @@ const FAQSection = () => {
           method: "GET",
           headers: { Accept: "application/json" },
           signal: controller.signal,
+          cache: "no-store",
         });
-
         if (!response.ok) {
-          throw new Error("Unable to load FAQs right now.");
+          const errorBody = await response.text();
+          console.error("FAQ API error response:", errorBody);
+          throw new Error(`FAQ request failed with status ${response.status}`);
         }
-
         const data = await response.json();
-
         if (!data.success || !Array.isArray(data.faqs)) {
           throw new Error("The FAQ response could not be loaded.");
         }
@@ -144,8 +144,12 @@ const FAQSection = () => {
       .filter(
         ({ faq }) =>
           !term ||
-          String(faq.question || "").toLowerCase().includes(term) ||
-          String(faq.answer || "").toLowerCase().includes(term),
+          String(faq.question || "")
+            .toLowerCase()
+            .includes(term) ||
+          String(faq.answer || "")
+            .toLowerCase()
+            .includes(term),
       );
   }, [faqs, query]);
 
@@ -176,12 +180,11 @@ const FAQSection = () => {
   const searchMissLink = getWhatsAppLink(
     `Hello Dr. Shivam Sir, I couldn't find an answer to "${query.trim()}" in the FAQs. Could you help?`,
   );
-
   return (
     <section
       id="faqs"
       aria-labelledby="faq-heading"
-      className="relative isolate overflow-hidden bg-[#F3F9FC] py-14 sm:py-16 lg:py-20"
+      className="relative isolate overflow-hidden bg-[#F3F9FC] py-14 sm:py-16 lg:py-15"
     >
       {/* Decorative background — alternating blue / teal washes */}
       <div
@@ -255,7 +258,11 @@ const FAQSection = () => {
             <div className="relative">
               <motion.div
                 animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 3.2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
                 className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#61D6BD] text-[#102B4E] shadow-[0_10px_28px_rgba(97,214,189,0.35)] sm:h-14 sm:w-14"
               >
                 <MessageCircle size={26} />
@@ -585,7 +592,10 @@ const FAQSection = () => {
                                       {faq.linkText}
                                     </span>
 
-                                    <ArrowRight size={16} className="shrink-0" />
+                                    <ArrowRight
+                                      size={16}
+                                      className="shrink-0"
+                                    />
                                   </a>
                                 )}
                               </div>

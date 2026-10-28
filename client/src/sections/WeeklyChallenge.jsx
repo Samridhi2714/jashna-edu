@@ -439,7 +439,7 @@ export default function WeeklyChallenge() {
   return (
     <section
       id="weekly-challenge"
-      className="relative overflow-hidden bg-[#F4FAFC] py-14 sm:py-20 lg:py-24"
+      className="relative overflow-hidden bg-[#F4FAFC] py-14 sm:py-15 lg:py-10"
     >
       {/* BACKGROUND — alternating blue / teal washes */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">

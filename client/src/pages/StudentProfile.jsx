@@ -326,7 +326,6 @@ function GoalUpdateHistory({ history = [] }) {
 export default function StudentProfile() {
   const navigate = useNavigate();
   const imageInputRef = useRef(null);
-  const videoInputRef = useRef(null);
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -480,62 +479,6 @@ export default function StudentProfile() {
       setError(err?.message || "Unable to update profile picture.");
     } finally {
       setUploadingImage(false);
-    }
-  };
-  /* ========================================================= VIDEO FILE ========================================================= */
-  const handleVideoUpload = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    const allowedTypes = [
-      "video/mp4",
-      "video/webm",
-      "video/quicktime",
-      "video/x-msvideo",
-    ];
-    if (!allowedTypes.includes(file.type)) {
-      setError("Please upload an MP4, WebM, MOV, or AVI video.");
-      return;
-    }
-    if (file.size > 100 * 1024 * 1024) {
-      setError("Your video must be smaller than 100 MB.");
-      return;
-    }
-    try {
-      setUploadingVideo(true);
-      setError("");
-      setSuccess("");
-      const token = getStudentToken();
-      const formData = new FormData();
-      formData.append("video", file);
-      const response = await fetch(
-        `${API_URL}/api/auth/student/starting-point-video`,
-        {
-          method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        },
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(
-          data?.message || "Unable to upload starting-point video.",
-        );
-      }
-      const updatedStudent = {
-        ...student,
-        startingPointVideo: data.videoUrl,
-        startingPointVideoType: "upload",
-      };
-      setStudent(updatedStudent);
-      localStorage.setItem("studentData", JSON.stringify(updatedStudent));
-      setVideoMode(null);
-      setSuccess("Your starting-point video has been saved.");
-    } catch (err) {
-      console.error("Starting-point video upload error:", err);
-      setError(err?.message || "Unable to upload starting-point video.");
-    } finally {
-      setUploadingVideo(false);
     }
   };
   /* ========================================================= VIDEO LINK ========================================================= */
@@ -741,7 +684,7 @@ export default function StudentProfile() {
       await loadLearningGoals();
 
       setGoalsSuccess(
-        learningGoals?.initialAssessment?.submittedAt
+        (savedGoals || learningGoals)?.initialAssessment?.submittedAt
           ? "Your learning goals have been updated successfully."
           : "Your initial learning goals have been saved successfully.",
       );
@@ -1734,314 +1677,155 @@ export default function StudentProfile() {
             transition={{ delay: 0.18 }}
             className="mt-8 overflow-hidden rounded-[30px] border-2 border-[#8FBFD7] bg-gradient-to-br from-[#F9FCFF] via-[#F1F8FC] to-[#E7F4FA] shadow-[0_12px_35px_rgba(49,87,121,0.08)]"
           >
-            {" "}
-            {/* Header */}{" "}
             <div className="border-b-2 border-[#8FBFD7]/40 bg-gradient-to-r from-[#E5F3FA] via-[#F3FAFD] to-[#E9F9F5] px-6 py-7 sm:px-8 lg:px-10">
-              {" "}
               <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-                {" "}
                 <div className="flex items-start gap-4">
-                  {" "}
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-[#6FAFCB] bg-[#DCEFF8] text-[#286783] shadow-sm">
-                    {" "}
-                    <Video size={25} strokeWidth={2.5} />{" "}
-                  </div>{" "}
+                    <Video size={25} strokeWidth={2.5} />
+                  </div>
                   <div>
-                    {" "}
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-[#167A67]">
-                      {" "}
-                      Your starting point{" "}
-                    </p>{" "}
+                      Your starting point
+                    </p>
                     <h3 className="mt-1 text-2xl font-black tracking-[-0.035em] text-[#102B4E] sm:text-3xl">
-                      {" "}
-                      Day One Video{" "}
-                    </h3>{" "}
+                      Day One Video
+                    </h3>
                     <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-[#102B4E]/55">
-                      {" "}
-                      Your first-day speaking video becomes your communication
-                      baseline. Later, you can look back and see your
-                      growth.{" "}
-                    </p>{" "}
-                  </div>{" "}
-                </div>{" "}
+                      Your first-day speaking video becomes your communication baseline.
+                      Later, you can look back and see your growth.
+                    </p>
+                  </div>
+                </div>
                 <div className="inline-flex w-fit items-center gap-2 rounded-xl border-2 border-[#8FBFD7]/60 bg-white px-4 py-2.5 text-xs font-black text-[#286783] shadow-sm">
-                  {" "}
-                  <Video size={15} /> 15 sec – 3 min{" "}
-                </div>{" "}
-              </div>{" "}
-            </div>{" "}
-            <div className="p-6 sm:p-8 lg:p-10">
-              {" "}
-              {hasStartingVideo ? (
+                  <Video size={15} /> 15 sec – 3 min
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5 sm:p-7 lg:p-8">
+              {hasStartingVideo && (
                 <div className="overflow-hidden rounded-[24px] border-2 border-[#102B4E] bg-[#102B4E] shadow-[0_20px_45px_rgba(16,43,78,0.2)]">
-                  {" "}
                   <div className="relative aspect-video">
-                    {" "}
                     {student.startingPointVideoType === "upload" ? (
                       <video
                         src={student.startingPointVideo}
                         controls
+                        preload="metadata"
                         className="h-full w-full object-contain"
                       />
                     ) : embedUrl ? (
                       <iframe
                         src={embedUrl}
                         title="Starting point video"
+                        loading="lazy"
                         className="h-full w-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center px-5 text-center text-sm font-bold text-white/70">
-                        {" "}
-                        This video link could not be displayed.{" "}
+                        This video link could not be displayed.
                       </div>
-                    )}{" "}
+                    )}
                     <div className="pointer-events-none absolute left-5 top-5 rounded-xl border border-[#61D6BD]/30 bg-[#102B4E]/75 px-4 py-2 text-xs font-black uppercase tracking-wider text-white backdrop-blur-md">
-                      {" "}
-                      Your starting point{" "}
-                    </div>{" "}
-                  </div>{" "}
+                      Your starting point
+                    </div>
+                  </div>
+
                   <div className="flex flex-col gap-4 border-t border-white/10 p-5 sm:flex-row sm:items-center sm:justify-between">
-                    {" "}
                     <div>
-                      {" "}
-                      <p className="text-base font-black text-white">
-                        {" "}
-                        Your Day One recording{" "}
-                      </p>{" "}
+                      <p className="text-base font-black text-white">Your Day One recording</p>
                       <p className="mt-1 text-sm font-bold text-white/45">
-                        {" "}
                         {student.startingPointVideoType === "upload"
-                          ? "Uploaded video"
-                          : "Embedded video link"}{" "}
-                      </p>{" "}
-                    </div>{" "}
+                          ? "Previously uploaded video"
+                          : "YouTube video link"}
+                      </p>
+                    </div>
                     <div className="flex flex-wrap gap-2">
-                      {" "}
                       <button
                         type="button"
                         onClick={() => setShowVideoModal(true)}
                         className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#61D6BD] bg-[#61D6BD] px-5 py-3 text-sm font-black text-[#102B4E] transition hover:bg-[#7AE4CC] active:scale-95"
                       >
-                        {" "}
-                        <Play size={16} fill="currentColor" /> Watch Video{" "}
-                      </button>{" "}
+                        <Play size={16} fill="currentColor" /> Watch Video
+                      </button>
                       <button
                         type="button"
-                        onClick={() => setVideoMode("choose")}
+                        onClick={() => setVideoMode(videoMode === "link" ? null : "link")}
                         className="rounded-xl border-2 border-white/15 bg-white/[0.05] px-5 py-3 text-sm font-black text-white transition hover:border-[#61D6BD]/40 hover:bg-[#61D6BD]/10 hover:text-[#61D6BD] active:scale-95"
                       >
-                        {" "}
-                        Replace{" "}
-                      </button>{" "}
-                    </div>{" "}
-                  </div>{" "}
+                        {videoMode === "link" ? "Cancel" : "Replace link"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <>
-                  {" "}
-                  {(videoMode === null || videoMode === "choose") && (
-                    <div className="grid gap-5 lg:grid-cols-2">
-                      {" "}
-                      {/* Upload */}{" "}
-                      <motion.button
-                        type="button"
-                        whileHover={{ y: -6 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => videoInputRef.current?.click()}
-                        disabled={uploadingVideo}
-                        className="group relative overflow-hidden rounded-[26px] border-2 border-[#8FB7D2] bg-gradient-to-br from-[#F8FCFF] via-[#EEF7FD] to-[#E2F1FA] p-7 text-left shadow-[0_10px_30px_rgba(49,87,121,0.08)] transition-all hover:border-[#4D91C9] hover:shadow-[0_20px_45px_rgba(49,87,121,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {" "}
-                        <div className="relative flex items-center justify-between">
-                          {" "}
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-[#9CC8E8] bg-[#DDEFFF] text-[#315779] transition-all group-hover:border-[#315779] group-hover:bg-[#315779] group-hover:text-white">
-                            {" "}
-                            {uploadingVideo ? (
-                              <Loader2 size={24} className="animate-spin" />
-                            ) : (
-                              <Upload size={24} strokeWidth={2.5} />
-                            )}{" "}
-                          </div>{" "}
-                          <ArrowUpRight
-                            size={20}
-                            className="text-[#315779]/50"
-                          />{" "}
-                        </div>{" "}
-                        <h4 className="mt-7 text-xl font-black text-[#102B4E]">
-                          {" "}
-                          Upload your video{" "}
-                        </h4>{" "}
-                        <p className="mt-2 text-sm font-bold leading-6 text-[#102B4E]/50">
-                          {" "}
-                          Add your original first-day recording directly from
-                          your device.{" "}
-                        </p>{" "}
-                        <div className="mt-6 inline-flex items-center gap-2 rounded-xl border-2 border-[#8FB7D2]/60 bg-white/80 px-3.5 py-2.5 text-xs font-black text-[#315779]">
-                          {" "}
-                          <Upload size={14} /> Upload recording{" "}
-                        </div>{" "}
-                      </motion.button>{" "}
-                      {/* YouTube link */}{" "}
-                      <motion.button
-                        type="button"
-                        whileHover={{ y: -6 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setVideoMode("link")}
-                        disabled={uploadingVideo}
-                        className="group relative overflow-hidden rounded-[26px] border-2 border-[#8FD6C7] bg-gradient-to-br from-[#FAFFFD] via-[#EDFBF7] to-[#DDF7F0] p-7 text-left shadow-[0_10px_30px_rgba(22,122,103,0.07)] transition-all hover:border-[#61D6BD] hover:shadow-[0_20px_45px_rgba(22,122,103,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {" "}
-                        <div className="relative flex items-center justify-between">
-                          {" "}
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-[#9ADFD0] bg-[#D8F6EF] text-[#167A67] transition-all group-hover:border-[#167A67] group-hover:bg-[#61D6BD] group-hover:text-[#102B4E]">
-                            {" "}
-                            <Link2 size={24} strokeWidth={2.5} />{" "}
-                          </div>{" "}
-                          <ArrowUpRight
-                            size={20}
-                            className="text-[#167A67]/50"
-                          />{" "}
-                        </div>{" "}
-                        <h4 className="mt-7 text-xl font-black text-[#102B4E]">
-                          {" "}
-                          Add a video link{" "}
-                        </h4>{" "}
-                        <p className="mt-2 text-sm font-bold leading-6 text-[#102B4E]/50">
-                          {" "}
-                          Already have your recording online? Add your YouTube
-                          link instead.{" "}
-                        </p>{" "}
-                        <div className="mt-6 inline-flex items-center gap-2 rounded-xl border-2 border-[#8FD6C7]/60 bg-white/80 px-3.5 py-2.5 text-xs font-black text-[#167A67]">
-                          {" "}
-                          <Link2 size={14} /> Use YouTube{" "}
-                        </div>{" "}
-                      </motion.button>{" "}
+              )}
+
+              {(!hasStartingVideo || videoMode === "link") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-[26px] border-2 border-[#61D6BD]/40 bg-gradient-to-br from-[#F1FFFB] via-[#E8FAF5] to-[#F5FFFD] p-6 sm:p-7"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-[#61D6BD]/40 bg-white text-[#167A67]">
+                      <Link2 size={21} />
                     </div>
-                  )}{" "}
-                  {/* Link form */}{" "}
-                  {videoMode === "link" && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="rounded-[26px] border-2 border-[#61D6BD]/40 bg-gradient-to-br from-[#F1FFFB] via-[#E8FAF5] to-[#F5FFFD] p-6 sm:p-7"
+                    <div className="min-w-0 flex-1">
+                      <p className="text-lg font-black text-[#102B4E]">
+                        {hasStartingVideo ? "Add a new video link" : "Add your Day One video link"}
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-[#102B4E]/50">
+                        Upload your video to YouTube (Unlisted is fine), then paste the link here.
+                        YouTube and YouTube Shorts links work.
+                      </p>
+                    </div>
+                  </div>
+
+                  <input
+                    type="url"
+                    value={videoLink}
+                    onChange={(event) => setVideoLink(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleSaveVideoLink();
+                      }
+                    }}
+                    placeholder="https://youtube.com/..."
+                    aria-label="YouTube starting-point video URL"
+                    className="mt-6 w-full rounded-2xl border-2 border-[#102B4E]/10 bg-white px-5 py-4 text-base font-bold text-[#102B4E] outline-none transition placeholder:text-[#102B4E]/25 focus:border-[#61D6BD] focus:ring-4 focus:ring-[#61D6BD]/10"
+                  />
+
+                  <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm font-bold text-[#102B4E]/45">
+                      Make sure your mentor can view the video (Public or Unlisted).
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleSaveVideoLink}
+                      disabled={uploadingVideo || !videoLink.trim()}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#102B4E] bg-[#102B4E] px-6 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#193C67] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {" "}
-                      <div className="flex items-start gap-4">
-                        {" "}
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-[#61D6BD]/40 bg-white text-[#167A67]">
-                          {" "}
-                          <Link2 size={21} />{" "}
-                        </div>{" "}
-                        <div className="min-w-0 flex-1">
-                          {" "}
-                          <p className="text-lg font-black text-[#102B4E]">
-                            {" "}
-                            Add your video link{" "}
-                          </p>{" "}
-                          <p className="mt-1 text-sm font-bold text-[#102B4E]/50">
-                            {" "}
-                            Use a YouTube or YouTube Shorts link.{" "}
-                          </p>{" "}
-                        </div>{" "}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setVideoMode(null);
-                            setVideoLink("");
-                          }}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#102B4E]/10 bg-white text-[#102B4E]/40 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 active:scale-90"
-                          aria-label="Cancel video link"
-                        >
-                          {" "}
-                          <X size={18} />{" "}
-                        </button>{" "}
-                      </div>{" "}
-                      <input
-                        type="url"
-                        value={videoLink}
-                        onChange={(event) => setVideoLink(event.target.value)}
-                        placeholder="https://youtube.com/..."
-                        className="mt-6 w-full rounded-2xl border-2 border-[#102B4E]/10 bg-white px-5 py-4 text-base font-bold text-[#102B4E] outline-none transition placeholder:text-[#102B4E]/25 focus:border-[#61D6BD] focus:ring-4 focus:ring-[#61D6BD]/10"
-                      />{" "}
-                      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        {" "}
-                        <p className="text-sm font-bold text-[#102B4E]/45">
-                          {" "}
-                          Make sure the video can be viewed by your mentor.{" "}
-                        </p>{" "}
-                        <button
-                          type="button"
-                          onClick={handleSaveVideoLink}
-                          disabled={uploadingVideo || !videoLink.trim()}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#102B4E] bg-[#102B4E] px-6 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#193C67] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {" "}
-                          {uploadingVideo ? (
-                            <Loader2 size={17} className="animate-spin" />
-                          ) : (
-                            <CheckCircle2 size={17} />
-                          )}{" "}
-                          Save video{" "}
-                        </button>{" "}
-                      </div>{" "}
-                    </motion.div>
-                  )}{" "}
-                  {/* Replace flow: select a new upload or link */}{" "}
-                  {videoMode === "choose" && (
-                    <div className="mt-5 flex flex-wrap gap-3">
-                      {" "}
-                      <button
-                        type="button"
-                        onClick={() => videoInputRef.current?.click()}
-                        disabled={uploadingVideo}
-                        className="inline-flex items-center gap-2 rounded-xl border-2 border-[#315779] bg-[#315779] px-5 py-3 text-sm font-black text-white transition hover:bg-[#244361] disabled:opacity-50"
-                      >
-                        {" "}
-                        <Upload size={17} /> Upload replacement{" "}
-                      </button>{" "}
-                      <button
-                        type="button"
-                        onClick={() => setVideoMode("link")}
-                        disabled={uploadingVideo}
-                        className="inline-flex items-center gap-2 rounded-xl border-2 border-[#8FD6C7] bg-white px-5 py-3 text-sm font-black text-[#167A67] transition hover:bg-[#E8FAF5] disabled:opacity-50"
-                      >
-                        {" "}
-                        <Link2 size={17} /> Use a new link{" "}
-                      </button>{" "}
-                      <button
-                        type="button"
-                        onClick={() => setVideoMode(null)}
-                        className="inline-flex items-center gap-2 rounded-xl border-2 border-[#D5E5E2] bg-white px-5 py-3 text-sm font-black text-[#102B4E]/60 transition hover:bg-[#F7FCFA]"
-                      >
-                        {" "}
-                        <X size={17} /> Cancel{" "}
-                      </button>{" "}
-                    </div>
-                  )}{" "}
-                </>
-              )}{" "}
-              <input
-                ref={videoInputRef}
-                type="file"
-                accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
-                onChange={handleVideoUpload}
-                className="hidden"
-              />{" "}
-              <div className="mt-6 flex items-start gap-3 rounded-2xl border-2 border-[#61D6BD]/20 bg-gradient-to-r from-[#E8FAF5] to-white px-5 py-4 shadow-sm">
-                {" "}
-                <Sparkles
-                  size={17}
-                  className="mt-0.5 shrink-0 text-[#167A67]"
-                />{" "}
+                      {uploadingVideo ? (
+                        <Loader2 size={17} className="animate-spin" />
+                      ) : (
+                        <CheckCircle2 size={17} />
+                      )}
+                      Save video
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              <div className="flex items-start gap-3 rounded-2xl border-2 border-[#61D6BD]/20 bg-gradient-to-r from-[#E8FAF5] to-white px-5 py-4 shadow-sm">
+                <Sparkles size={17} className="mt-0.5 shrink-0 text-[#167A67]" />
                 <p className="text-sm font-bold leading-6 text-[#102B4E]/55">
-                  {" "}
                   This is your starting point — not a test you need to perfect.
-                  Speak naturally and let your growth tell the story.{" "}
-                </p>{" "}
-              </div>{" "}
-            </div>{" "}
+                  Speak naturally and let your growth tell the story.
+                </p>
+              </div>
+            </div>
           </motion.section>{" "}
           {/* ================================================= FOOTER NOTE ================================================= */}{" "}
           <div className="pb-10 pt-7 text-center">

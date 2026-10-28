@@ -21,7 +21,7 @@ import {
 
 import Marrisa from "../assets/images/Marrisa.webp";
 import Mario from "../assets/images/Mario.webp";
-
+import { getWhatsAppLink } from "../data/contact";
 /* =========================================================
    JASHNA EDU AI ASSISTANT  (MERGED VERSION)
    ---------------------------------------------------------
@@ -179,7 +179,17 @@ const BOT_CONFIG = {
     font: "'Inter', 'Segoe UI', Arial, system-ui, sans-serif",
   },
 };
-
+const PAGE_LINKS = {
+  "/programs": "Explore Programs",
+  "/ielts": "IELTS Course",
+  "/assessment": "Take Assessment",
+  "/weekly-challenge": "Weekly Challenge",
+  "/events": "See Events",
+  "/testimonials": "Student Stories",
+  "/resources": "Free Resources",
+  "/about": "About Jashna",
+  "/careers": "Careers",
+};
 /* =========================================================
    QUICK ACTIONS
 ========================================================= */
@@ -1462,7 +1472,7 @@ export default function JashnaAiWidget() {
     };
   }, []);
 
-    /* -------------------------------------------------------
+  /* -------------------------------------------------------
      DESKTOP GREETING  (file 1 — home page only)
      Appears after the visitor scrolls a little, or after
      10 seconds on the page — whichever happens first.
@@ -1682,13 +1692,26 @@ export default function JashnaAiWidget() {
       const rawReply =
         data?.reply ||
         "I'm here to help. Tell me a little more about what you want to practise.";
-
       const hasCTA = /\[CTA:WHATSAPP\]/i.test(rawReply);
-      const reply = rawReply.replace(/\[CTA:WHATSAPP\]/gi, "").trim();
+
+      const links = [
+        ...new Set(
+          [...rawReply.matchAll(/\[LINK:(\/[a-z-]*)\]/gi)].map((m) =>
+            m[1].toLowerCase(),
+          ),
+        ),
+      ]
+        .filter((path) => PAGE_LINKS[path])
+        .slice(0, 2);
+
+      const reply = rawReply
+        .replace(/\[CTA:WHATSAPP\]/gi, "")
+        .replace(/\[LINK:[^\]]*\]/gi, "")
+        .trim();
 
       setMessages((previous) => [
         ...previous,
-        createMessage("assistant", reply, { showCTA: hasCTA }),
+        createMessage("assistant", reply, { showCTA: hasCTA, links }),
       ]);
     } catch (error) {
       console.error("Jashna AI error:", error);
@@ -2130,30 +2153,57 @@ export default function JashnaAiWidget() {
                                     bot={bot}
                                   />
                                 </motion.div>
+                                {(message.links?.length > 0 ||
+                                  message.showCTA) && (
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {message.links?.map((path) => (
+                                      <motion.button
+                                        key={path}
+                                        type="button"
+                                        initial={{ opacity: 0, y: 6 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        whileHover={{ y: -3, scale: 1.03 }}
+                                        whileTap={{ scale: 0.96 }}
+                                        onClick={() => {
+                                          closeChat();
+                                          navigate(path);
+                                        }}
+                                        className="inline-flex items-center gap-2 rounded-full border-2 bg-white px-4 py-2.5 text-[14px] font-black shadow-sm"
+                                        style={{
+                                          borderColor: bot.primary,
+                                          color: bot.primaryDark,
+                                        }}
+                                      >
+                                        {PAGE_LINKS[path]}
+                                        <ArrowUpRight
+                                          size={15}
+                                          strokeWidth={2.8}
+                                        />
+                                      </motion.button>
+                                    ))}
 
-                                {message.showCTA && (
-                                  <motion.button
-                                    type="button"
-                                    initial={{ opacity: 0, y: 6 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    whileHover={{ y: -3, scale: 1.03 }}
-                                    whileTap={{ scale: 0.96 }}
-                                    onClick={() => {
-                                      setLeadStatus("idle");
-                                      setShowLeadForm(true);
-                                    }}
-                                    className="group relative mt-2 inline-flex w-fit items-center gap-2 overflow-hidden rounded-full px-5 py-3 text-[15px] font-black text-white shadow-lg"
-                                    style={{ background: bot.button }}
-                                  >
-                                    <Shine />
-                                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
-                                      <ArrowUpRight
-                                        size={15}
-                                        strokeWidth={2.8}
-                                      />
-                                    </span>
-                                    Get personalized guidance
-                                  </motion.button>
+                                    {message.showCTA && (
+                                      <motion.a
+                                        href={getWhatsAppLink(
+                                          `Hello Dr.Shivam Sir, I was chatting with ${bot.name} on the Jashna Edu website and would like personalised guidance.`,
+                                        )}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        initial={{ opacity: 0, y: 6 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        whileHover={{ y: -3, scale: 1.03 }}
+                                        whileTap={{ scale: 0.96 }}
+                                        className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-[#25D366] px-5 py-2.5 text-[14px] font-black text-white shadow-lg"
+                                      >
+                                        <Shine />
+                                        <MessageCircle
+                                          size={17}
+                                          strokeWidth={2.6}
+                                        />
+                                        Chat with Dr. Shivam Sir
+                                      </motion.a>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             </motion.div>

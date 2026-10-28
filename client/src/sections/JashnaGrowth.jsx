@@ -238,7 +238,7 @@ export default function JashnaGrowth() {
     <div className={TIMES}>
       <section
         id="growth"
-        className="relative overflow-hidden bg-[#FCFAF6] pb-16 pt-20 lg:pb-24 lg:pt-24"
+        className="relative overflow-hidden bg-[#FCFAF6] pb-16 pt-20 lg:pb-24 lg:pt-20"
       >
         {/* BACKGROUND: soft glow that takes the colour of the hovered stage */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">

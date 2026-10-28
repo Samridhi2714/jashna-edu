@@ -265,16 +265,6 @@ export const uploadStudentProfileImage = async (req, res) => {
 =========================================================
 STUDENT STARTING-POINT VIDEO
 =========================================================
-
-PATCH /api/auth/student/starting-point-video
-
-The student's first-day communication video.
-
-Rules:
-- Maximum file size: 100 MB
-- Minimum duration: 15 seconds
-- Maximum duration: 3 minutes
-=========================================================
 */
 
 export const uploadStartingPointVideo = async (req, res) => {

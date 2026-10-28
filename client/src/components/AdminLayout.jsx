@@ -190,19 +190,18 @@ function AdminLayout() {
                 badge={<LearningGoalsBadge />}
               />
 
+               <AdminNavItem
+                to="/admin/assessments-tasks"
+                label="Assessments & Tasks"
+                icon={<ClipboardList size={18} />}
+                active={isActive("/admin/assessments-tasks")}
+                onClick={closeMobile}
+              />
               <AdminNavItem
                 to="/admin/submissions"
                 label="Submissions & Review"
                 icon={<FileCheck size={18} />}
                 active={isActive("/admin/submissions")}
-                onClick={closeMobile}
-              />
-
-              <AdminNavItem
-                to="/admin/assessments-tasks"
-                label="Assessments & Tasks"
-                icon={<ClipboardList size={18} />}
-                active={isActive("/admin/assessments-tasks")}
                 onClick={closeMobile}
               />
             </div>
