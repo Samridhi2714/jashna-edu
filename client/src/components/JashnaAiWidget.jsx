@@ -23,7 +23,7 @@ import Marrisa from "../assets/images/Marrisa.webp";
 import Mario from "../assets/images/Mario.webp";
 import { getWhatsAppLink } from "../data/contact";
 /* =========================================================
-   JASHNA EDU AI ASSISTANT  (MERGED VERSION)
+   JASHNA EDU AI ASSISTANT  (MERGED VERSION, v2)
    ---------------------------------------------------------
    FROM FILE 1 (kept as-is in look + behaviour)
    - Floating launcher (rotating rainbow ring + CoachOrb)
@@ -35,13 +35,13 @@ import { getWhatsAppLink } from "../data/contact";
    - Action cards, messages, typing indicator, lead form
    - Chat / lead API functionality
 
-   LATEST CHANGES (mobile polish)
-   - Launcher: JASHNA EDU text scaled down on small screens so
-     "EDU" no longer gets cut; green sparkle badge removed
-   - Coach hero: fewer + smaller floating keywords on mobile,
-     moved to the top corners so they don't cover the character
-   - Buttons / cards / chat text: slightly smaller on mobile,
-     full size from the `sm` breakpoint upwards
+   v2 IMPROVEMENTS (chat reliability + engagement)
+   - Request timeout + one automatic retry (bot never "freezes")
+   - Friendly rate-limit and offline messages (English / Hinglish)
+   - Fixed: current message was sent twice (in history + message)
+   - Quick-reply chips under the latest bot message
+   - One gentle idle nudge (no API call, saves free quota)
+   - Input length limit + persona (character) sent to backend
 ========================================================= */
 
 /* =========================================================
@@ -52,6 +52,15 @@ const JASHNA_BRAND = {
   blue: "#2778E8",
   green: "#48A947",
 };
+
+/* =========================================================
+   CHAT SETTINGS
+========================================================= */
+
+const CHAT_TIMEOUT_MS = 25000; // wait up to 25s for one AI reply
+const IDLE_NUDGE_MS = 60000; // one soft nudge after 60s of silence
+const MAX_INPUT_LENGTH = 500;
+const MAX_HISTORY_SENT = 8;
 
 /* =========================================================
    BOT CONFIG
@@ -243,6 +252,67 @@ const CHAT_ACTIONS = [
 ];
 
 /* =========================================================
+   LANGUAGE STYLE  (English / Hinglish only)
+   Used for fallback messages, nudges and quick-reply chips so
+   they match how the learner is writing.
+========================================================= */
+
+const HINGLISH_HINT =
+  /\b(mujhe|mera|meri|mere|aap|aapka|aapki|kya|kaise|kaisa|kyun|kyu|nahi|nhi|hai|hain|hoon|hu|karna|karni|karo|karein|chahiye|chahta|chahti|bolna|bolne|samajh|samjh|bhai|yaar|batao|bataiye|abhi|thoda|bahut|accha|achha|theek|lena|dena|kitna|kitni|konsa|kaunsa)\b/i;
+
+const detectStyle = (text = "") =>
+  /[\u0900-\u097F]/.test(text) || HINGLISH_HINT.test(text)
+    ? "hinglish"
+    : "english";
+
+const FALLBACK_MESSAGES = {
+  english:
+    "I'm having a little trouble connecting right now. Please try again in a moment, or chat with Dr. Shivam Sir directly.",
+  hinglish:
+    "Abhi thoda connection issue aa raha hai. Please thodi der baad try kijiye, ya seedha Dr. Shivam Sir se baat kar lijiye.",
+};
+
+const RATE_LIMIT_MESSAGES = {
+  english: "You're quick! Give me a few seconds and send that again.",
+  hinglish: "Aap bahut fast ho! Kuch seconds ruk kar phir se bhejiye.",
+};
+
+const NUDGES = {
+  marrisa: {
+    english:
+      "Take your time! Whenever you're ready, tell me one thing you'd like to practise. 😊",
+    hinglish:
+      "Aaram se! Jab ready ho, bas ek cheez batao jo aap practise karna chahte ho. 😊",
+  },
+  mario: {
+    english:
+      "Still here! Want to try one quick speaking challenge together? 🎤",
+    hinglish:
+      "Main yahin hoon! Ek quick speaking challenge try karein? 🎤",
+  },
+};
+
+const QUICK_REPLIES = {
+  english: [
+    { label: "One more tip", prompt: "Give me one more tip." },
+    {
+      label: "Practise with me",
+      prompt:
+        "Let's practise. Ask me one short question that I can answer in English.",
+    },
+    { label: "Check my level", navigate: "/assessment" },
+  ],
+  hinglish: [
+    { label: "Ek aur tip do", prompt: "Ek aur tip do." },
+    {
+      label: "Mere saath practice karo",
+      prompt: "Mere saath practice karo. Mujhse ek chhota sawaal poochho.",
+    },
+    { label: "Mera level check karo", navigate: "/assessment" },
+  ],
+};
+
+/* =========================================================
    HELPERS
 ========================================================= */
 
@@ -252,6 +322,53 @@ const createMessage = (role, content, extra = {}) => ({
   content,
   ...extra,
 });
+
+/*
+  Calls the chat API with a timeout and ONE automatic retry.
+  - 429 (too many requests) is returned as { rateLimited: true }
+  - other 4xx errors are not retried
+  - network errors / timeouts / 5xx are retried once
+*/
+async function requestChatReply(payload) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timer);
+
+      if (response.status === 429) {
+        return { rateLimited: true };
+      }
+
+      if (!response.ok) {
+        const error = new Error(`Chat request failed (${response.status})`);
+        error.noRetry = response.status >= 400 && response.status < 500;
+        throw error;
+      }
+
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timer);
+      lastError = error;
+
+      if (error?.noRetry || attempt === 2) break;
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
+  }
+
+  throw lastError;
+}
 
 /* =========================================================
    VOICE HELPERS  (browser speechSynthesis — no API needed)
@@ -1134,6 +1251,37 @@ function ActionCard({ action, bot, onClick }) {
 }
 
 /* =========================================================
+   QUICK REPLY CHIPS   (v2 — shown under the latest bot message)
+========================================================= */
+
+function QuickReplies({ bot, chips, onPick }) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {chips.map((chip, index) => (
+        <motion.button
+          key={chip.label}
+          type="button"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 + index * 0.07 }}
+          whileHover={{ y: -2, scale: 1.04 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onPick(chip)}
+          className="rounded-full border px-3 py-1.5 text-[12px] font-black sm:px-3.5 sm:py-2 sm:text-[13px]"
+          style={{
+            borderColor: `${bot.primary}55`,
+            background: bot.primarySoft,
+            color: bot.primaryDark,
+          }}
+        >
+          {chip.label}
+        </motion.button>
+      ))}
+    </div>
+  );
+}
+
+/* =========================================================
    MESSAGE CONTENT   (file 2 — markdown-lite, balanced sizes)
 ========================================================= */
 
@@ -1284,6 +1432,7 @@ function LeadForm({
           }
           placeholder="Your name"
           autoComplete="name"
+          maxLength={80}
           className={inputClass}
           style={{ borderColor: bot.border, color: bot.text }}
         />
@@ -1296,6 +1445,7 @@ function LeadForm({
           placeholder="Phone number"
           type="tel"
           autoComplete="tel"
+          maxLength={25}
           className={inputClass}
           style={{ borderColor: bot.border, color: bot.text }}
         />
@@ -1425,6 +1575,15 @@ export default function JashnaAiWidget() {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const bot = selectedBot ? BOT_CONFIG[selectedBot] : null;
+
+  /* has the learner written at least one message? (chips + nudge) */
+  const hasUserChatted = messages.some((item) => item.role === "user");
+
+  /* style (English / Hinglish) of the learner's latest message */
+  const learnerStyle = detectStyle(
+    [...messages].reverse().find((item) => item.role === "user")?.content ||
+      "",
+  );
 
   /* -------------------------------------------------------
      VOICE  (greeting spoken when a coach is chosen)
@@ -1568,6 +1727,41 @@ export default function JashnaAiWidget() {
   }, [showLeadForm]);
 
   /* -------------------------------------------------------
+     IDLE NUDGE  (v2)
+     If the learner goes quiet for 60s after a bot reply, the
+     coach adds ONE soft message. It is local text, so it does
+     not use any AI quota. It resets after the next real reply.
+  ------------------------------------------------------- */
+
+  useEffect(() => {
+    if (!isOpen || !bot || isTyping || showLeadForm) return undefined;
+
+    const last = messages[messages.length - 1];
+
+    if (!last || last.role !== "assistant" || last.isNudge) return undefined;
+    if (!messages.some((item) => item.role === "user")) return undefined;
+
+    const timer = setTimeout(() => {
+      setMessages((previous) => {
+        const latest = previous[previous.length - 1];
+
+        if (!latest || latest.role !== "assistant" || latest.isNudge) {
+          return previous;
+        }
+
+        return [
+          ...previous,
+          createMessage("assistant", NUDGES[bot.id][learnerStyle], {
+            isNudge: true,
+          }),
+        ];
+      });
+    }, IDLE_NUDGE_MS);
+
+    return () => clearTimeout(timer);
+  }, [messages, isOpen, isTyping, showLeadForm, bot, learnerStyle]);
+
+  /* -------------------------------------------------------
      ESCAPE
   ------------------------------------------------------- */
 
@@ -1670,46 +1864,55 @@ export default function JashnaAiWidget() {
       return;
     }
 
-    const messageText = (
-      messageOverride !== null ? messageOverride : input
-    ).trim();
+    const messageText = (messageOverride !== null ? messageOverride : input)
+      .trim()
+      .slice(0, MAX_INPUT_LENGTH);
 
     if (!messageText || isTyping) return;
 
     const userMessage = createMessage("user", messageText);
-    const nextMessages = [...messages, userMessage];
 
-    setMessages(nextMessages);
+    /*
+      History = the conversation BEFORE this message.
+      (The backend adds the current message itself, so we must not
+      include it here or the AI would see it twice.)
+      Nudges are local-only and are never sent to the AI.
+    */
+    const history = messages
+      .filter((item) => !item.isNudge)
+      .slice(-MAX_HISTORY_SENT)
+      .map((item) => ({ role: item.role, content: item.content }));
+
+    setMessages((previous) => [...previous, userMessage]);
     setInput("");
     setIsTyping(true);
     setCharacterActive(true);
 
-    try {
-      const history = nextMessages.map((item) => ({
-        role: item.role,
-        content: item.content,
-      }));
+    const style = detectStyle(messageText);
 
-      const response = await fetch(`${API_URL}/api/ai/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: messageText,
-          history,
-          page: location.pathname,
-          character: selectedBot,
-        }),
+    try {
+      const data = await requestChatReply({
+        message: messageText,
+        history,
+        page: location.pathname,
+        character: selectedBot,
       });
 
-      if (!response.ok) {
-        throw new Error("Chat request failed");
+      /* too many requests -> friendly message, no scary error */
+      if (data?.rateLimited) {
+        setMessages((previous) => [
+          ...previous,
+          createMessage("assistant", RATE_LIMIT_MESSAGES[style]),
+        ]);
+        return;
       }
-
-      const data = await response.json();
 
       const rawReply =
         data?.reply ||
-        "I'm here to help. Tell me a little more about what you want to practise.";
+        (style === "hinglish"
+          ? "Main yahin hoon. Aap kya practise karna chahte ho, thoda aur batao."
+          : "I'm here to help. Tell me a little more about what you want to practise.");
+
       const hasCTA = /\[CTA:WHATSAPP\]/i.test(rawReply);
 
       const links = [
@@ -1734,12 +1937,12 @@ export default function JashnaAiWidget() {
     } catch (error) {
       console.error("Jashna AI error:", error);
 
+      /* connection problem: warm message + a way to reach a human */
       setMessages((previous) => [
         ...previous,
-        createMessage(
-          "assistant",
-          "I'm having a little trouble connecting right now. Please try again in a moment, or explore one of the practice options above.",
-        ),
+        createMessage("assistant", FALLBACK_MESSAGES[style], {
+          showCTA: true,
+        }),
       ]);
     } finally {
       setIsTyping(false);
@@ -1766,6 +1969,20 @@ export default function JashnaAiWidget() {
     }
 
     sendMessage(action.prompt);
+  };
+
+  /* -------------------------------------------------------
+     QUICK REPLY CHIP
+  ------------------------------------------------------- */
+
+  const handleChip = (chip) => {
+    if (chip.navigate) {
+      closeChat();
+      navigate(chip.navigate);
+      return;
+    }
+
+    sendMessage(chip.prompt);
   };
 
   /* -------------------------------------------------------
@@ -2137,8 +2354,10 @@ export default function JashnaAiWidget() {
                       </div>
 
                       <div className="space-y-3.5 sm:space-y-4">
-                        {messages.map((message) => {
+                        {messages.map((message, messageIndex) => {
                           const isUser = message.role === "user";
+                          const isLastMessage =
+                            messageIndex === messages.length - 1;
 
                           return (
                             <motion.div
@@ -2223,6 +2442,18 @@ export default function JashnaAiWidget() {
                                     )}
                                   </div>
                                 )}
+
+                                {/* quick-reply chips: latest bot message only */}
+                                {!isUser &&
+                                  isLastMessage &&
+                                  !isTyping &&
+                                  hasUserChatted && (
+                                    <QuickReplies
+                                      bot={bot}
+                                      chips={QUICK_REPLIES[learnerStyle]}
+                                      onPick={handleChip}
+                                    />
+                                  )}
                               </div>
                             </motion.div>
                           );
@@ -2312,6 +2543,7 @@ export default function JashnaAiWidget() {
                     onKeyDown={handleKeyDown}
                     placeholder={`Ask ${bot.name} anything...`}
                     aria-label={`Ask ${bot.name} anything`}
+                    maxLength={MAX_INPUT_LENGTH}
                     /* 16px on mobile keeps iOS from zooming into the input */
                     className="min-w-0 flex-1 bg-transparent px-1 text-[16px] font-bold text-slate-900 outline-none placeholder:text-slate-400 sm:text-[17px]"
                   />

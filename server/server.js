@@ -32,6 +32,20 @@ import assessmentLinksRoutes from "./routes/assessmentLinksRoutes.js";
 const app = express();
 
 /* =========================================================
+   PROCESS-LEVEL SAFETY NET
+   A single unexpected error in one request should be logged,
+   not crash the whole server (which makes the bot go "off").
+========================================================= */
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+});
+
+/* =========================================================
    DATABASE
 ========================================================= */
 
@@ -76,11 +90,15 @@ app.use(express.json({ limit: "100kb" }));
 
 /* =========================================================
    HEALTH CHECK
+   Point an uptime monitor (UptimeRobot / cron-job.org) at
+   this URL every 5 minutes so a free host does not sleep.
 ========================================================= */
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     ok: true,
+    uptimeSeconds: Math.round(process.uptime()),
+    aiConfigured: Boolean(process.env.GROQ_API_KEY),
     timestamp: new Date().toISOString(),
   });
 });
@@ -123,12 +141,14 @@ const authLimiter = rateLimit({
 });
 
 // Stricter protection for AI endpoints.
+// (aiRoutes.js adds extra per-route limits for chat and lead.)
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
+    success: false,
     message: "Too many AI requests. Please wait a minute and try again.",
   },
 });
@@ -258,11 +278,66 @@ app.use("/api", (req, res) => {
 });
 
 /* =========================================================
+   GLOBAL ERROR HANDLER
+   Must come after all routes. Catches malformed JSON,
+   oversized bodies and any error thrown inside a route.
+========================================================= */
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  if (err?.type === "entity.parse.failed") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid request format.",
+    });
+  }
+
+  if (err?.type === "entity.too.large") {
+    return res.status(413).json({
+      success: false,
+      message: "Request is too large.",
+    });
+  }
+
+  console.error("Unhandled server error:", err);
+
+  res.status(err?.status || 500).json({
+    success: false,
+    message: "Something went wrong. Please try again.",
+  });
+});
+
+/* =========================================================
    START SERVER
 ========================================================= */
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Jashna Edu API server started on port ${PORT}`);
 });
+
+// Keep connections alive longer than most proxies / load balancers
+// so users do not hit random connection resets.
+server.keepAliveTimeout = 65 * 1000;
+server.headersTimeout = 66 * 1000;
+
+/* =========================================================
+   GRACEFUL SHUTDOWN
+   Lets in-flight chat requests finish when the host restarts.
+========================================================= */
+
+const shutdown = (signal) => {
+  console.log(`${signal} received. Closing server gracefully...`);
+
+  server.close(() => {
+    console.log("Server closed.");
+    process.exit(0);
+  });
+
+  // Force exit if requests hang for more than 10 seconds
+  setTimeout(() => process.exit(1), 10000).unref();
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
