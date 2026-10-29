@@ -238,7 +238,7 @@ export default function JashnaGrowth() {
     <div className={TIMES}>
       <section
         id="growth"
-        className="relative overflow-hidden bg-[#FCFAF6] pb-16 pt-20 lg:pb-24 lg:pt-20"
+        className="relative overflow-hidden bg-[#FCFAF6] pb-14 pt-16 lg:pb-24 lg:pt-16"
       >
         {/* BACKGROUND: soft glow that takes the colour of the hovered stage */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -323,17 +323,18 @@ export default function JashnaGrowth() {
           </div>
         </div>
 
-        {/* BOTTOM STATEMENT */}
+        {/* BOTTOM STATEMENT
+            Compact on phones (smaller padding + text), unchanged from sm up */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="relative z-10 mx-auto mt-16 max-w-3xl px-6 xl:mt-28"
+          className="relative z-10 mx-auto mt-12 max-w-3xl px-5 sm:mt-16 sm:px-6 xl:mt-28"
         >
-          <div className="relative overflow-hidden rounded-[2rem] border border-[#E8DFD0] bg-white/70 px-7 py-8 text-center shadow-[0_18px_55px_rgba(49,43,34,0.06)] backdrop-blur-sm sm:px-12">
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-[#E8DFD0] bg-white/70 px-5 py-5 text-center shadow-[0_18px_55px_rgba(49,43,34,0.06)] backdrop-blur-sm sm:rounded-[2rem] sm:px-12 sm:py-8">
             <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-[#C0675B] via-[#9A6AA8] to-[#6E9A62]" />
-            <p className="text-2xl leading-relaxed text-[#2B2233] sm:text-[1.7rem]">
+            <p className="text-lg leading-snug text-[#2B2233] sm:text-[1.7rem] sm:leading-relaxed">
               Your growth is not a straight line.
               <span className="text-[#9A5E8A]">
                 {" "}
@@ -674,6 +675,8 @@ function JashnaEduLogo() {
    - laptops / desktops (lg+): photo left, story right
    - drag / swipe the photo to change stage
    - arrow keys and Esc work
+   - z-[150]: sits ABOVE the floating AI launcher (z-100) so the
+     launcher can never cover the stepper / next button
 ========================================================= */
 
 const slideVariants = {
@@ -703,7 +706,7 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
   const [ticked, setTicked] = useState({});
   const toggleTick = (key) => setTicked((t) => ({ ...t, [key]: !t[key] }));
   const tickedCount = stage.points.filter(
-    (_, i) => ticked[`${stage.id}-${i}`]
+    (_, i) => ticked[`${stage.id}-${i}`],
   ).length;
   const allTicked = tickedCount === stage.points.length;
 
@@ -714,7 +717,7 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
       role="dialog"
       aria-modal="true"
       aria-label={stage.title}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1E1626]/75 p-3 backdrop-blur-md sm:p-6"
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-[#1E1626]/75 p-3 backdrop-blur-md sm:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -841,7 +844,7 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
 
           {/* ---------- STORY SIDE ---------- */}
           <div
-            className="relative flex min-h-0 flex-col p-5 sm:p-8 lg:overflow-y-auto lg:p-9"
+            className="relative flex min-h-0 flex-col p-5 pb-6 sm:p-8 lg:overflow-y-auto lg:p-9"
             style={{
               background: `linear-gradient(160deg, #ffffff 0%, ${stage.colors.background} 100%)`,
             }}
@@ -1047,8 +1050,8 @@ function PhotoLightbox({ index, onClose, onNavigate }) {
                         backgroundColor: active
                           ? stage.colors.accent
                           : passed
-                          ? stage.colors.background
-                          : "#ffffff",
+                            ? stage.colors.background
+                            : "#ffffff",
                         color: active ? "#ffffff" : stage.colors.dark,
                       }}
                     >

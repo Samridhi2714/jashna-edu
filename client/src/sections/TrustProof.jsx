@@ -177,7 +177,7 @@ function TrustProof() {
   return (
     <section
       id="audience"
-      className="relative overflow-hidden border-y border-jashna-charcoal/10 bg-[#FBF7F1] px-4 py-20 sm:px-8 lg:py-18 xl:px-12 2xl:px-16"
+      className="relative overflow-hidden border-y border-jashna-charcoal/10 bg-[#FBF7F1] px-4 py-12 sm:px-8 sm:py-16 lg:py-18 xl:px-12 2xl:px-16"
     >
       {/* ===== Decorative background ===== */}
       <div
@@ -207,28 +207,27 @@ function TrustProof() {
           transition={{ duration: 0.7 }}
           className="mx-auto max-w-4xl text-center"
         >
-          <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-jashna-maroon/15 bg-white/80 px-5 py-2 shadow-sm backdrop-blur">
+          <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-jashna-maroon/15 bg-white/80 px-4 py-2 shadow-sm backdrop-blur sm:mb-6 sm:gap-3 sm:px-5">
             <span className="h-2 w-2 rounded-full bg-[#2a9d8f]" />
-            <span className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[#2a9d8f] sm:text-xs">
+            <span className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#2a9d8f] sm:text-xs sm:tracking-[0.28em]">
               Built for different journeys
             </span>
             <span className="h-2 w-2 rounded-full bg-[#84e245]" />
           </div>
 
-          <h2 className="font-display text-5xl font-extrabold leading-[1.02] tracking-tight text-jashna-charcoal sm:text-6xl lg:text-7xl">
+          <h2 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-jashna-charcoal sm:text-6xl sm:leading-[1.02] lg:text-7xl">
             Who is{" "}
             <span className="bg-gradient-to-r from-[#215e93] via-[#2a9d8f] to-[#84e245] bg-clip-text text-transparent">
               JASHNA EDU
-            </span>
-            {" "}
+            </span>{" "}
             for?
           </h2>
 
-          <div className="mx-auto mt-6 h-1.5 w-24 rounded-full bg-gradient-to-r from-[#84e245] to-[#2a9d8f]" />
+          <div className="mx-auto mt-5 h-1.5 w-24 rounded-full bg-gradient-to-r from-[#84e245] to-[#2a9d8f] sm:mt-6" />
 
-          <p className="mx-auto mt-7 max-w-3xl text-base font-medium leading-8 text-jashna-muted sm:text-lg lg:text-xl">
+          <p className="mx-auto mt-5 max-w-3xl text-base font-medium leading-7 text-jashna-muted sm:mt-7 sm:text-lg sm:leading-8 lg:text-xl">
             Whether you're a student, professional, job seeker, English or IELTS
-            aspirant, institution, or corporate team — discover a learning path
+            aspirant, institution, or corporate team discover a learning path
             designed around{" "}
             <span className="font-bold text-jashna-charcoal">
               where you are
@@ -243,16 +242,22 @@ function TrustProof() {
         {/* ============================= */}
         {/* AUDIENCE CARDS — full width grid */}
         {/* ============================= */}
-        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 lg:mt-20 xl:grid-cols-3 xl:gap-8">
+        <div className="mt-10 grid grid-cols-1 gap-5 sm:mt-14 md:grid-cols-2 lg:mt-16 xl:grid-cols-3 xl:gap-8">
           {audienceItems.map((item, index) => (
             <AudienceCard key={item.number} item={item} index={index} />
           ))}
         </div>
-
       </div>
     </section>
   );
 }
+
+/* ========================================================
+   AUDIENCE CARD
+   Compact version: shorter image, tighter spacing, so the
+   image + title + description + all 3 options fit in one
+   screen (phones AND desktop at ~90% zoom).
+======================================================== */
 
 function AudienceCard({ item, index }) {
   const Icon = item.icon;
@@ -265,15 +270,15 @@ function AudienceCard({ item, index }) {
       transition={{ duration: 0.6, delay: (index % 3) * 0.08 }}
       whileHover={{ y: -8 }}
       style={{ "--accent": item.accent, "--tint": item.tint }}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[32px] border border-jashna-charcoal/10 bg-white shadow-[0_10px_35px_rgba(90,50,40,0.07)] transition-[box-shadow,border-color] duration-500 hover:border-[color:var(--accent)]/40 hover:shadow-[0_28px_70px_rgba(90,50,40,0.16)]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-[28px] border border-jashna-charcoal/10 bg-white shadow-[0_10px_35px_rgba(90,50,40,0.07)] transition-[box-shadow,border-color] duration-500 hover:border-[color:var(--accent)]/40 hover:shadow-[0_28px_70px_rgba(90,50,40,0.16)] sm:rounded-[32px]"
     >
       {/* ================= IMAGE ================= */}
-      <div className="relative h-56 overflow-hidden sm:h-60 xl:h-64">
+      <div className="relative h-36 overflow-hidden sm:h-44 xl:aspect-[16/9] xl:h-auto">
         <img
           src={item.image}
           alt={item.title}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-110"
+          className="h-full w-full object-cover object-[center_20%] transition-transform duration-[900ms] ease-out group-hover:scale-105"
         />
 
         {/* colour wash + soft fade into the white body */}
@@ -285,7 +290,7 @@ function AudienceCard({ item, index }) {
 
         {/* tag */}
         <span
-          className="absolute left-5 top-5 rounded-full bg-white/95 px-4 py-1.5 text-[10px] font-extrabold tracking-[0.2em] shadow-md backdrop-blur"
+          className="absolute left-5 top-5 hidden rounded-full bg-white/95 px-4 py-1.5 text-[10px] font-extrabold tracking-[0.2em] shadow-md backdrop-blur sm:block"
           style={{ color: item.accent }}
         >
           {item.tag}
@@ -293,7 +298,7 @@ function AudienceCard({ item, index }) {
 
         {/* big outlined number */}
         <span
-          className="pointer-events-none absolute -top-2 right-5 font-display text-7xl font-extrabold leading-none text-transparent transition-transform duration-500 group-hover:scale-110"
+          className="pointer-events-none absolute -top-2 right-4 font-display text-6xl font-extrabold leading-none text-transparent transition-transform duration-500 group-hover:scale-110 sm:right-5 sm:text-7xl"
           style={{ WebkitTextStroke: "2px rgba(255,255,255,0.95)" }}
         >
           {item.number}
@@ -301,35 +306,35 @@ function AudienceCard({ item, index }) {
       </div>
 
       {/* ================= BODY ================= */}
-      <div className="relative flex flex-1 flex-col px-6 pb-8 pt-0 sm:px-8">
+      <div className="relative flex flex-1 flex-col px-5 pb-5 pt-0 sm:px-7 sm:pb-6">
         {/* icon chip overlapping the image */}
         <div
-          className="-mt-8 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white text-white shadow-lg transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105"
+          className="-mt-7 flex h-14 w-14 items-center justify-center rounded-2xl border-4 border-white text-white shadow-lg transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105 sm:-mt-8 sm:h-16 sm:w-16"
           style={{ backgroundColor: item.accent }}
         >
-          <Icon size={26} strokeWidth={2} />
+          <Icon size={24} strokeWidth={2} />
         </div>
 
         {/* title row */}
-        <div className="mt-5 flex items-start justify-between gap-4">
+        <div className="mt-3 flex items-start justify-between gap-4 sm:mt-4">
           <h3 className="font-display text-2xl font-extrabold leading-tight text-jashna-charcoal sm:text-[1.75rem]">
             {item.title}
           </h3>
 
           <span
-            className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-500 group-hover:rotate-45 group-hover:text-white group-hover:[background-color:var(--accent)]"
+            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-500 group-hover:rotate-45 group-hover:text-white group-hover:[background-color:var(--accent)] sm:h-10 sm:w-10"
             style={{ borderColor: item.accent, color: item.accent }}
           >
             <ArrowUpRight size={18} strokeWidth={2.4} />
           </span>
         </div>
 
-        <p className="mt-3 text-[18px] font-medium leading-7 text-mauve-900">
+        <p className="mt-2 text-[16px] font-medium leading-6 text-mauve-900 sm:mt-2.5 sm:text-[18px] sm:leading-7">
           {item.description}
         </p>
 
         {/* divider with label */}
-        <div className="mb-4 mt-6 flex items-center gap-3">
+        <div className="mb-3 mt-4 flex items-center gap-3 sm:mt-5">
           <span
             className="text-[11px] font-extrabold uppercase tracking-[0.22em]"
             style={{ color: item.accent }}
@@ -343,34 +348,34 @@ function AudienceCard({ item, index }) {
         </div>
 
         {/* categories — always visible, no layout jump, works on touch */}
-        <ul className="mt-auto space-y-2.5">
+        <ul className="mt-auto space-y-2">
           {item.categories.map((category, i) => (
             <li key={category.title}>
               <a
                 href={getWhatsAppLink(
-                  `Hello Dr.Shivam Sir, I would like to know more about ${category.title} curriculum at Jashna Edu. Please guide me about the suitable program and consultation.`
+                  `Hello Dr.Shivam Sir, I would like to know more about ${category.title} curriculum at Jashna Edu. Please guide me about the suitable program and consultation.`,
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Enquire on WhatsApp about ${category.title}`}
-                className="group/row flex items-center gap-4 rounded-2xl border border-transparent bg-[color:var(--tint)] px-4 py-3.5 transition-all duration-300 hover:translate-x-1.5 hover:border-[color:var(--accent)]/40 hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                className="group/row flex items-center gap-3 rounded-2xl border border-transparent bg-[color:var(--tint)] px-3.5 py-2.5 transition-all duration-300 hover:translate-x-1.5 hover:border-[color:var(--accent)]/40 hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-4 sm:px-4 sm:py-3"
                 style={{ "--tw-ring-color": item.accent }}
               >
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-xs font-extrabold shadow-sm transition-colors duration-300 group-hover/row:text-white group-hover/row:[background-color:var(--accent)]"
-                style={{ color: item.accent }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
+                <span
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-extrabold shadow-sm transition-colors duration-300 group-hover/row:text-white group-hover/row:[background-color:var(--accent)] sm:h-9 sm:w-9"
+                  style={{ color: item.accent }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
 
-              <div className="min-w-0">
-                <p className="text-[16px] font-bold leading-snug text-jashna-charcoal">
-                  {category.title}
-                </p>
-                <p className="mt-0.5 text-[15px] font-medium leading-5 text-jashna-muted">
-                  {category.description}
-                </p>
-              </div>
+                <div className="min-w-0">
+                  <p className="text-[15px] font-bold leading-snug text-jashna-charcoal sm:text-[16px]">
+                    {category.title}
+                  </p>
+                  <p className="mt-0.5 text-[13px] font-medium leading-[1.3] text-jashna-muted sm:text-[15px] sm:leading-5">
+                    {category.description}
+                  </p>
+                </div>
               </a>
             </li>
           ))}

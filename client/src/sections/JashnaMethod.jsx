@@ -145,14 +145,29 @@ const rightPlacement = [
 function JashnaMethod() {
   const [activeFeature, setActiveFeature] = useState(features[0]);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(false);
   const reduceMotion = useReducedMotion();
 
   const leftFeatures = features.slice(0, 3);
   const rightFeatures = features.slice(3, 6);
 
-  /* AUTO PREVIEW */
+  /* Track desktop (xl = 1280px). Auto preview runs ONLY on desktop;
+     on tablets / phones the user explores by tapping. */
   useEffect(() => {
-    if (reduceMotion || !isAutoPlaying) return;
+    if (typeof window === "undefined") return undefined;
+
+    const query = window.matchMedia("(min-width: 1280px)");
+    const update = () => setIsDesktop(query.matches);
+
+    update();
+    query.addEventListener("change", update);
+
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  /* AUTO PREVIEW (desktop only) */
+  useEffect(() => {
+    if (reduceMotion || !isAutoPlaying || !isDesktop) return;
 
     const timer = setInterval(() => {
       setActiveFeature((current) => {
@@ -162,7 +177,7 @@ function JashnaMethod() {
     }, 5200);
 
     return () => clearInterval(timer);
-  }, [isAutoPlaying, reduceMotion]);
+  }, [isAutoPlaying, reduceMotion, isDesktop]);
 
   const selectFeature = (feature) => {
     setActiveFeature(feature);
@@ -175,11 +190,11 @@ function JashnaMethod() {
       className="
         relative overflow-hidden
         bg-gradient-to-br from-[#1B6AA5] via-[#2380C0] to-[#3A98D6]
-        px-4 py-18
+        px-4 py-14
         text-white
-        sm:px-8 sm:py-22
-        xl:px-12 xl:py-20
-        2xl:px-16
+        sm:px-8 sm:py-20
+        xl:px-12 xl:py-18
+        2xl:px-15
       "
     >
       {/* ================= BACKGROUND ================= */}
@@ -212,15 +227,15 @@ function JashnaMethod() {
         {/* ================= HEADER ================= */}
 
         <div className="mx-auto max-w-5xl text-center">
-          <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-white/30 bg-white/15 px-5 py-2 backdrop-blur">
+          <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-white/30 bg-white/15 px-4 py-2 backdrop-blur sm:mb-6 sm:gap-3 sm:px-5">
             <span className="h-2 w-2 rounded-full bg-[#BDF2FF]" />
-            <span className="text-xs font-extrabold uppercase tracking-[0.28em] text-white sm:text-sm">
+            <span className="text-xs font-extrabold uppercase tracking-[0.24em] text-white sm:text-sm sm:tracking-[0.28em]">
               Why Jashna Edu
             </span>
             <span className="h-2 w-2 rounded-full bg-white" />
           </div>
 
-          <h2 className="font-display text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl 2xl:text-8xl">
+          <h2 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl sm:leading-[1.02] lg:text-7xl 2xl:text-8xl">
             A method built{" "}
             <span className="relative inline-block text-[#b4f1ff]">
               around you.
@@ -228,15 +243,15 @@ function JashnaMethod() {
             </span>
           </h2>
 
-          <p className="mx-auto mt-8 max-w-4xl text-lg font-medium leading-8 text-white/90 sm:text-xl sm:leading-9 2xl:text-2xl 2xl:leading-10">
+          <p className="mx-auto mt-6 max-w-4xl text-base font-medium leading-7 text-white/90 sm:mt-8 sm:text-xl sm:leading-9 2xl:text-2xl 2xl:leading-10">
             From understanding where you stand to applying what you learn in
             real situations, every part of the Jashna experience is designed to
             move communication from knowledge to confidence.
           </p>
 
           {/* status + autoplay */}
-          <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <div className="flex items-center gap-3 rounded-full border border-white/30 bg-white/15 px-5 py-3 backdrop-blur-xl">
+          <div className="mt-7 flex flex-col items-center justify-center gap-4 sm:mt-9 sm:flex-row">
+            <div className="flex items-center gap-3 rounded-full border border-white/30 bg-white/15 px-5 py-2.5 backdrop-blur-xl sm:py-3">
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/75">
                 Exploring
               </span>
@@ -272,7 +287,7 @@ function JashnaMethod() {
 
         {/* ================= INTERACTIVE EXPERIENCE ================= */}
 
-        <div className="mt-16 sm:mt-20">
+        <div className="mt-10 sm:mt-20">
           {/* ---------- DESKTOP (xl and up) ---------- */}
           <div
             className="
@@ -314,25 +329,35 @@ function JashnaMethod() {
 
           {/* ---------- TABLET / MOBILE ---------- */}
           <div className="xl:hidden">
-            <div className="mb-14 flex justify-center sm:mb-16">
+            {/* phones: compact app-screen preview with tab strip */}
+            <div className="md:hidden">
+              <MobilePreview
+                feature={activeFeature}
+                onSelect={selectFeature}
+                reduceMotion={reduceMotion}
+              />
+            </div>
+
+            {/* tablets: the full phone mockup */}
+            <div className="mb-16 hidden justify-center md:flex">
               <PhoneMockup feature={activeFeature} reduceMotion={reduceMotion} />
             </div>
 
-            <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-4 mt-9 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between md:mt-0 md:mb-6">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#CFF6FF]">
                   The six principles
                 </p>
-                <h3 className="mt-1 font-display text-3xl font-extrabold sm:text-4xl">
+                <h3 className="mt-1 font-display text-2xl font-extrabold sm:text-4xl">
                   Explore the method
                 </h3>
               </div>
-              <span className="text-base font-medium text-white/80">
+              <span className="text-sm font-medium text-white/80 sm:text-base">
                 Tap a principle to preview it
               </span>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid items-start gap-3 sm:gap-4 md:grid-cols-2 md:gap-5">
               {features.map((feature) => (
                 <FeatureCallout
                   key={feature.id}
@@ -346,9 +371,9 @@ function JashnaMethod() {
           </div>
         </div>
 
-        {/* ================= STEP INDICATOR ================= */}
+        {/* ================= STEP INDICATOR (tablet + desktop) ================= */}
 
-        <div className="mx-auto mt-14 max-w-5xl sm:mt-16">
+        <div className="mx-auto mt-14 hidden max-w-5xl md:block sm:mt-16">
           <div className="grid grid-cols-6 gap-2 sm:gap-3">
             {features.map((feature) => {
               const isActive = activeFeature.id === feature.id;
@@ -388,13 +413,9 @@ function JashnaMethod() {
 
         <motion.div
           whileHover={reduceMotion ? undefined : { y: -3 }}
-          className="mx-auto mt-12 max-w-5xl rounded-[2rem] bg-white px-6 py-7 text-center shadow-[0_24px_60px_rgba(10,60,100,0.28)] sm:px-10 sm:py-8"
+          className="mx-auto mt-10 max-w-5xl rounded-[1.75rem] bg-white px-5 py-6 text-center shadow-[0_24px_60px_rgba(10,60,100,0.28)] sm:mt-12 sm:rounded-[2rem] sm:px-10 sm:py-8"
         >
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#1E73B0]/10">
-              <Sparkles size={22} className="text-[#1E73B0]" />
-            </div>
-
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <p className="text-lg leading-7 text-slate-600 sm:text-xl 2xl:text-2xl">
               Not just learning English.
               <span className="ml-1.5 font-extrabold text-[#14527F]">
@@ -412,6 +433,9 @@ function JashnaMethod() {
 
 /* ========================================================
    FEATURE CALLOUT
+   Desktop: unchanged.
+   Mobile: compact accordion — every card shows icon + number
+   + title; only the ACTIVE card opens its description.
 ======================================================== */
 
 function FeatureCallout({
@@ -442,10 +466,11 @@ function FeatureCallout({
         onClick={() => onSelect(feature)}
         whileHover={{ y: isMobile ? -2 : -4 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
+        aria-expanded={isMobile ? isActive : undefined}
         className={`
           group relative min-w-0 flex-1
-          overflow-hidden rounded-[1.75rem] border-2
-          p-6 text-left
+          overflow-hidden rounded-[1.5rem] border-2 sm:rounded-[1.75rem]
+          p-4 text-left sm:p-5
           transition-all duration-300
           xl:p-7
           ${
@@ -464,11 +489,11 @@ function FeatureCallout({
         )}
 
         {/* top row: icon + number/short title + arrow */}
-        <div className="relative flex items-center gap-4">
+        <div className="relative flex items-center gap-3 sm:gap-4">
           <div
             className={`
-              flex h-14 w-14 shrink-0 items-center justify-center
-              rounded-2xl transition-all duration-300 xl:h-16 xl:w-16
+              flex h-11 w-11 shrink-0 items-center justify-center
+              rounded-xl transition-all duration-300 sm:h-14 sm:w-14 sm:rounded-2xl xl:h-16 xl:w-16
               ${
                 isActive
                   ? "bg-gradient-to-br from-[#1E73B0] to-[#2E8FCF] text-white shadow-lg shadow-[#1E73B0]/30"
@@ -476,7 +501,7 @@ function FeatureCallout({
               }
             `}
           >
-            <Icon size={26} strokeWidth={1.8} />
+            <Icon size={24} strokeWidth={1.8} />
           </div>
 
           <div className="min-w-0 flex-1">
@@ -488,7 +513,7 @@ function FeatureCallout({
               {feature.number}
             </span>
             <p
-              className={`mt-0.5 text-sm font-bold uppercase tracking-[0.1em] sm:text-[15px] ${
+              className={`mt-0.5 text-sm font-bold uppercase tracking-[0.08em] sm:text-[15px] sm:tracking-[0.1em] ${
                 isActive ? "text-[#1E73B0]" : "text-[#CFF6FF]"
               }`}
             >
@@ -499,6 +524,8 @@ function FeatureCallout({
           <ArrowUpRight
             size={22}
             className={`shrink-0 transition-all duration-300 ${
+              isMobile && isActive ? "rotate-90" : ""
+            } ${
               isActive
                 ? "text-[#1E73B0]"
                 : "text-white/60 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white"
@@ -508,27 +535,46 @@ function FeatureCallout({
 
         {/* title */}
         <h3
-          className={`mt-5 font-display text-2xl font-extrabold leading-tight xl:text-[1.6rem] 2xl:text-[1.9rem] ${
+          className={`mt-3 font-display text-xl font-extrabold leading-tight sm:mt-5 sm:text-2xl xl:text-[1.6rem] 2xl:text-[1.9rem] ${
             isActive ? "text-[#0F4C7A]" : "text-white"
           }`}
         >
           {feature.title}
         </h3>
 
-        {/* description (always visible, so cards never jump in height) */}
-        <p
-          className={`mt-3 text-base font-medium leading-7 2xl:text-lg 2xl:leading-8 ${
-            isActive ? "text-slate-600" : "text-white/90"
-          }`}
-        >
-          {feature.description}
-        </p>
+        {/* description
+            desktop: always visible (cards never jump in height)
+            mobile : only the active card expands */}
+        {isMobile ? (
+          <AnimatePresence initial={false}>
+            {isActive && (
+              <motion.div
+                key="desc"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+                <p className="mt-2.5 text-base font-medium leading-7 text-slate-600">
+                  {feature.description}
+                </p>
 
-        {isMobile && isActive && (
-          <div className="mt-5 flex items-center gap-2 text-sm font-extrabold uppercase tracking-[0.14em] text-[#1E73B0]">
-            <span className="h-2 w-2 rounded-full bg-[#1E73B0]" />
-            Currently exploring
-          </div>
+                <div className="mt-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[#1E73B0]">
+                  <span className="h-2 w-2 rounded-full bg-[#1E73B0]" />
+                  Currently exploring
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        ) : (
+          <p
+            className={`mt-3 text-base font-medium leading-7 2xl:text-lg 2xl:leading-8 ${
+              isActive ? "text-slate-600" : "text-white/90"
+            }`}
+          >
+            {feature.description}
+          </p>
         )}
       </motion.button>
 
@@ -570,7 +616,141 @@ function FeatureCallout({
 }
 
 /* ========================================================
-   PHONE MOCKUP
+   MOBILE PREVIEW  (phones only)
+   A compact "app screen" in place of the tall phone mockup.
+   It keeps the app-UI idea from desktop, but the 6 icon tabs
+   on top make the six methods instantly clear and tappable.
+======================================================== */
+
+function MobilePreview({ feature, onSelect, reduceMotion }) {
+  const Icon = feature.icon;
+
+  return (
+    <div className="relative mx-auto w-full max-w-[26rem]">
+      {/* soft glow */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/25 blur-[70px]" />
+
+      {/* device frame */}
+      <div className="relative rounded-[2rem] border-2 border-white/70 bg-gradient-to-b from-[#14527F] to-[#0F4670] p-2 shadow-[0_28px_70px_rgba(10,50,90,0.45)]">
+        <div className="relative overflow-hidden rounded-[1.6rem] bg-jashna-ivory text-jashna-charcoal">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-[#62C9DF]/25 blur-3xl" />
+
+          <div className="relative px-4 pb-5 pt-4">
+            {/* app header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#1E73B0]">
+                  Jashna Edu
+                </p>
+                <p className="mt-0.5 text-sm font-medium text-jashna-muted">
+                  The Jashna Experience
+                </p>
+              </div>
+            </div>
+
+            {/* 6 tabs */}
+            <div className="mt-4 grid grid-cols-6 gap-1.5">
+              {features.map((item) => {
+                const TabIcon = item.icon;
+                const isActive = item.id === feature.id;
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onSelect(item)}
+                    aria-label={`View ${item.title}`}
+                    aria-pressed={isActive}
+                    className={`flex h-11 items-center justify-center rounded-xl transition-all duration-300 ${
+                      isActive
+                        ? "bg-gradient-to-br from-[#1E73B0] to-[#2E8FCF] text-white shadow-md shadow-[#1E73B0]/30"
+                        : "bg-[#1E73B0]/10 text-[#1E73B0] active:scale-95"
+                    }`}
+                  >
+                    <TabIcon size={19} strokeWidth={1.9} />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* dynamic content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={feature.id}
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -12 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="mt-4"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1E73B0]/10 text-[#1E73B0]">
+                    <Icon size={18} strokeWidth={1.9} />
+                  </div>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-jashna-muted">
+                    {feature.number} / 06
+                    <span className="ml-2 text-sm normal-case tracking-normal text-[#1E73B0]">
+                      {feature.screenLabel}
+                    </span>
+                  </p>
+                </div>
+
+                {/* main card */}
+                <div className="mt-3 overflow-hidden rounded-[1.4rem] bg-gradient-to-br from-[#1B6AA5] to-[#2E8FCF] p-4 text-white shadow-xl shadow-[#1E73B0]/25">
+                  <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#CFF6FF]">
+                    {feature.screenAccent}
+                  </p>
+
+                  <h3 className="mt-2 font-display text-2xl font-extrabold leading-[1.1]">
+                    {feature.screenTitle}
+                  </h3>
+
+                  <p className="mt-2.5 text-sm font-medium leading-5 text-white/90">
+                    {feature.screenDescription}
+                  </p>
+
+                  <div className="mt-3.5 h-2 overflow-hidden rounded-full bg-white/25">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${65 + Number(feature.number) * 5}%` }}
+                      transition={{ duration: 0.8, delay: 0.1 }}
+                      className="h-full rounded-full bg-white"
+                    />
+                  </div>
+                </div>
+
+                {/* points as chips (saves height) */}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {feature.points.map((point, index) => (
+                    <motion.span
+                      key={point}
+                      initial={
+                        reduceMotion ? { opacity: 0 } : { opacity: 0, y: 6 }
+                      }
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.07 }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[#1E73B0]/15 bg-white px-3 py-1.5 text-[13px] font-bold text-jashna-charcoal shadow-sm"
+                    >
+                      <Check size={13} className="text-[#1E73B0]" />
+                      {point}
+                    </motion.span>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-4 text-center text-sm font-medium text-white/85">
+        Tap an icon to explore each principle
+      </p>
+    </div>
+  );
+}
+
+/* ========================================================
+   PHONE MOCKUP  (tablet + desktop)
 ======================================================== */
 
 function PhoneMockup({ feature, reduceMotion }) {
@@ -628,15 +808,11 @@ function PhoneMockup({ feature, reduceMotion }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#1E73B0]">
-                  Jashna Education
+                  Jashna Edu
                 </p>
                 <p className="mt-1 text-sm font-medium text-jashna-muted">
                   The Jashna Experience
                 </p>
-              </div>
-
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E73B0]/10 text-[#1E73B0]">
-                <Sparkles size={17} />
               </div>
             </div>
 
@@ -720,12 +896,7 @@ function PhoneMockup({ feature, reduceMotion }) {
                 {/* bottom */}
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-xs font-medium text-jashna-muted">
-                    Jashna Education
-                  </span>
-
-                  <span className="flex items-center gap-1 text-xs font-extrabold text-[#1E73B0]">
-                    Explore
-                    <ArrowUpRight size={13} />
+                    Jashna Edu
                   </span>
                 </div>
               </motion.div>

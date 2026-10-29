@@ -35,9 +35,13 @@ import { getWhatsAppLink } from "../data/contact";
    - Action cards, messages, typing indicator, lead form
    - Chat / lead API functionality
 
-   NEW
-   - Bigger, bolder, more readable text everywhere
-   - Hover / tap / shine effects on every interactive element
+   LATEST CHANGES (mobile polish)
+   - Launcher: JASHNA EDU text scaled down on small screens so
+     "EDU" no longer gets cut; green sparkle badge removed
+   - Coach hero: fewer + smaller floating keywords on mobile,
+     moved to the top corners so they don't cover the character
+   - Buttons / cards / chat text: slightly smaller on mobile,
+     full size from the `sm` breakpoint upwards
 ========================================================= */
 
 /* =========================================================
@@ -303,13 +307,18 @@ function Shine() {
 
 /* =========================================================
    JASHNA BRAND MARK   (file 1)
+   `small` is used inside the launcher orb. 
 ========================================================= */
 
-function JashnaBrandMark({ small = false }) {
+function JashnaBrandMark({ small = false, tiny = false }) {
   return (
     <div
-      className={`flex items-center justify-center font-black tracking-[-0.07em] ${
-        small ? "text-[10px]" : "text-[18px]"
+      className={`flex items-center justify-center whitespace-nowrap font-black tracking-[-0.07em] ${
+        tiny
+          ? "text-[9px]"
+          : small
+            ? "text-[7px] sm:text-[9px]"
+            : "text-[18px]"
       }`}
     >
       <span style={{ color: JASHNA_BRAND.blue }}>JASHNA</span>
@@ -322,9 +331,10 @@ function JashnaBrandMark({ small = false }) {
 
 /* =========================================================
    NEUTRAL COACH ORB   (file 1 — launcher before choosing)
+   Green sparkle badge removed (mic is already there).
 ========================================================= */
 
-function CoachOrb({ active = false }) {
+function CoachOrb({ active = false, tinyBrand = false }) {
   return (
     <div className="relative flex h-full w-full items-center justify-center">
       <motion.div
@@ -340,7 +350,7 @@ function CoachOrb({ active = false }) {
       <div className="absolute inset-[-4px] rounded-full bg-white" />
 
       <motion.div
-        className="relative z-10 flex h-[68px] w-[68px] flex-col items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[0_12px_30px_rgba(20,40,80,.2)]"
+        className="relative z-10 flex h-[60px] w-[60px] flex-col items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-[0_12px_30px_rgba(20,40,80,.2)] sm:h-[68px] sm:w-[68px]"
         animate={{ scale: active ? [1, 1.04, 1] : [1, 1.02, 1] }}
         transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -350,7 +360,7 @@ function CoachOrb({ active = false }) {
         </div>
 
         <motion.div
-          className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-white shadow-lg"
+          className="relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-white shadow-lg sm:h-8 sm:w-8"
           style={{
             background:
               "linear-gradient(135deg,#E94F91 0%,#A978F4 48%,#3288F5 100%)",
@@ -358,21 +368,13 @@ function CoachOrb({ active = false }) {
           animate={{ y: [0, -2, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <Mic2 size={15} strokeWidth={2.4} />
+          <Mic2 size={14} strokeWidth={2.4} />
         </motion.div>
 
-        <div className="relative z-10 mt-1">
-          <JashnaBrandMark small />
+        <div className="relative z-10 mt-0.5 sm:mt-1">
+          <JashnaBrandMark small tiny={tinyBrand} />
         </div>
       </motion.div>
-
-      <motion.span
-        className="absolute -right-1 top-1 z-30 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-[#B9E94A] text-[#18364D] shadow-md"
-        animate={{ rotate: [0, 12, -12, 0], scale: [1, 1.12, 1] }}
-        transition={{ duration: 2.2, repeat: Infinity }}
-      >
-        <Sparkles size={9} />
-      </motion.span>
     </div>
   );
 }
@@ -411,7 +413,7 @@ function CharacterLauncher({ bot, active = false }) {
 
 /* =========================================================
    CHOOSER SCENE PIECES   (file 1 — floating words / dots /
-   waveform / speech bubble), text made bigger
+   waveform / speech bubble)
 ========================================================= */
 
 function FloatingWord({
@@ -433,7 +435,7 @@ function FloatingWord({
       transition={{ duration: 4, delay, repeat: Infinity, ease: "easeInOut" }}
     >
       <div
-        className="rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] shadow-lg backdrop-blur-md"
+        className="rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] shadow-lg backdrop-blur-md sm:px-3 sm:py-1.5 sm:text-[11px]"
         style={{
           color: bot.primaryDark,
           borderColor: `${bot.primary}30`,
@@ -501,7 +503,7 @@ function CharacterWaveform({ bot }) {
 
 function ChooserScene({ bot }) {
   return (
-    <div className="relative mx-auto h-[280px] w-full">
+    <div className="relative mx-auto h-[260px] w-full sm:h-[280px]">
       {/* ambient glow */}
       <motion.div
         className="absolute left-1/2 top-1/2 z-0 h-[210px] w-[250px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
@@ -559,7 +561,7 @@ function ChooserScene({ bot }) {
 
       {/* character */}
       <motion.div
-        className="absolute bottom-[4px] left-1/2 z-10 h-[255px] w-[240px] -translate-x-1/2"
+        className="absolute bottom-[4px] left-1/2 z-10 h-[235px] w-[220px] -translate-x-1/2 sm:h-[255px] sm:w-[240px]"
         animate={{ y: bot.id === "marrisa" ? [0, -4, 0] : [0, -6, 0] }}
         transition={{
           duration: bot.id === "marrisa" ? 4 : 2.8,
@@ -579,7 +581,7 @@ function ChooserScene({ bot }) {
 
       {/* speech bubble */}
       <motion.div
-        className="absolute right-[2%] top-[4px] z-30 max-w-[190px]"
+        className="absolute right-[2%] top-[4px] z-30 max-w-[170px] sm:max-w-[190px]"
         initial={{ opacity: 0, scale: 0.85, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: [0, -3, 0] }}
         transition={{
@@ -589,14 +591,14 @@ function ChooserScene({ bot }) {
         }}
       >
         <div
-          className="relative rounded-[16px] border px-3.5 py-2.5 shadow-[0_12px_25px_rgba(0,0,0,.12)] backdrop-blur-xl"
+          className="relative rounded-[16px] border px-3 py-2 shadow-[0_12px_25px_rgba(0,0,0,.12)] backdrop-blur-xl sm:px-3.5 sm:py-2.5"
           style={{
             background: bot.speech,
             borderColor: `${bot.primary}30`,
           }}
         >
           <div
-            className="text-[14px] font-black leading-[1.35]"
+            className="text-[13px] font-black leading-[1.35] sm:text-[14px]"
             style={{ color: bot.dark }}
           >
             {bot.greeting}
@@ -614,14 +616,14 @@ function ChooserScene({ bot }) {
 
       {/* waveform pill */}
       <motion.div
-        className="absolute bottom-[10px] left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/70 bg-white/95 px-3.5 py-2 shadow-[0_10px_25px_rgba(0,0,0,.1)] backdrop-blur-xl"
+        className="absolute bottom-[10px] left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/70 bg-white/95 px-3 py-1.5 shadow-[0_10px_25px_rgba(0,0,0,.1)] backdrop-blur-xl sm:px-3.5 sm:py-2"
         animate={{ y: [0, -2, 0] }}
         transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
       >
         <Mic2 size={13} style={{ color: bot.primary }} />
         <CharacterWaveform bot={bot} />
         <span
-          className="text-[11px] font-black uppercase tracking-[0.12em]"
+          className="text-[10px] font-black uppercase tracking-[0.12em] sm:text-[11px]"
           style={{ color: bot.dark }}
         >
           Speak
@@ -659,7 +661,7 @@ function CharacterChooser({ onSelect, onClose }) {
           aria-label="Close"
           whileHover={{ scale: 1.1, rotate: 90 }}
           whileTap={{ scale: 0.9 }}
-          className="absolute right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-900"
+          className="absolute right-3 top-3 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 sm:right-4 sm:top-4 sm:h-11 sm:w-11"
         >
           <X size={20} />
         </motion.button>
@@ -686,15 +688,15 @@ function CharacterChooser({ onSelect, onClose }) {
           >
             <JashnaBrandMark />
 
-            <p className="mt-3 text-[12px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <p className="mt-3 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500 sm:text-[12px] sm:tracking-[0.2em]">
               Meet your Jashna English & confidence mentors
             </p>
 
-            <h2 className="mt-2 text-[32px] font-black leading-[1.05] tracking-[-0.05em] text-[#10233E] sm:text-[44px]">
+            <h2 className="mt-2 text-[28px] font-black leading-[1.05] tracking-[-0.05em] text-[#10233E] sm:text-[44px]">
               Who do you want to talk to?
             </h2>
 
-            <p className="mx-auto mt-3 max-w-[520px] text-[15px] font-semibold leading-[1.6] text-slate-600 sm:text-[16px]">
+            <p className="mx-auto mt-3 max-w-[520px] text-[14px] font-semibold leading-[1.6] text-slate-600 sm:text-[16px]">
               Two personalities, one Jashna Edu learning experience. Choose the
               coach whose style feels right for you.
             </p>
@@ -734,19 +736,19 @@ function CharacterChooser({ onSelect, onClose }) {
                 <ChooserScene bot={bot} />
               </div>
 
-              <div className="relative mt-1 rounded-[21px] border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-xl">
+              <div className="relative mt-1 rounded-[21px] border border-white/80 bg-white/80 p-3.5 shadow-sm backdrop-blur-xl sm:p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3
-                        className="text-[28px] font-black leading-none tracking-[-0.045em]"
+                        className="text-[24px] font-black leading-none tracking-[-0.045em] sm:text-[28px]"
                         style={{ color: bot.dark }}
                       >
                         {bot.name}
                       </h3>
 
                       <span
-                        className="rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.1em]"
+                        className="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] sm:text-[11px]"
                         style={{
                           color: bot.primaryDark,
                           background: `${bot.primary}15`,
@@ -757,7 +759,7 @@ function CharacterChooser({ onSelect, onClose }) {
                     </div>
 
                     <p
-                      className="mt-1.5 text-[12px] font-black uppercase tracking-[0.12em]"
+                      className="mt-1.5 text-[11px] font-black uppercase tracking-[0.1em] sm:text-[12px] sm:tracking-[0.12em]"
                       style={{ color: bot.primaryDark }}
                     >
                       {bot.role}
@@ -769,7 +771,7 @@ function CharacterChooser({ onSelect, onClose }) {
                     onClick={() => onSelect(bot.id)}
                     whileHover={{ scale: 1.12, rotate: -4 }}
                     whileTap={{ scale: 0.92 }}
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white shadow-lg"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-lg sm:h-12 sm:w-12"
                     style={{ background: bot.button }}
                     aria-label={`Talk to ${bot.name}`}
                   >
@@ -778,7 +780,7 @@ function CharacterChooser({ onSelect, onClose }) {
                 </div>
 
                 <p
-                  className="mt-3 text-[15px] font-bold leading-[1.5]"
+                  className="mt-3 text-[14px] font-bold leading-[1.5] sm:text-[15px]"
                   style={{ color: bot.muted }}
                 >
                   {bot.shortDescription}
@@ -789,7 +791,7 @@ function CharacterChooser({ onSelect, onClose }) {
                     <motion.span
                       key={tag}
                       whileHover={{ y: -2, scale: 1.05 }}
-                      className="rounded-full border bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.06em]"
+                      className="rounded-full border bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.06em] sm:px-3 sm:py-1.5 sm:text-[11px]"
                       style={{
                         borderColor: `${bot.primary}30`,
                         color: bot.primaryDark,
@@ -805,7 +807,7 @@ function CharacterChooser({ onSelect, onClose }) {
                   onClick={() => onSelect(bot.id)}
                   whileHover={{ y: -3 }}
                   whileTap={{ scale: 0.97 }}
-                  className="group/btn relative mt-4 flex w-full items-center justify-center gap-2 overflow-hidden rounded-[15px] px-4 py-4 text-[14px] font-black uppercase tracking-[0.06em] text-white shadow-lg"
+                  className="group/btn relative mt-4 flex w-full items-center justify-center gap-2 overflow-hidden rounded-[15px] px-4 py-3.5 text-[13px] font-black uppercase tracking-[0.06em] text-white shadow-lg sm:py-4 sm:text-[14px]"
                   style={{ background: bot.button }}
                 >
                   <span className="pointer-events-none absolute inset-y-0 -left-[60%] w-1/2 skew-x-[-20deg] bg-white/30 opacity-0 transition-all duration-700 ease-out group-hover/btn:left-[130%] group-hover/btn:opacity-100" />
@@ -817,7 +819,7 @@ function CharacterChooser({ onSelect, onClose }) {
           ))}
         </div>
 
-        <div className="mt-5 flex items-center justify-center gap-2 text-center text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
+        <div className="mt-5 flex items-center justify-center gap-2 text-center text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 sm:text-[11px]">
           <span className="h-px w-6 bg-slate-200" />
           Same Jashna Edu intelligence
           <span className="h-px w-6 bg-slate-200" />
@@ -828,14 +830,16 @@ function CharacterChooser({ onSelect, onClose }) {
 }
 
 /* =========================================================
-   FLOATING KEYWORD   (file 2 — positions kept, text bigger)
+   FLOATING KEYWORD   (file 2)
+   Position is now passed as Tailwind classes so each keyword
+   can sit in a different place on mobile vs desktop, or be
+   hidden on mobile (`hidden sm:block`).
 ========================================================= */
 
-function FloatingKeyword({ children, bot, position, delay = 0 }) {
+function FloatingKeyword({ children, bot, className = "", delay = 0 }) {
   return (
     <motion.div
-      className="absolute z-20 select-none"
-      style={position}
+      className={`absolute z-20 select-none ${className}`}
       initial={{ opacity: 0, scale: 0.7, y: 8 }}
       animate={{ opacity: 1, scale: 1, y: [0, -5, 0] }}
       whileHover={{ scale: 1.15, rotate: -3 }}
@@ -851,7 +855,7 @@ function FloatingKeyword({ children, bot, position, delay = 0 }) {
       }}
     >
       <div
-        className="cursor-default rounded-full border px-3.5 py-2 text-[12px] font-black tracking-[0.12em] shadow-lg backdrop-blur-md sm:text-[13px]"
+        className="cursor-default rounded-full border px-2 py-1 text-[9px] font-black tracking-[0.1em] shadow-lg backdrop-blur-md sm:px-3.5 sm:py-2 sm:text-[13px] sm:tracking-[0.12em]"
         style={{
           color: bot.primaryDark,
           background: "rgba(255,255,255,0.95)",
@@ -867,6 +871,8 @@ function FloatingKeyword({ children, bot, position, delay = 0 }) {
 
 /* =========================================================
    CHARACTER HERO   (file 2 — big PNG + floating keywords)
+   Mobile: only 2 small keywords, parked in the top corners
+   so they never cover the character. Desktop: unchanged.
 ========================================================= */
 
 function CharacterHero({ bot, isSpeaking = false }) {
@@ -905,38 +911,40 @@ function CharacterHero({ bot, isSpeaking = false }) {
         }}
       />
 
-      {/* floating keywords */}
+      {/* floating keywords
+          1st + 2nd stay on mobile (top corners, small).
+          3rd, 4th, 5th appear only from `sm` upwards. */}
       <FloatingKeyword
         bot={bot}
-        position={{ left: "6%", top: "29%" }}
+        className="left-[4%] top-[7%] sm:left-[6%] sm:top-[29%]"
         delay={0.1}
       >
         {bot.keywords[0]}
       </FloatingKeyword>
       <FloatingKeyword
         bot={bot}
-        position={{ right: "5%", top: "37%" }}
+        className="right-[4%] top-[7%] sm:right-[5%] sm:top-[37%]"
         delay={0.25}
       >
         {bot.keywords[1]}
       </FloatingKeyword>
       <FloatingKeyword
         bot={bot}
-        position={{ left: "5%", bottom: "28%" }}
+        className="hidden sm:block sm:left-[5%] sm:bottom-[28%]"
         delay={0.4}
       >
         {bot.keywords[2]}
       </FloatingKeyword>
       <FloatingKeyword
         bot={bot}
-        position={{ right: "6%", bottom: "27%" }}
+        className="hidden sm:block sm:right-[6%] sm:bottom-[27%]"
         delay={0.55}
       >
         {bot.keywords[3]}
       </FloatingKeyword>
       <FloatingKeyword
         bot={bot}
-        position={{ left: "14%", top: "55%" }}
+        className="hidden sm:block sm:left-[14%] sm:top-[55%]"
         delay={0.7}
       >
         {bot.keywords[4]}
@@ -965,7 +973,7 @@ function CharacterHero({ bot, isSpeaking = false }) {
       {/* LARGE CHARACTER IMAGE */}
       <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-center">
         <motion.div
-          className="relative w-[88%] max-w-[450px]"
+          className="relative w-[78%] max-w-[450px] sm:w-[88%]"
           initial={{ opacity: 0, y: 25, scale: 0.94 }}
           animate={{ opacity: 1, y: [0, -4, 0], scale: 1 }}
           transition={{
@@ -994,7 +1002,7 @@ function CharacterHero({ bot, isSpeaking = false }) {
       {/* online status pill */}
       <div className="absolute bottom-3 left-1/2 z-40 -translate-x-1/2">
         <motion.div
-          className="flex items-center gap-2.5 rounded-full border px-5 py-2.5 shadow-2xl backdrop-blur-xl"
+          className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 shadow-2xl backdrop-blur-xl sm:gap-2.5 sm:px-5 sm:py-2.5"
           style={{
             background: "rgba(24,17,31,0.92)",
             borderColor: `${bot.primary}55`,
@@ -1003,13 +1011,17 @@ function CharacterHero({ bot, isSpeaking = false }) {
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         >
           <motion.span
-            className="flex h-3 w-3 rounded-full"
+            className="flex h-2.5 w-2.5 rounded-full sm:h-3 sm:w-3"
             style={{ background: bot.accent }}
             animate={{ scale: [1, 1.5, 1], opacity: [1, 0.65, 1] }}
             transition={{ duration: 1.7, repeat: Infinity }}
           />
-          <Mic2 size={16} color="#fff" strokeWidth={2.5} />
-          <span className="text-[12px] font-black uppercase tracking-[0.14em] text-white sm:text-[13px]">
+          <Mic2
+            color="#fff"
+            strokeWidth={2.5}
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+          />
+          <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white sm:text-[13px] sm:tracking-[0.14em]">
             {isSpeaking ? `${bot.name} is speaking` : `${bot.name} is online`}
           </span>
           {isSpeaking && <CharacterWaveform bot={bot} />}
@@ -1029,7 +1041,7 @@ function BotAvatar({ bot, size = "normal" }) {
   return (
     <motion.div
       className={`relative shrink-0 overflow-hidden rounded-2xl border ${
-        isSmall ? "h-11 w-11" : "h-14 w-14"
+        isSmall ? "h-10 w-10 sm:h-11 sm:w-11" : "h-12 w-12 sm:h-14 sm:w-14"
       }`}
       style={{
         background: `linear-gradient(145deg, ${bot.primarySoft}, ${bot.secondarySoft})`,
@@ -1049,7 +1061,7 @@ function BotAvatar({ bot, size = "normal" }) {
 }
 
 /* =========================================================
-   ACTION CARD   (file 2 — bigger text + shine + arrow slide)
+   ACTION CARD   (file 2 — slightly smaller on mobile)
 ========================================================= */
 
 function ActionCard({ action, bot, onClick }) {
@@ -1059,7 +1071,7 @@ function ActionCard({ action, bot, onClick }) {
     <motion.button
       type="button"
       onClick={onClick}
-      className="group relative flex w-full items-center gap-3.5 overflow-hidden rounded-[20px] border p-3.5 text-left outline-none focus-visible:ring-4 sm:p-4"
+      className="group relative flex w-full items-center gap-3 overflow-hidden rounded-[18px] border p-3 text-left outline-none focus-visible:ring-4 sm:gap-3.5 sm:rounded-[20px] sm:p-4"
       style={{
         background: bot.cardBg,
         borderColor: bot.border,
@@ -1078,7 +1090,7 @@ function ActionCard({ action, bot, onClick }) {
       <Shine />
 
       <motion.div
-        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[16px] border"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] border sm:h-14 sm:w-14 sm:rounded-[16px]"
         style={{
           background: bot.primarySoft,
           borderColor: `${bot.primary}30`,
@@ -1086,19 +1098,22 @@ function ActionCard({ action, bot, onClick }) {
         }}
         whileHover={{ scale: 1.1, rotate: -6 }}
       >
-        <Icon size={25} strokeWidth={2.5} />
+        <Icon
+          strokeWidth={2.5}
+          className="h-[22px] w-[22px] sm:h-[25px] sm:w-[25px]"
+        />
       </motion.div>
 
       <div className="min-w-0 flex-1">
         <h3
-          className="text-[17px] font-black leading-[1.2] sm:text-[18px]"
+          className="text-[15px] font-black leading-[1.2] sm:text-[18px]"
           style={{ color: bot.text }}
         >
           {action.title}
         </h3>
 
         <p
-          className="mt-1 text-[13px] font-bold leading-[1.4] sm:text-[14px]"
+          className="mt-0.5 text-[12px] font-bold leading-[1.4] sm:mt-1 sm:text-[14px]"
           style={{ color: bot.muted }}
         >
           {action.description}
@@ -1106,24 +1121,27 @@ function ActionCard({ action, bot, onClick }) {
       </div>
 
       <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:scale-110"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:scale-110 sm:h-11 sm:w-11"
         style={{ background: bot.primary }}
       >
-        <ChevronRight size={22} strokeWidth={3} />
+        <ChevronRight
+          strokeWidth={3}
+          className="h-[18px] w-[18px] sm:h-[22px] sm:w-[22px]"
+        />
       </div>
     </motion.button>
   );
 }
 
 /* =========================================================
-   MESSAGE CONTENT   (file 2 — markdown-lite, bigger text)
+   MESSAGE CONTENT   (file 2 — markdown-lite, balanced sizes)
 ========================================================= */
 
 function MessageContent({ content, bot }) {
   const parts = content.split("\n");
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5 sm:space-y-2">
       {parts.map((line, index) => {
         const trimmed = line.trim();
 
@@ -1136,7 +1154,7 @@ function MessageContent({ content, bot }) {
         return (
           <p
             key={index}
-            className="text-[15px] font-bold leading-[1.65] sm:text-[16px]"
+            className="text-[14px] font-bold leading-[1.6] sm:text-[16px] sm:leading-[1.65]"
             style={{ color: bot.text }}
           >
             {segments.map((segment, segmentIndex) => {
@@ -1171,14 +1189,14 @@ function TypingIndicator({ bot }) {
       <BotAvatar bot={bot} size="small" />
 
       <div
-        className="rounded-[18px] rounded-bl-md border px-4 py-3.5"
+        className="rounded-[18px] rounded-bl-md border px-3.5 py-3 sm:px-4 sm:py-3.5"
         style={{ background: bot.cardBg, borderColor: bot.border }}
       >
         <div className="flex items-center gap-1.5">
           {[0, 1, 2].map((item) => (
             <motion.span
               key={item}
-              className="h-2.5 w-2.5 rounded-full"
+              className="h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5"
               style={{ background: bot.primary }}
               animate={{ y: [0, -5, 0], opacity: [0.45, 1, 0.45] }}
               transition={{
@@ -1190,7 +1208,7 @@ function TypingIndicator({ bot }) {
           ))}
 
           <span
-            className="ml-1.5 text-[13px] font-black"
+            className="ml-1.5 text-[12px] font-black sm:text-[13px]"
             style={{ color: bot.muted }}
           >
             {bot.name} is thinking
@@ -1202,7 +1220,7 @@ function TypingIndicator({ bot }) {
 }
 
 /* =========================================================
-   LEAD FORM   (file 2 — bigger text)
+   LEAD FORM   (file 2 — balanced sizes)
 ========================================================= */
 
 function LeadForm({
@@ -1214,7 +1232,7 @@ function LeadForm({
   leadStatus,
 }) {
   const inputClass =
-    "w-full rounded-[14px] border bg-white px-4 py-3.5 text-[15px] font-bold outline-none transition placeholder:text-slate-400 focus:ring-4";
+    "w-full rounded-[14px] border bg-white px-4 py-3 text-[14px] font-bold outline-none transition placeholder:text-slate-400 focus:ring-4 sm:py-3.5 sm:text-[15px]";
 
   return (
     <motion.div
@@ -1230,14 +1248,14 @@ function LeadForm({
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3
-            className="text-[20px] font-black leading-tight"
+            className="text-[18px] font-black leading-tight sm:text-[20px]"
             style={{ color: bot.text }}
           >
             Connect with Jashna Edu
           </h3>
 
           <p
-            className="mt-1.5 text-[14px] font-bold leading-[1.5]"
+            className="mt-1.5 text-[13px] font-bold leading-[1.5] sm:text-[14px]"
             style={{ color: bot.muted }}
           >
             Leave your details and the Jashna Edu team can help you with the
@@ -1287,7 +1305,7 @@ function LeadForm({
           onChange={(e) =>
             setLeadForm((prev) => ({ ...prev, interest: e.target.value }))
           }
-          className="w-full rounded-[14px] border bg-white px-4 py-3.5 text-[15px] font-bold outline-none transition focus:ring-4"
+          className="w-full rounded-[14px] border bg-white px-4 py-3 text-[14px] font-bold outline-none transition focus:ring-4 sm:py-3.5 sm:text-[15px]"
           style={{ borderColor: bot.border, color: bot.text }}
         >
           <option value="">What are you interested in?</option>
@@ -1313,7 +1331,7 @@ function LeadForm({
           />
 
           <span
-            className="text-[13px] font-bold leading-[1.45]"
+            className="text-[12px] font-bold leading-[1.45] sm:text-[13px]"
             style={{ color: bot.muted }}
           >
             I agree to be contacted by Jashna Edu regarding my enquiry.
@@ -1326,7 +1344,7 @@ function LeadForm({
           disabled={leadStatus === "submitting"}
           whileHover={{ y: -3 }}
           whileTap={{ scale: 0.97 }}
-          className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] px-4 py-4 text-[16px] font-black text-white shadow-lg transition disabled:opacity-60"
+          className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-[14px] px-4 py-3.5 text-[15px] font-black text-white shadow-lg transition disabled:opacity-60 sm:py-4 sm:text-[16px]"
           style={{
             background: `linear-gradient(90deg, ${bot.primaryDark}, ${bot.primary})`,
           }}
@@ -1346,7 +1364,7 @@ function LeadForm({
           <motion.p
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center justify-center gap-2 text-center text-[14px] font-black text-green-700"
+            className="flex items-center justify-center gap-2 text-center text-[13px] font-black text-green-700 sm:text-[14px]"
           >
             <Check size={18} strokeWidth={3} />
             Your details were sent successfully.
@@ -1357,7 +1375,7 @@ function LeadForm({
           <motion.p
             initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: [0, -5, 5, -3, 3, 0] }}
-            className="text-center text-[14px] font-black text-red-600"
+            className="text-center text-[13px] font-black text-red-600 sm:text-[14px]"
           >
             Please add your name and phone number, then try again.
           </motion.p>
@@ -1838,7 +1856,7 @@ export default function JashnaAiWidget() {
 
               <div className="relative flex items-center gap-3.5">
                 <div className="relative h-[62px] w-[62px] shrink-0">
-                  <CoachOrb />
+                  <CoachOrb tinyBrand/>
                 </div>
 
                 <div>
@@ -1860,13 +1878,13 @@ export default function JashnaAiWidget() {
       </AnimatePresence>
 
       {/* =====================================================
-          FLOATING LAUNCHER   (file 1 — same look + content)
+          FLOATING LAUNCHER   (file 1 — smaller on mobile)
       ===================================================== */}
 
       <AnimatePresence>
         {!isOpen && (
           <motion.div
-            className="fixed bottom-5 right-5 z-[100]"
+            className="fixed bottom-4 right-4 z-[100] sm:bottom-5 sm:right-5"
             initial={{ opacity: 0, scale: 0.75, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.75, y: 20 }}
@@ -1892,9 +1910,9 @@ export default function JashnaAiWidget() {
                 aria-label="Open Jashna Edu AI"
                 whileHover={{ y: -5, scale: 1.05 }}
                 whileTap={{ scale: 0.93 }}
-                className="relative flex h-[82px] w-[82px] items-center justify-center overflow-hidden rounded-[27px] border border-white/60 bg-white p-1 shadow-[0_20px_60px_rgba(24,100,220,.25)]"
+                className="relative flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-[24px] border border-white/60 bg-white p-1 shadow-[0_20px_60px_rgba(24,100,220,.25)] sm:h-[82px] sm:w-[82px] sm:rounded-[27px]"
               >
-                <div className="relative h-full w-full overflow-hidden rounded-[23px] bg-slate-50">
+                <div className="relative h-full w-full overflow-hidden rounded-[20px] bg-slate-50 sm:rounded-[23px]">
                   {bot ? (
                     <CharacterLauncher bot={bot} active={characterActive} />
                   ) : (
@@ -1935,22 +1953,22 @@ export default function JashnaAiWidget() {
               ================================================= */}
 
               <header
-                className="relative z-50 flex shrink-0 items-center justify-between px-4 py-3.5 sm:px-5"
+                className="relative z-50 flex shrink-0 items-center justify-between px-3.5 py-3 sm:px-5 sm:py-3.5"
                 style={{
                   background: `linear-gradient(135deg, ${bot.heroStart}, ${bot.heroEnd})`,
                 }}
               >
-                <div className="flex min-w-0 items-center gap-3">
+                <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                   <BotAvatar bot={bot} />
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h2 className="truncate text-[20px] font-black uppercase tracking-tight text-white sm:text-[22px]">
+                      <h2 className="truncate text-[18px] font-black uppercase tracking-tight text-white sm:text-[22px]">
                         {bot.name}
                       </h2>
 
                       <span
-                        className="rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wider"
+                        className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider sm:px-2.5 sm:py-1 sm:text-[11px]"
                         style={{
                           background: `${bot.primary}66`,
                           color: "#fff",
@@ -1960,18 +1978,18 @@ export default function JashnaAiWidget() {
                       </span>
                     </div>
 
-                    <p className="mt-0.5 truncate text-[13px] font-bold text-white/75 sm:text-[14px]">
+                    <p className="mt-0.5 truncate text-[12px] font-bold text-white/75 sm:text-[14px]">
                       Jashna Edu · {bot.shortRole}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   {speechSupported && (
                     <motion.button
                       type="button"
                       onClick={toggleVoice}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border text-white"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border text-white sm:h-11 sm:w-11"
                       style={{
                         borderColor: voiceOn
                           ? `${bot.accent}99`
@@ -1992,7 +2010,7 @@ export default function JashnaAiWidget() {
                       aria-label={voiceOn ? "Mute voice" : "Turn voice on"}
                       title={voiceOn ? "Mute voice" : "Turn voice on"}
                     >
-                      {voiceOn ? <Volume2 size={21} /> : <VolumeX size={21} />}
+                      {voiceOn ? <Volume2 size={20} /> : <VolumeX size={20} />}
                     </motion.button>
                   )}
 
@@ -2016,7 +2034,7 @@ export default function JashnaAiWidget() {
                   <motion.button
                     type="button"
                     onClick={closeChat}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border text-white"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border text-white sm:h-11 sm:w-11"
                     style={{
                       borderColor: "rgba(255,255,255,0.18)",
                       background: "rgba(255,255,255,0.08)",
@@ -2029,24 +2047,24 @@ export default function JashnaAiWidget() {
                     whileTap={{ scale: 0.9 }}
                     aria-label="Close chat"
                   >
-                    <X size={21} />
+                    <X size={20} />
                   </motion.button>
                 </div>
               </header>
 
               {/* mobile switch */}
               <div
-                className="flex shrink-0 items-center justify-center border-b px-4 py-2.5 sm:hidden"
+                className="flex shrink-0 items-center justify-center border-b px-4 py-2 sm:hidden"
                 style={{ background: bot.primarySoft, borderColor: bot.border }}
               >
                 <motion.button
                   type="button"
                   onClick={handleSwitchBot}
                   whileTap={{ scale: 0.94 }}
-                  className="flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-[12px] font-black uppercase tracking-wider shadow-sm"
+                  className="flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-[11px] font-black uppercase tracking-wider shadow-sm"
                   style={{ color: bot.primaryDark }}
                 >
-                  <Sparkles size={14} />
+                  <Sparkles size={13} />
                   Switch coach
                 </motion.button>
               </div>
@@ -2058,7 +2076,7 @@ export default function JashnaAiWidget() {
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-white">
                 <CharacterHero bot={bot} isSpeaking={isSpeaking} />
 
-                <main className="relative px-4 pb-5 pt-6 sm:px-5">
+                <main className="relative px-3.5 pb-5 pt-5 sm:px-5 sm:pt-6">
                   {/* eyebrow */}
                   <div className="mb-2 flex items-center justify-center gap-2">
                     <span
@@ -2067,7 +2085,7 @@ export default function JashnaAiWidget() {
                     />
 
                     <span
-                      className="text-[13px] font-black uppercase tracking-[0.2em]"
+                      className="text-[12px] font-black uppercase tracking-[0.18em] sm:text-[13px] sm:tracking-[0.2em]"
                       style={{ color: bot.primaryDark }}
                     >
                       {bot.name}'s corner
@@ -2080,21 +2098,21 @@ export default function JashnaAiWidget() {
                   </div>
 
                   <h1
-                    className="text-center text-[32px] font-black leading-[1.05] tracking-[-0.045em] sm:text-[40px]"
+                    className="text-center text-[26px] font-black leading-[1.08] tracking-[-0.04em] sm:text-[40px] sm:leading-[1.05] sm:tracking-[-0.045em]"
                     style={{ color: bot.text }}
                   >
                     What are you working on today?
                   </h1>
 
                   <p
-                    className="mx-auto mt-3 max-w-[460px] text-center text-[15px] font-bold leading-[1.6] sm:text-[16px]"
+                    className="mx-auto mt-2.5 max-w-[460px] text-center text-[14px] font-bold leading-[1.55] sm:mt-3 sm:text-[16px] sm:leading-[1.6]"
                     style={{ color: bot.muted }}
                   >
                     {bot.description}
                   </p>
 
                   {/* QUICK ACTIONS */}
-                  <div className="mt-6 space-y-3">
+                  <div className="mt-5 space-y-2.5 sm:mt-6 sm:space-y-3">
                     {CHAT_ACTIONS.map((action) => (
                       <ActionCard
                         key={action.id}
@@ -2107,18 +2125,18 @@ export default function JashnaAiWidget() {
 
                   {/* MESSAGES */}
                   {messages.length > 0 && (
-                    <section className="mt-8">
+                    <section className="mt-7 sm:mt-8">
                       <div className="mb-4 flex items-center gap-3">
                         <div className="h-px flex-1 bg-slate-200" />
 
-                        <span className="text-[12px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        <span className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500 sm:text-[12px]">
                           Conversation
                         </span>
 
                         <div className="h-px flex-1 bg-slate-200" />
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3.5 sm:space-y-4">
                         {messages.map((message) => {
                           const isUser = message.role === "user";
 
@@ -2136,7 +2154,7 @@ export default function JashnaAiWidget() {
                               <div className="flex max-w-[86%] flex-col">
                                 <motion.div
                                   whileHover={{ y: -2 }}
-                                  className={`rounded-[19px] border px-4 py-3 shadow-sm transition-shadow hover:shadow-md ${
+                                  className={`rounded-[18px] border px-3.5 py-2.5 shadow-sm transition-shadow hover:shadow-md sm:rounded-[19px] sm:px-4 sm:py-3 ${
                                     isUser ? "rounded-br-md" : "rounded-bl-md"
                                   }`}
                                   style={{
@@ -2168,7 +2186,7 @@ export default function JashnaAiWidget() {
                                           closeChat();
                                           navigate(path);
                                         }}
-                                        className="inline-flex items-center gap-2 rounded-full border-2 bg-white px-4 py-2.5 text-[14px] font-black shadow-sm"
+                                        className="inline-flex items-center gap-1.5 rounded-full border-2 bg-white px-3.5 py-2 text-[13px] font-black shadow-sm sm:gap-2 sm:px-4 sm:py-2.5 sm:text-[14px]"
                                         style={{
                                           borderColor: bot.primary,
                                           color: bot.primaryDark,
@@ -2193,7 +2211,7 @@ export default function JashnaAiWidget() {
                                         animate={{ opacity: 1, y: 0 }}
                                         whileHover={{ y: -3, scale: 1.03 }}
                                         whileTap={{ scale: 0.96 }}
-                                        className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-[#25D366] px-5 py-2.5 text-[14px] font-black text-white shadow-lg"
+                                        className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-[#25D366] px-4 py-2 text-[13px] font-black text-white shadow-lg sm:px-5 sm:py-2.5 sm:text-[14px]"
                                       >
                                         <Shine />
                                         <MessageCircle
@@ -2243,7 +2261,7 @@ export default function JashnaAiWidget() {
               ================================================= */}
 
               <footer
-                className="relative z-50 shrink-0 border-t bg-white px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 sm:px-5"
+                className="relative z-50 shrink-0 border-t bg-white px-3.5 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 sm:px-5"
                 style={{ borderColor: bot.border }}
               >
                 <div className="mb-2 flex items-center justify-between px-1">
@@ -2256,7 +2274,7 @@ export default function JashnaAiWidget() {
                     />
 
                     <span
-                      className="text-[12px] font-black uppercase tracking-[0.14em]"
+                      className="text-[11px] font-black uppercase tracking-[0.14em] sm:text-[12px]"
                       style={{ color: bot.primaryDark }}
                     >
                       {bot.name} is ready
@@ -2273,7 +2291,7 @@ export default function JashnaAiWidget() {
                   style={{ borderColor: bot.border, background: "#fff" }}
                 >
                   <motion.div
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px]"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] sm:h-12 sm:w-12"
                     style={{
                       background: `linear-gradient(145deg, ${bot.primary}, ${bot.secondary})`,
                       color: "#fff",
@@ -2284,7 +2302,7 @@ export default function JashnaAiWidget() {
                       repeat: characterActive ? Infinity : 0,
                     }}
                   >
-                    <Mic2 size={21} strokeWidth={2.5} />
+                    <Mic2 size={20} strokeWidth={2.5} />
                   </motion.div>
 
                   <input
@@ -2294,6 +2312,7 @@ export default function JashnaAiWidget() {
                     onKeyDown={handleKeyDown}
                     placeholder={`Ask ${bot.name} anything...`}
                     aria-label={`Ask ${bot.name} anything`}
+                    /* 16px on mobile keeps iOS from zooming into the input */
                     className="min-w-0 flex-1 bg-transparent px-1 text-[16px] font-bold text-slate-900 outline-none placeholder:text-slate-400 sm:text-[17px]"
                   />
 
@@ -2301,7 +2320,7 @@ export default function JashnaAiWidget() {
                     type="button"
                     onClick={() => sendMessage()}
                     disabled={!input.trim() || isTyping}
-                    className="group relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[14px] text-white shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                    className="group relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] text-white shadow-md disabled:cursor-not-allowed disabled:opacity-40 sm:h-12 sm:w-12"
                     style={{
                       background: `linear-gradient(145deg, ${bot.primary}, ${bot.secondary})`,
                     }}
@@ -2314,7 +2333,7 @@ export default function JashnaAiWidget() {
                     aria-label="Send message"
                   >
                     <Shine />
-                    <Send size={20} strokeWidth={2.6} />
+                    <Send size={19} strokeWidth={2.6} />
                   </motion.button>
                 </div>
 
@@ -2326,7 +2345,7 @@ export default function JashnaAiWidget() {
                       setLeadStatus("idle");
                       setShowLeadForm(true);
                     }}
-                    className="mx-auto mt-2.5 flex items-center gap-2 rounded-full px-4 py-1.5 text-[12px] font-black uppercase tracking-[0.12em]"
+                    className="mx-auto mt-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] sm:mt-2.5 sm:gap-2 sm:px-4 sm:text-[12px] sm:tracking-[0.12em]"
                     style={{ color: bot.muted }}
                     whileHover={{
                       color: bot.primaryDark,

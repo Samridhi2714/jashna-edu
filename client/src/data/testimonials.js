@@ -68,13 +68,13 @@ const testimonialsData = [
 
   {
     id: 6,
-    name: "Rahul Bhadana",
+    name: "Shalu",
     course: "Spoken English & Professional Speaking",
     category: "Professional Learner",
     rating: 5,
     image: student12,
     review:
-      "The personalised guidance helped me identify the areas where I needed improvement. I now feel more confident during professional interactions.",
+      "Jashna Edu is an excellent place to learn and improve English speaking skills. Specially Dr.Shivam is supportive, encouraging, and create a positive learning environment. My confidence and communication level improved a lot after joining this institute.",
   },
 
   {

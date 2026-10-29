@@ -246,6 +246,43 @@ const ieltsBands = [
   },
 ];
 
+/* Jashna method steps (shared by the desktop row and the mobile stepper) */
+
+const methodSteps = [
+  {
+    Icon: ClipboardCheck,
+    number: "01",
+    title: "Assess",
+    description: "Understand your current ability, challenges and goals.",
+  },
+  {
+    Icon: SlidersHorizontal,
+    number: "02",
+    title: "Personalise",
+    description: "Build a learning path around what you actually need.",
+  },
+  {
+    Icon: Mic2,
+    number: "03",
+    title: "Practise",
+    description:
+      "Work with realistic situations instead of learning English in isolation.",
+  },
+  {
+    Icon: MessageSquareText,
+    number: "04",
+    title: "Refine",
+    description: "Receive feedback, correction and guidance to improve.",
+  },
+  {
+    Icon: Rocket,
+    number: "05",
+    title: "Apply",
+    description:
+      "Take your new skills into conversations, classrooms, interviews and workplaces.",
+  },
+];
+
 const goTo = (id) =>
   document
     .getElementById(id)
@@ -254,6 +291,10 @@ const goTo = (id) =>
 /* shared class strings */
 const WRAP = "mx-auto w-full max-w-[1480px] px-5 sm:px-8 lg:px-12";
 const LABEL = "text-sm font-bold tracking-[0.14em] uppercase";
+
+/* Primary button: lighter, balanced blue to teal (was a flat dark navy / dark blue) */
+const BTN_PRIMARY =
+  "bg-gradient-to-r from-[#2f87c9] to-[#2a9d8f] text-white shadow-[0_14px_34px_rgba(47,135,201,0.28)] transition-all duration-300 hover:from-[#2a9d8f] hover:to-[#4fbf7a]";
 
 /* =========================================================
    MAIN
@@ -484,11 +525,13 @@ function Programs() {
         @keyframes pg-marquee { to { transform: translateX(-50%); } }
         .pg-shine { background-image: linear-gradient(90deg, #2F6BFF, #0E9F8C, #D97706, #2F6BFF); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: pg-shine 6s linear infinite; }
         .pg-shine-brand { background-image: linear-gradient(90deg, #84e245, #2a9d8f, #84e245); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: pg-shine 5s linear infinite; }
+        @keyframes pg-spin { to { transform: rotate(360deg); } }
+        .pg-border-spin { position: absolute; left: 50%; top: 50%; width: 200vmax; height: 200vmax; margin: -100vmax 0 0 -100vmax; background: conic-gradient(from 0deg, rgba(47,107,255,0.25) 0%, #2F6BFF 10%, #12B5A0 22%, #84e245 34%, rgba(18,181,160,0.25) 50%, rgba(255,176,32,0.25) 64%, #FFB020 78%, #2F6BFF 90%, rgba(47,107,255,0.25) 100%); animation: pg-spin 8s linear infinite; }
         .pg-marquee { animation: pg-marquee 50s linear infinite; }
         .pg-marquee-wrap:hover .pg-marquee { animation-play-state: paused; }
         .pg-sweep { background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.5) 50%, transparent 65%); transform: translateX(-120%); }
         .group:hover .pg-sweep { transform: translateX(120%); transition: transform 1s ease; }
-        @media (prefers-reduced-motion: reduce) { .pg-shine, .pg-shine-brand, .pg-marquee { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .pg-shine, .pg-shine-brand, .pg-marquee, .pg-border-spin { animation: none; } }
       `}</style>
 
       {/* =====================================================
@@ -533,7 +576,7 @@ function Programs() {
                 Jashna English Programs
               </p>
 
-              <h1 className="mt-6 text-[2.6rem] font-bold leading-[1.04] tracking-tight text-[#0E1A2B] sm:text-6xl xl:text-[4.6rem]">
+              <h1 className="mt-6 text-[2.4rem] font-bold leading-[1.04] tracking-tight text-[#0E1A2B] min-[400px]:text-[2.6rem] sm:text-6xl xl:text-[4.6rem]">
                 English programs for
                 <span className="pg-shine block pb-2">the life you want.</span>
               </h1>
@@ -589,7 +632,7 @@ function Programs() {
                   }}
                   whileHover={{ y: -3 }}
                   whileTap={{ scale: 0.97 }}
-                  className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#0E1A2B] px-8 py-4 text-lg font-bold text-white shadow-[0_16px_40px_rgba(14,26,43,0.25)] transition-colors hover:bg-[#2F6BFF]"
+                  className={`group inline-flex items-center justify-center gap-2.5 rounded-full ${BTN_PRIMARY} px-8 py-4 text-lg font-bold`}
                 >
                   Explore programs
                   <ArrowRight
@@ -780,7 +823,7 @@ function Programs() {
 
       <section
         id="explore-programs"
-        className="relative scroll-mt-20 overflow-hidden py-20 lg:py-28"
+        className="relative scroll-mt-20 overflow-hidden py-14 sm:py-20 lg:py-28"
       >
         <div
           aria-hidden
@@ -997,7 +1040,7 @@ function Programs() {
 
       <section
         id="method"
-        className="relative overflow-hidden border-y border-[#0E1A2B]/10 bg-gradient-to-br from-[#FFF1D6] via-[#F3F6FB] to-[#DCE9FF] py-20 lg:py-28"
+        className="relative overflow-hidden border-y border-[#0E1A2B]/10 bg-gradient-to-br from-[#FFF1D6] via-[#F3F6FB] to-[#DCE9FF] py-10 sm:py-16 lg:py-24"
       >
         <motion.div
           aria-hidden
@@ -1014,97 +1057,83 @@ function Programs() {
 
         <div className={`${WRAP} relative`}>
           <Reveal>
-            <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-              <div>
-                <p className={`${LABEL} text-[#0B7F70]`}>The Jashna method</p>
-                <h2 className="mt-4 max-w-2xl text-4xl font-bold leading-[1.08] tracking-tight text-[#0E1A2B] sm:text-5xl lg:text-6xl">
-                  Learning should move{" "}
-                  <span className="text-[#2F6BFF]">with you.</span>
-                </h2>
-                <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-[#0E1A2B]/70 sm:text-xl">
-                  We don't begin with a fixed formula. We begin with the
-                  learner, understand the gap, and turn learning into something
-                  you can actually use.
-                </p>
-              </div>
+            {/* animated gradient border */}
+            <div className="relative overflow-hidden rounded-[26px] p-[2.5px] shadow-[0_30px_80px_rgba(47,107,255,0.18)] sm:rounded-[34px] lg:rounded-[44px] lg:p-[3px]">
+              <span aria-hidden className="pg-border-spin pointer-events-none" />
 
-              <div className="flex items-center gap-5 rounded-[28px] border border-white/80 bg-white/70 p-6 shadow-[0_20px_50px_rgba(14,26,43,0.08)] backdrop-blur sm:p-7">
-                <span className="pg-shine text-7xl font-bold leading-none sm:text-8xl">
-                  05
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xl font-bold text-[#0E1A2B] sm:text-2xl">
-                    steps from where you are to where you want to be
+              <div className="relative rounded-[24px] bg-gradient-to-br from-[#FFFBF2] via-white to-[#F1F7FF] p-4 min-[400px]:p-5 sm:rounded-[31.5px] sm:p-8 lg:rounded-[41px] lg:p-12">
+                {/* header */}
+                <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-10">
+                  <div className="min-w-0">
+                    <p className={`${LABEL} text-[#0B7F70]`}>The Jashna method</p>
+                    <h2 className="mt-2 max-w-2xl text-[1.9rem] font-bold leading-[1.08] tracking-tight text-[#0E1A2B] min-[400px]:text-4xl sm:mt-4 sm:text-5xl lg:text-6xl">
+                      Learning should move{" "}
+                      <span className="text-[#2F6BFF]">with you.</span>
+                    </h2>
+                    <p className="mt-3 max-w-2xl text-base font-medium leading-7 text-[#0E1A2B]/70 sm:mt-5 sm:text-xl sm:leading-8">
+                      We don't begin with a fixed formula. We begin with the
+                      learner, understand the gap, and turn learning into
+                      something you can actually use.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 rounded-2xl border border-[#0E1A2B]/10 bg-white/80 p-4 shadow-[0_14px_36px_rgba(14,26,43,0.07)] sm:gap-5 sm:rounded-[28px] sm:p-6">
+                    <span className="pg-shine text-5xl font-bold leading-none sm:text-7xl lg:text-8xl">
+                      05
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-base font-bold leading-6 text-[#0E1A2B] sm:text-xl sm:leading-7 lg:text-2xl">
+                        steps from where you are to where you want to be
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-[#0B7F70] sm:mt-2 sm:text-base">
+                        Assess · Practise · Apply
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* phones + tablets: one step at a time */}
+                <MethodStepper />
+
+                {/* laptops and up: all five steps in a row */}
+                <ol className="relative mt-12 hidden gap-x-5 lg:grid lg:grid-cols-5">
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute left-[10%] right-[10%] top-7 h-[3px] rounded-full bg-gradient-to-r from-[#2F6BFF]/40 via-[#12B5A0]/40 to-[#FFB020]/60"
+                  />
+                  {methodSteps.map((step, i) => (
+                    <MethodStep
+                      key={step.number}
+                      index={i}
+                      Icon={step.Icon}
+                      number={step.number}
+                      title={step.title}
+                      description={step.description}
+                      last={i === methodSteps.length - 1}
+                    />
+                  ))}
+                </ol>
+
+                {/* closing strip */}
+                <div className="mt-5 flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-[#0E1A2B]/10 bg-white/80 p-4 sm:mt-8 sm:flex-row sm:items-center sm:gap-5 sm:rounded-[28px] sm:p-6 lg:mt-10">
+                  <p className="max-w-2xl text-base font-bold leading-6 text-[#0E1A2B] sm:text-xl sm:leading-8">
+                    Every learner starts at a different point. That's why step
+                    one is always an assessment, not a syllabus.
                   </p>
-                  <p className="mt-2 text-base font-bold text-[#0B7F70]">
-                    Assess · Practise · Apply
-                  </p>
+                  <motion.a
+                    href="/assessment"
+                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`group inline-flex shrink-0 items-center justify-center gap-2 rounded-full ${BTN_PRIMARY} px-6 py-3 text-base font-bold sm:py-3.5`}
+                  >
+                    Start with an assessment
+                    <ArrowUpRight
+                      size={16}
+                      className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
+                    />
+                  </motion.a>
                 </div>
               </div>
-            </div>
-          </Reveal>
-
-          <ol className="relative mt-14 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-[10%] right-[10%] top-7 hidden h-[3px] rounded-full bg-gradient-to-r from-[#2F6BFF]/40 via-[#12B5A0]/40 to-[#FFB020]/60 lg:block"
-            />
-            <MethodStep
-              index={0}
-              Icon={ClipboardCheck}
-              number="01"
-              title="Assess"
-              description="Understand your current ability, challenges and goals."
-            />
-            <MethodStep
-              index={1}
-              Icon={SlidersHorizontal}
-              number="02"
-              title="Personalise"
-              description="Build a learning path around what you actually need."
-            />
-            <MethodStep
-              index={2}
-              Icon={Mic2}
-              number="03"
-              title="Practise"
-              description="Work with realistic situations instead of learning English in isolation."
-            />
-            <MethodStep
-              index={3}
-              Icon={MessageSquareText}
-              number="04"
-              title="Refine"
-              description="Receive feedback, correction and guidance to improve."
-            />
-            <MethodStep
-              index={4}
-              Icon={Rocket}
-              number="05"
-              title="Apply"
-              description="Take your new skills into conversations, classrooms, interviews and workplaces."
-              last
-            />
-          </ol>
-
-          <Reveal delay={0.1}>
-            <div className="mt-12 flex flex-col items-start justify-between gap-5 rounded-[28px] border border-[#0E1A2B]/10 bg-white/70 p-6 backdrop-blur sm:flex-row sm:items-center sm:p-8">
-              <p className="max-w-2xl text-xl font-bold leading-8 text-[#0E1A2B]">
-                Every learner starts at a different point. That's why step one
-                is always an assessment, not a syllabus.
-              </p>
-              <motion.a
-                href="/assessment"
-                whileHover={{ y: -3 }}
-                whileTap={{ scale: 0.97 }}
-                className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-[#0E1A2B] px-6 py-3.5 text-base font-bold text-white transition-colors hover:bg-[#2F6BFF]"
-              >
-                Start with an assessment
-                <ArrowUpRight
-                  size={16}
-                  className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
-                />
-              </motion.a>
             </div>
           </Reveal>
         </div>
@@ -1126,7 +1155,7 @@ function Programs() {
       >
         <Reveal>
           <div className={WRAP}>
-            <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#2F6BFF] via-[#1F8FD6] to-[#12B5A0] px-6 py-16 text-center text-white shadow-[0_30px_80px_rgba(47,107,255,0.3)] sm:px-12 lg:rounded-[48px] lg:py-24">
+            <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#2F6BFF] via-[#1F8FD6] to-[#12B5A0] px-5 py-12 text-center text-white shadow-[0_30px_80px_rgba(47,107,255,0.3)] sm:px-12 sm:py-16 lg:rounded-[48px] lg:py-24">
               <motion.div
                 aria-hidden
                 animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
@@ -1150,7 +1179,7 @@ function Programs() {
 
               <div className="relative mx-auto max-w-3xl">
                 <p className={`${LABEL} text-white/90`}>Your next step</p>
-                <h2 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
+                <h2 className="mt-5 text-[2rem] font-bold leading-[1.08] tracking-tight min-[400px]:text-4xl sm:text-6xl sm:leading-[1.05]">
                   Start with where you are.
                   <span className="block pb-2 text-[#FFE9A8]">
                     Grow from there.
@@ -1565,7 +1594,7 @@ function ProgramStage({
                 rel="noopener noreferrer"
                 whileHover={{ y: -3 }}
                 whileTap={{ scale: 0.96 }}
-                className="group/cta inline-flex shrink-0 items-center gap-2 rounded-full bg-[#215e93] px-6 py-3.5 text-base font-bold text-white shadow-[0_14px_30px_rgba(33,94,147,0.3)] transition-colors hover:bg-[#2a9d8f]"
+                className={`group/cta inline-flex shrink-0 items-center gap-2 rounded-full ${BTN_PRIMARY} px-6 py-3.5 text-base font-bold`}
               >
                 Discuss this program
                 <ArrowUpRight
@@ -1618,6 +1647,158 @@ function ProgramStage({
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   METHOD STEPPER (phones + tablets)
+   Five tappable dots with a progress line, and ONE step card
+   at a time (swipe, tap a dot, or use the arrows). Replaces a
+   five-card stack so people don't scroll through everything.
+========================================================= */
+
+function MethodStepper() {
+  const [i, setI] = useState(0);
+  const n = methodSteps.length;
+  const step = methodSteps[i];
+  const StepIcon = step.Icon;
+  const isLast = i === n - 1;
+
+  const go = (next) => setI(Math.min(Math.max(next, 0), n - 1));
+
+  return (
+    <div className="mt-6 sm:mt-8 lg:hidden">
+      {/* dots + progress line */}
+      <div className="relative flex items-center justify-between">
+        <span
+          aria-hidden
+          className="absolute left-5 right-5 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[#0E1A2B]/10 sm:left-6 sm:right-6"
+        />
+        <span
+          aria-hidden
+          className="absolute left-5 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-gradient-to-r from-[#2F6BFF] to-[#12B5A0] transition-[width] duration-500 ease-out sm:left-6"
+          style={{
+            width: `calc((100% - 2.5rem) * ${i / (n - 1)})`,
+          }}
+        />
+        {methodSteps.map((s, idx) => {
+          const DotIcon = s.Icon;
+          const active = idx === i;
+          const done = idx < i;
+          return (
+            <button
+              key={s.number}
+              type="button"
+              onClick={() => go(idx)}
+              aria-label={`Step ${s.number}: ${s.title}`}
+              aria-current={active ? "step" : undefined}
+              className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-12 sm:w-12 ${
+                active
+                  ? "scale-110 border-transparent bg-gradient-to-br from-[#2F6BFF] to-[#12B5A0] text-white shadow-[0_8px_20px_rgba(47,107,255,0.4)] ring-4 ring-[#2F6BFF]/15"
+                  : done
+                    ? "border-transparent bg-[#2F6BFF] text-white"
+                    : "border-[#2F6BFF]/25 bg-white text-[#2F6BFF]"
+              }`}
+            >
+              {done ? <Check size={17} strokeWidth={3} /> : <DotIcon size={17} />}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* active step card */}
+      <div className="mt-4 sm:mt-5">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step.number}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.25}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -50) go(i + 1);
+              if (info.offset.x > 50) go(i - 1);
+            }}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className={`relative min-h-[148px] overflow-hidden rounded-2xl border p-4 sm:min-h-[132px] sm:rounded-3xl sm:p-6 ${
+              isLast
+                ? "border-transparent bg-gradient-to-br from-[#2F6BFF] to-[#12B5A0] text-white shadow-[0_18px_44px_rgba(47,107,255,0.3)]"
+                : "border-[#0E1A2B]/10 bg-white text-[#0E1A2B] shadow-[0_10px_30px_rgba(14,26,43,0.06)]"
+            }`}
+          >
+            <span
+              aria-hidden
+              className={`pointer-events-none absolute -right-1 -top-3 select-none text-[5.5rem] font-bold leading-none sm:text-[7rem] ${
+                isLast ? "text-white/15" : "text-[#2F6BFF]/10"
+              }`}
+            >
+              {step.number}
+            </span>
+
+            <div className="relative flex items-start gap-3.5 sm:gap-5">
+              <span
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-14 sm:w-14 sm:rounded-2xl ${
+                  isLast
+                    ? "bg-white/20 text-white"
+                    : "bg-[#2F6BFF]/10 text-[#2F6BFF]"
+                }`}
+              >
+                <StepIcon size={22} />
+              </span>
+
+              <div className="min-w-0">
+                <p
+                  className={`text-xs font-bold tracking-[0.16em] ${
+                    isLast ? "text-white/80" : "text-[#0B7F70]"
+                  }`}
+                >
+                  STEP {step.number} / 0{n}
+                </p>
+                <h3 className="mt-0.5 text-2xl font-bold sm:text-3xl">
+                  {step.title}
+                </h3>
+                <p
+                  className={`mt-1.5 text-base font-medium leading-6 sm:text-lg sm:leading-7 ${
+                    isLast ? "text-white/90" : "text-[#0E1A2B]/70"
+                  }`}
+                >
+                  {step.description}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* prev / next */}
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => go(i - 1)}
+          disabled={i === 0}
+          aria-label="Previous step"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-[#0E1A2B]/12 bg-white text-[#0E1A2B]/70 shadow-sm transition-colors hover:border-[#2F6BFF] hover:text-[#2F6BFF] disabled:opacity-35 disabled:hover:border-[#0E1A2B]/12 disabled:hover:text-[#0E1A2B]/70"
+        >
+          <ArrowLeft size={18} />
+        </button>
+
+        <p className="text-sm font-bold text-[#0E1A2B]/55">
+          Swipe or tap to explore
+        </p>
+
+        <button
+          type="button"
+          onClick={() => go(i + 1)}
+          disabled={isLast}
+          aria-label="Next step"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#12B5A0] text-white shadow-md transition-opacity disabled:opacity-35"
+        >
+          <ArrowRight size={18} />
+        </button>
       </div>
     </div>
   );
@@ -1689,6 +1870,7 @@ function MethodStep({
 function IeltsSpotlight() {
   const [moduleId, setModuleId] = useState("listening");
   const [bandIndex, setBandIndex] = useState(2);
+  const [panel, setPanel] = useState("band"); /* phones: show one panel at a time */
 
   const activeModule =
     ieltsModules.find((m) => m.id === moduleId) || ieltsModules[0];
@@ -1701,11 +1883,11 @@ function IeltsSpotlight() {
   return (
     <section
       id="ielts-spotlight"
-      className="relative scroll-mt-20 py-20 lg:py-28"
+      className="relative scroll-mt-20 py-12 sm:py-20 lg:py-28"
     >
       <div className={WRAP}>
         <Reveal>
-          <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#215e93] via-[#1a4c78] to-[#12324f] p-6 text-white shadow-[0_30px_80px_rgba(33,94,147,0.35)] sm:p-10 lg:rounded-[48px] lg:p-14">
+          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#2f7fc0] via-[#2268a3] to-[#1b4f80] p-5 text-white shadow-[0_30px_80px_rgba(33,94,147,0.3)] sm:rounded-[36px] sm:p-10 lg:rounded-[48px] lg:p-14">
             {/* ambient glows + watermark */}
             <motion.div
               aria-hidden
@@ -1721,7 +1903,7 @@ function IeltsSpotlight() {
             />
             <span
               aria-hidden
-              className="pointer-events-none absolute -bottom-10 -right-4 select-none text-[11rem] font-bold leading-none tracking-tight text-white/[0.05] sm:text-[16rem]"
+              className="pointer-events-none absolute -bottom-10 -right-4 select-none text-[7rem] font-bold leading-none tracking-tight text-white/[0.05] sm:text-[16rem]"
             >
               IELTS
             </span>
@@ -1730,7 +1912,7 @@ function IeltsSpotlight() {
               className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:56px_56px]"
             />
 
-            <div className="relative grid items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-14">
+            <div className="relative grid items-center gap-7 sm:gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
               {/* LEFT — message */}
               <div className="min-w-0">
                 <p className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-base font-bold text-[#d6ffb0] backdrop-blur">
@@ -1738,20 +1920,20 @@ function IeltsSpotlight() {
                   IELTS spotlight
                 </p>
 
-                <h2 className="mt-6 text-4xl font-bold leading-[1.06] tracking-tight sm:text-5xl lg:text-6xl">
+                <h2 className="mt-4 text-[1.9rem] font-bold leading-[1.1] tracking-tight min-[400px]:text-4xl sm:mt-6 sm:text-5xl lg:text-6xl lg:leading-[1.06]">
                   Don't just practise IELTS.
                   <span className="pg-shine-brand block pb-2">
                     Train for your band.
                   </span>
                 </h2>
 
-                <p className="mt-5 max-w-xl text-lg font-medium leading-8 text-white/85 sm:text-xl">
+                <p className="mt-3 max-w-xl text-base font-medium leading-7 text-white/90 sm:mt-5 sm:text-xl sm:leading-8">
                   Our IELTS preparation begins with a diagnostic of where you
                   stand, then builds a plan around the band you need across
                   Listening, Reading, Writing and Speaking.
                 </p>
 
-                <ul className="mt-7 grid max-w-xl gap-3 sm:grid-cols-2">
+                <ul className="mt-5 grid max-w-xl grid-cols-2 gap-x-3 gap-y-2.5 sm:mt-7 sm:gap-3">
                   {[
                     "Diagnostic test first",
                     "Band-wise feedback",
@@ -1760,9 +1942,9 @@ function IeltsSpotlight() {
                   ].map((item) => (
                     <li
                       key={item}
-                      className="flex items-center gap-3 text-lg font-bold"
+                      className="flex items-center gap-2 text-[15px] font-bold leading-5 sm:gap-3 sm:text-lg sm:leading-normal"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#84e245] text-[#0E1A2B]">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#84e245] text-[#0E1A2B] sm:h-7 sm:w-7">
                         <Check size={15} strokeWidth={3} />
                       </span>
                       {item}
@@ -1770,12 +1952,12 @@ function IeltsSpotlight() {
                   ))}
                 </ul>
 
-                <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <div className="mt-6 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center">
                   <motion.a
                     href="/ielts"
                     whileHover={{ y: -4, scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#84e245] px-8 py-4 text-lg font-bold text-[#0E1A2B] shadow-[0_16px_40px_rgba(132,226,69,0.35)] transition-colors duration-300 hover:bg-white"
+                    className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#84e245] px-7 py-3.5 text-base font-bold text-[#0E1A2B] sm:px-8 sm:py-4 sm:text-lg shadow-[0_16px_40px_rgba(132,226,69,0.35)] transition-colors duration-300 hover:bg-white"
                   >
                     Explore the IELTS course
                     <ArrowUpRight
@@ -1783,19 +1965,47 @@ function IeltsSpotlight() {
                       className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
                     />
                   </motion.a>
-                  <span className="text-base font-bold text-white/70">
+                  <span className="hidden text-base font-bold text-white/70 sm:inline">
                     Listening · Reading · Writing · Speaking
                   </span>
                 </div>
               </div>
 
               {/* RIGHT — interactive band planner */}
-              <div className="min-w-0 rounded-[30px] border border-white/20 bg-white/10 p-5 shadow-[0_24px_60px_rgba(0,0,0,0.2)] backdrop-blur-xl sm:p-7">
-                <p className={`${LABEL} text-[#d6ffb0]`}>
+              <div className="min-w-0 rounded-[24px] border border-white/20 bg-white/10 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.2)] backdrop-blur-xl sm:rounded-[30px] sm:p-7">
+                {/* phones and tablets: switch between the two panels */}
+                <div
+                  role="tablist"
+                  aria-label="IELTS planner"
+                  className="mb-4 grid grid-cols-2 gap-1 rounded-full border border-white/20 bg-white/10 p-1 lg:hidden"
+                >
+                  {[
+                    { id: "band", label: "Target band" },
+                    { id: "modules", label: "Four modules" },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={panel === t.id}
+                      onClick={() => setPanel(t.id)}
+                      className={`rounded-full px-3 py-2 text-base font-bold transition-colors duration-300 ${
+                        panel === t.id
+                          ? "bg-white text-[#215e93]"
+                          : "text-white hover:text-[#84e245]"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className={panel === "band" ? "block" : "hidden lg:block"}>
+                <p className={`${LABEL} hidden text-[#d6ffb0] lg:block`}>
                   Pick your target band
                 </p>
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-0 flex flex-wrap gap-2 lg:mt-4">
                   {ieltsBands.map((b, i) => {
                     const active = i === bandIndex;
                     return (
@@ -1805,7 +2015,7 @@ function IeltsSpotlight() {
                         onClick={() => setBandIndex(i)}
                         aria-pressed={active}
                         whileTap={{ scale: 0.93 }}
-                        className={`rounded-full border px-4 py-2 text-lg font-bold transition-colors duration-200 ${
+                        className={`rounded-full border px-3.5 py-1.5 text-base font-bold transition-colors duration-200 sm:px-4 sm:py-2 sm:text-lg ${
                           active
                             ? "border-[#84e245] bg-[#84e245] text-[#0E1A2B]"
                             : "border-white/25 bg-white/5 text-white hover:border-[#84e245] hover:text-[#84e245]"
@@ -1817,8 +2027,8 @@ function IeltsSpotlight() {
                   })}
                 </div>
 
-                <div className="mt-6 flex items-center gap-5 sm:gap-7">
-                  <div className="relative h-[132px] w-[132px] shrink-0">
+                <div className="mt-4 flex items-center gap-4 sm:mt-6 sm:gap-7">
+                  <div className="relative h-[108px] w-[108px] shrink-0 sm:h-[132px] sm:w-[132px]">
                     <svg
                       viewBox="0 0 132 132"
                       className="h-full w-full"
@@ -1869,7 +2079,7 @@ function IeltsSpotlight() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -8 }}
                           transition={{ duration: 0.2 }}
-                          className="text-4xl font-bold leading-none"
+                          className="text-3xl font-bold leading-none sm:text-4xl"
                         >
                           {band.value}
                         </motion.span>
@@ -1887,20 +2097,23 @@ function IeltsSpotlight() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -12 }}
                       transition={{ duration: 0.25 }}
-                      className="min-w-0 text-lg font-medium leading-7 text-white/90 sm:text-xl sm:leading-8"
+                      className="min-w-0 text-base font-medium leading-6 text-white/90 sm:text-xl sm:leading-8"
                     >
                       {band.focus}
                     </motion.p>
                   </AnimatePresence>
                 </div>
 
-                <div className="my-6 h-px bg-white/15" />
+                </div>
 
-                <p className={`${LABEL} text-[#d6ffb0]`}>
+                <div className="my-6 hidden h-px bg-white/15 lg:block" />
+
+                <div className={panel === "modules" ? "block" : "hidden lg:block"}>
+                <p className={`${LABEL} hidden text-[#d6ffb0] lg:block`}>
                   Four modules, one plan
                 </p>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="mt-0 grid grid-cols-4 gap-1.5 sm:gap-2 lg:mt-4">
                   {ieltsModules.map((m) => {
                     const active = m.id === moduleId;
                     const ModIcon = m.icon;
@@ -1912,7 +2125,7 @@ function IeltsSpotlight() {
                         aria-pressed={active}
                         whileHover={{ y: -3 }}
                         whileTap={{ scale: 0.95 }}
-                        className={`flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-base font-bold transition-colors duration-200 ${
+                        className={`flex flex-col items-center gap-1.5 rounded-2xl border px-1 py-2.5 text-[13px] font-bold sm:px-2 sm:py-3 sm:text-base transition-colors duration-200 ${
                           active
                             ? "border-transparent bg-gradient-to-br from-[#2a9d8f] to-[#84e245] text-[#0E1A2B]"
                             : "border-white/20 bg-white/5 text-white hover:border-[#84e245]"
@@ -1932,9 +2145,9 @@ function IeltsSpotlight() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.25 }}
-                    className="mt-4 rounded-2xl bg-white/10 p-5"
+                    className="mt-3 rounded-2xl bg-white/10 p-4 sm:mt-4 sm:p-5"
                   >
-                    <p className="text-xl font-bold leading-7">
+                    <p className="text-lg font-bold leading-6 sm:text-xl sm:leading-7">
                       {activeModule.tagline}
                     </p>
                     <ul className="mt-3 grid gap-2">
@@ -1953,6 +2166,7 @@ function IeltsSpotlight() {
                     </ul>
                   </motion.div>
                 </AnimatePresence>
+                </div>
               </div>
             </div>
           </div>

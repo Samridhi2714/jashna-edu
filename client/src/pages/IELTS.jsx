@@ -47,6 +47,10 @@ const TIMES = "[&_*]:![font-family:Times_New_Roman,Times,serif]";
 const WRAP = "mx-auto w-[92%] max-w-[1760px] sm:w-[90%]";
 const LABEL = "text-sm font-bold tracking-[0.14em] uppercase";
 
+/* Primary button: a lighter, balanced blue to teal (was a flat dark blue) */
+const BTN_PRIMARY =
+  "bg-gradient-to-r from-[#2f87c9] to-[#2a9d8f] text-white shadow-[0_14px_34px_rgba(47,135,201,0.28)] transition-all duration-300 hover:from-[#2a9d8f] hover:to-[#4fbf7a]";
+
 /* =========================================================
    SEO
 ========================================================= */
@@ -261,11 +265,11 @@ function IELTS() {
               className="min-w-0"
             >
               <p className="inline-flex items-center gap-2.5 rounded-full border border-[#2a9d8f]/30 bg-white/80 px-4 py-2 text-base font-bold text-[#215e93] shadow-sm backdrop-blur">
-                <ShieldCheck size={18} className="text-[#2a9d8f]" />
+                <ShieldCheck size={18} className="shrink-0 text-[#2a9d8f]" />
                 Authorized IELTS Test Registration Partner
               </p>
 
-              <h1 className="mt-6 text-[2.6rem] font-bold leading-[1.04] tracking-tight sm:text-6xl xl:text-[4.4rem] 2xl:text-[5.2rem]">
+              <h1 className="mt-6 text-[2.4rem] font-bold leading-[1.06] tracking-tight min-[400px]:text-[2.6rem] sm:text-6xl xl:text-[4.4rem] 2xl:text-[5.2rem]">
                 Prepare for IELTS,
                 <span className="ie-shine block pb-2">Register with confidence.</span>
               </h1>
@@ -283,7 +287,7 @@ function IELTS() {
                   rel="noopener noreferrer"
                   whileHover={{ y: -3 }}
                   whileTap={{ scale: 0.97 }}
-                  className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#215e93] px-8 py-4 text-lg font-bold text-white shadow-[0_16px_40px_rgba(33,94,147,0.3)] transition-colors hover:bg-[#2a9d8f]"
+                  className={`group inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-lg font-bold ${BTN_PRIMARY}`}
                 >
                   Register for IELTS
                   <ArrowUpRight size={19} className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
@@ -307,7 +311,7 @@ function IELTS() {
               <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-lg font-bold text-[#0E1A2B]/90">
                 {["Academic & General Training", "Personalised Preparation", "Registration Guidance"].map((t) => (
                   <li key={t} className="flex items-center gap-2">
-                    <Check size={16} className="text-[#2a9d8f]" />
+                    <Check size={16} className="shrink-0 text-[#2a9d8f]" />
                     {t}
                   </li>
                 ))}
@@ -340,9 +344,13 @@ function IELTS() {
             { value: "2 yrs", label: "Typical score validity" },
           ].map((s, i) => (
             <Reveal key={s.label} delay={i * 0.06}>
-              <div className={`px-4 md:px-8 ${i > 0 ? "md:border-l md:border-[#0E1A2B]/12" : ""}`}>
+              <div
+                className={`px-3 sm:px-4 md:px-8 ${i % 2 === 1 ? "border-l border-[#0E1A2B]/12 md:border-l-0" : ""} ${
+                  i > 0 ? "md:border-l md:border-[#0E1A2B]/12" : ""
+                }`}
+              >
                 <p className="text-4xl font-bold text-[#215e93] sm:text-5xl">{s.value}</p>
-                <p className="mt-1 text-xl font-medium text-[#0E1A2B]/90">{s.label}</p>
+                <p className="mt-1 text-lg font-medium text-[#0E1A2B]/90 sm:text-xl">{s.label}</p>
               </div>
             </Reveal>
           ))}
@@ -358,7 +366,7 @@ function IELTS() {
           <Reveal>
             <div className="max-w-5xl">
               <p className={`${LABEL} text-[#2a9d8f]`}>How it works</p>
-              <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+              <h2 className="mt-3 text-[2rem] font-bold leading-tight tracking-tight min-[400px]:text-4xl sm:text-5xl">
                 Your road to the <span className="text-[#2a9d8f]">official test</span>
               </h2>
               <p className="mt-5 text-xl font-medium leading-8 text-[#0E1A2B]/90 sm:text-2xl">
@@ -404,13 +412,13 @@ function IELTS() {
 
       <section
         id="which-ielts"
-        className="relative scroll-mt-20 overflow-hidden border-y border-[#0E1A2B]/10 bg-gradient-to-b from-[#EAF2F8] to-[#F4F8FB] py-20 lg:py-15"
+        className="relative scroll-mt-20 overflow-hidden border-y border-[#0E1A2B]/10 bg-gradient-to-b from-[#EAF2F8] to-[#F4F8FB] py-16 sm:py-20 lg:py-15"
       >
         <div className={WRAP}>
           <Reveal>
             <div className="mx-auto max-w-5xl text-center">
               <p className={`${LABEL} text-[#215e93]`}>Which IELTS is right for you?</p>
-              <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+              <h2 className="mt-3 text-[2rem] font-bold leading-tight tracking-tight min-[400px]:text-4xl sm:text-5xl">
                 Academic or General Training: <span className="text-[#2a9d8f]">follow the flow.</span>
               </h2>
               <p className="mt-5 text-xl font-medium leading-8 text-[#0E1A2B]/90">
@@ -427,9 +435,9 @@ function IELTS() {
           06 — JASHNA IELTS PROGRAM
       ===================================================== */}
 
-      <section id="ielts-program" className="relative scroll-mt-20 pb-20 lg:pb-15">
+      <section id="ielts-program" className="relative scroll-mt-20 pb-16 sm:pb-20 lg:pb-15">
         <div className={WRAP}>
-          <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#215e93] via-[#1a4c78] to-[#12324f] p-6 text-white shadow-[0_30px_80px_rgba(33,94,147,0.35)] sm:p-10 lg:rounded-[48px] lg:p-14">
+          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#2f7fc0] via-[#2268a3] to-[#1b4f80] p-5 text-white shadow-[0_30px_80px_rgba(33,94,147,0.3)] sm:rounded-[36px] sm:p-10 lg:rounded-[48px] lg:p-14">
             <motion.div
               aria-hidden
               animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
@@ -442,7 +450,7 @@ function IELTS() {
               transition={{ duration: 19, repeat: Infinity, ease: "easeInOut" }}
               className="pointer-events-none absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-[#84e245]/25 blur-[110px]"
             />
-            <span aria-hidden className="pointer-events-none absolute -bottom-10 -right-4 select-none text-[11rem] font-bold leading-none text-white/[0.05] sm:text-[16rem]">
+            <span aria-hidden className="pointer-events-none absolute -bottom-10 -right-4 select-none text-[8rem] font-bold leading-none text-white/[0.05] sm:text-[16rem]">
               IELTS
             </span>
 
@@ -450,11 +458,11 @@ function IELTS() {
               <Reveal>
                 <div className="max-w-5xl">
                   <p className={`${LABEL} text-[#d6ffb0]`}>Jashna IELTS program</p>
-                  <h2 className="mt-3 text-4xl font-bold leading-[1.06] tracking-tight sm:text-5xl lg:text-6xl">
+                  <h2 className="mt-3 text-[1.9rem] font-bold leading-[1.1] tracking-tight min-[400px]:text-4xl sm:text-5xl lg:text-6xl lg:leading-[1.06]">
                     Don't just practise IELTS.
-                    <span className="block text-[#84e245]">Train for your band.</span>
+                    <span className="block text-[#9bf05e]">Train for your band.</span>
                   </h2>
-                  <p className="mt-5 text-xl font-medium leading-8 text-white/95 sm:text-2xl">
+                  <p className="mt-4 text-lg font-medium leading-7 text-white/95 sm:mt-5 sm:text-2xl sm:leading-8">
                     Every learner starts at a different point, so our program starts with an
                     assessment, not a syllabus. Then we train all four skills and rehearse the real
                     exam until it feels familiar.
@@ -462,8 +470,13 @@ function IELTS() {
                 </div>
               </Reveal>
 
-              {/* journey */}
-              <ol className="relative mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {/* journey: compact stepper on phones and tablets */}
+              <div className="mt-8 lg:hidden">
+                <JourneyStepper />
+              </div>
+
+              {/* journey: full row on large screens */}
+              <ol className="relative mt-12 hidden gap-4 lg:grid lg:grid-cols-5">
                 {journey.map((j, i) => (
                   <motion.li
                     key={j.title}
@@ -471,13 +484,13 @@ function IELTS() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-40px" }}
                     transition={{ duration: 0.5, delay: i * 0.08 }}
-                    className="rounded-2xl border border-white/15 bg-[#0E1A2B]/25 p-5"
+                    className="rounded-2xl border border-white/20 bg-white/10 p-5"
                   >
                     <div className="flex items-center gap-3">
                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#2a9d8f] to-[#84e245] text-[#0E1A2B]">
                         <j.icon size={18} />
                       </span>
-                      <span className="text-lg font-bold text-[#84e245]">0{i + 1}</span>
+                      <span className="text-lg font-bold text-[#9bf05e]">0{i + 1}</span>
                     </div>
                     <h3 className="mt-3 text-xl font-bold">{j.title}</h3>
                     <p className="mt-1 text-lg font-medium leading-6 text-white/95">{j.text}</p>
@@ -485,24 +498,24 @@ function IELTS() {
                 ))}
               </ol>
 
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:items-center">
                 <motion.a
                   href={prepLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: -4, scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#84e245] px-8 py-4 text-lg font-bold text-[#0E1A2B] shadow-[0_16px_40px_rgba(132,226,69,0.35)] transition-colors hover:bg-white"
+                  className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#84e245] px-7 py-3.5 text-base font-bold text-[#0E1A2B] shadow-[0_16px_40px_rgba(132,226,69,0.35)] transition-colors hover:bg-white sm:px-8 sm:py-4 sm:text-lg"
                 >
                   Talk to us about IELTS prep
-                  <ArrowUpRight size={19} className="transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+                  <ArrowUpRight size={19} className="shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
                 </motion.a>
                 <Link
                   to="/assessment"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/30 px-7 py-[14px] text-lg font-bold text-white transition-colors hover:border-[#84e245] hover:text-[#84e245]"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/40 bg-white/10 px-6 py-[12px] text-base font-bold text-white transition-colors hover:border-[#84e245] hover:text-[#84e245] sm:px-7 sm:py-[14px] sm:text-lg"
                 >
                   Start with an assessment
-                  <ArrowRight size={18} />
+                  <ArrowRight size={18} className="shrink-0" />
                 </Link>
               </div>
             </div>
@@ -514,11 +527,11 @@ function IELTS() {
           07 — FAQ (visual, interactive)
       ===================================================== */}
 
-      <section className="relative pb-20 lg:pb-20">
+      <section className="relative pb-16 sm:pb-20 lg:pb-20">
         <div className={WRAP}>
           <Reveal>
             <div className="text-center">
-              <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+              <h2 className="mt-3 text-[2rem] font-bold leading-tight tracking-tight min-[400px]:text-4xl sm:text-5xl">
                 To Know <span className="text-[#215e93]">More</span>
               </h2>
               <p className="mx-auto mt-4 max-w-3xl text-xl font-medium leading-8 text-[#0E1A2B]/90">
@@ -535,10 +548,10 @@ function IELTS() {
           08 — FINAL CTA
       ===================================================== */}
 
-      <section className="relative pb-20 lg:pb-28">
+      <section className="relative pb-16 sm:pb-20 lg:pb-28">
         <Reveal>
           <div className={WRAP}>
-            <div className="relative overflow-hidden rounded-[36px] border border-[#0E1A2B]/10 bg-white px-6 py-14 text-center shadow-[0_30px_80px_rgba(14,26,43,0.08)] sm:px-12 lg:rounded-[48px] lg:py-20">
+            <div className="relative overflow-hidden rounded-[28px] border border-[#0E1A2B]/10 bg-white px-5 py-12 text-center shadow-[0_30px_80px_rgba(14,26,43,0.08)] sm:rounded-[36px] sm:px-12 sm:py-14 lg:rounded-[48px] lg:py-20">
               <motion.div
                 aria-hidden
                 animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
@@ -553,11 +566,11 @@ function IELTS() {
               />
 
               <div className="relative mx-auto max-w-5xl">
-                <p className="inline-flex items-center gap-2 rounded-full bg-[#2a9d8f]/10 px-4 py-2 text-base font-bold text-[#215e93]">
-                  <BadgeCheck size={18} className="text-[#2a9d8f]" />
-                  Authorized IELTS Test Registration Partner · IDP IELTS
+                <p className="inline-flex items-center gap-2 rounded-full bg-[#2a9d8f]/10 px-4 py-2 text-sm font-bold text-[#215e93] sm:text-base">
+                  <BadgeCheck size={18} className="shrink-0 text-[#2a9d8f]" />
+                  <span className="text-left">Authorized IELTS Test Registration Partner · IDP IELTS</span>
                 </p>
-                <h2 className="mt-5 text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
+                <h2 className="mt-5 text-[2rem] font-bold leading-[1.08] tracking-tight min-[400px]:text-4xl sm:text-6xl sm:leading-[1.05]">
                   Ready for your IELTS journey?
                 </h2>
                 <p className="mx-auto mt-5 max-w-2xl text-xl font-medium leading-8 text-[#0E1A2B]/90 sm:text-2xl">
@@ -565,14 +578,14 @@ function IELTS() {
                   prepare well and register.
                 </p>
 
-                <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <div className="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
                   <motion.a
                     href={registerLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     whileHover={{ y: -4, scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="group inline-flex items-center gap-2 rounded-full bg-[#215e93] px-8 py-4 text-lg font-bold text-white shadow-[0_14px_35px_rgba(33,94,147,0.3)] transition-colors hover:bg-[#2a9d8f]"
+                    className={`group inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-lg font-bold ${BTN_PRIMARY}`}
                   >
                     <CalendarCheck2 size={19} />
                     Register for IELTS
@@ -580,7 +593,7 @@ function IELTS() {
                   </motion.a>
                   <Link
                     to="/programs"
-                    className="inline-flex items-center gap-2 rounded-full border-2 border-[#0E1A2B]/20 px-7 py-[14px] text-lg font-bold transition-colors hover:border-[#2a9d8f] hover:text-[#215e93]"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#0E1A2B]/20 px-7 py-[14px] text-lg font-bold transition-colors hover:border-[#2a9d8f] hover:text-[#215e93]"
                   >
                     All English programs
                     <ArrowRight size={18} />
@@ -614,6 +627,109 @@ function Reveal({ children, delay = 0, className = "" }) {
 }
 
 /* =========================================================
+   JOURNEY STEPPER — compact version of the 5 program steps
+   for phones and tablets: a step rail + one card at a time
+========================================================= */
+
+function JourneyStepper() {
+  const [active, setActive] = useState(0);
+  const step = journey[active];
+  const StepIcon = step.icon;
+  const isLast = active === journey.length - 1;
+
+  return (
+    <div>
+      {/* step rail */}
+      <div className="flex items-center" role="tablist" aria-label="Program steps">
+        {journey.map((j, i) => {
+          const done = i < active;
+          const on = i === active;
+          const RailIcon = j.icon;
+          return (
+            <div key={j.title} className={`flex items-center ${i < journey.length - 1 ? "flex-1" : ""}`}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={on}
+                aria-label={`Step ${i + 1}: ${j.title}`}
+                onClick={() => setActive(i)}
+                className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-12 sm:w-12 ${
+                  on
+                    ? "scale-110 border-white bg-white text-[#215e93] shadow-[0_0_0_4px_rgba(132,226,69,0.45)]"
+                    : done
+                      ? "border-transparent bg-[#84e245] text-[#0E1A2B]"
+                      : "border-white/40 bg-white/10 text-white"
+                }`}
+              >
+                {done ? <Check size={17} strokeWidth={3} /> : <RailIcon size={17} />}
+              </button>
+
+              {i < journey.length - 1 && (
+                <span aria-hidden className="mx-1 h-[3px] flex-1 overflow-hidden rounded-full bg-white/20 sm:mx-2">
+                  <span
+                    className="block h-full rounded-full bg-[#84e245] transition-all duration-500"
+                    style={{ width: i < active ? "100%" : "0%" }}
+                  />
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* active step card */}
+      <div className="mt-5 rounded-2xl border border-white/25 bg-white/12 p-4 backdrop-blur-sm sm:p-6" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active}
+            role="tabpanel"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.22 }}
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#2a9d8f] to-[#84e245] text-[#0E1A2B] sm:h-12 sm:w-12">
+                <StepIcon size={20} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#d6ffb0]">
+                  Step {active + 1} of {journey.length}
+                </p>
+                <h3 className="text-2xl font-bold leading-tight sm:text-3xl">{step.title}</h3>
+              </div>
+            </div>
+
+            <p className="mt-3 text-lg font-medium leading-7 text-white/95 sm:text-xl sm:leading-8">{step.text}</p>
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setActive((a) => Math.max(0, a - 1))}
+            disabled={active === 0}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-base font-bold text-white transition-colors hover:border-[#84e245] hover:text-[#84e245] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-white/30 disabled:hover:text-white"
+          >
+            <ArrowRight size={16} className="rotate-180" />
+            Back
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActive((a) => (isLast ? 0 : a + 1))}
+            className="inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-base font-bold text-[#215e93] transition-colors hover:bg-[#84e245] hover:text-[#0E1A2B]"
+          >
+            {isLast ? "Start over" : "Next step"}
+            {isLast ? <RefreshCw size={16} /> : <ArrowRight size={16} />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
    LOGO TILE — falls back to a text wordmark if the image fails to load
 ========================================================= */
 
@@ -630,7 +746,7 @@ function LogoTile({ src, name, imgClass = "max-h-14 sm:max-h-16" }) {
           className={`w-auto max-w-full object-contain ${imgClass}`}
         />
       ) : (
-        <span className="text-3xl font-bold tracking-tight text-[#0E1A2B] sm:text-4xl">{name}</span>
+        <span className="text-2xl font-bold tracking-tight text-[#0E1A2B] sm:text-4xl">{name}</span>
       )}
     </div>
   );
@@ -642,12 +758,12 @@ function LogoTile({ src, name, imgClass = "max-h-14 sm:max-h-16" }) {
 
 function CollabCard() {
   return (
-    <div className="relative rounded-[32px] border border-white/80 bg-white/70 p-6 shadow-[0_30px_80px_rgba(33,94,147,0.15)] backdrop-blur-xl sm:p-8">
+    <div className="relative rounded-[28px] border border-white/80 bg-white/70 p-5 shadow-[0_30px_80px_rgba(33,94,147,0.15)] backdrop-blur-xl sm:rounded-[32px] sm:p-8">
 
-      <div className="mt-6 flex items-center gap-3 sm:gap-4">
+      <div className="mt-2 flex items-center gap-2 sm:mt-6 sm:gap-4">
         <LogoTile src={ieltsLogo} name="IELTS" />
 
-        <div className="relative flex w-14 shrink-0 flex-col items-center sm:w-20">
+        <div className="relative flex w-10 shrink-0 flex-col items-center sm:w-20">
           <span className="relative block h-[3px] w-full rounded-full bg-gradient-to-r from-[#215e93] via-[#2a9d8f] to-[#84e245]">
             <span className="ie-dot absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[#84e245] shadow-[0_0_12px_#84e245]" />
           </span>
@@ -659,12 +775,12 @@ function CollabCard() {
         <LogoTile src={jashnaLogo} name="Jashna Edu" imgClass="max-h-[4.5rem] sm:max-h-30" />
       </div>
 
-      <div className="mt-7 rounded-2xl border border-[#2a9d8f]/25 bg-gradient-to-br from-[#2a9d8f]/10 to-[#84e245]/15 p-5 text-center">
-        <p className="inline-flex items-center gap-2 text-xl font-bold text-[#215e93]">
-          <ShieldCheck size={20} className="text-[#2a9d8f]" />
-          Authorized IELTS Test Registration Partner
+      <div className="mt-6 rounded-2xl border border-[#2a9d8f]/25 bg-gradient-to-br from-[#2a9d8f]/10 to-[#84e245]/15 p-4 text-center sm:mt-7 sm:p-5">
+        <p className="inline-flex items-center justify-center gap-2 text-lg font-bold text-[#215e93] sm:text-xl">
+          <ShieldCheck size={20} className="shrink-0 text-[#2a9d8f]" />
+          <span>Authorized IELTS Test Registration Partner</span>
         </p>
-        <p className="mt-1.5 text-xl font-medium text-[#0E1A2B]/90">
+        <p className="mt-1.5 text-lg font-medium text-[#0E1A2B]/90 sm:text-xl">
           Prepare and register through Jashna Edu.
         </p>
       </div>
@@ -673,7 +789,7 @@ function CollabCard() {
         {["Prepare", "Register", "Test day"].map((t, i) => (
           <li key={t} className="rounded-xl bg-[#215e93]/5 px-2 py-3">
             <p className="text-base font-bold text-[#2a9d8f]">0{i + 1}</p>
-            <p className="text-lg font-bold">{t}</p>
+            <p className="text-base font-bold sm:text-lg">{t}</p>
           </li>
         ))}
       </ul>
@@ -1016,7 +1132,7 @@ function FaqExplorer() {
   return (
     <div className="mt-10">
       {/* question tabs */}
-      <div role="tablist" aria-label="IELTS questions" className="flex flex-wrap justify-center gap-2.5">
+      <div role="tablist" aria-label="IELTS questions" className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
         {faqs.map((f) => {
           const on = f.id === activeId;
           return (
@@ -1026,9 +1142,9 @@ function FaqExplorer() {
               role="tab"
               aria-selected={on}
               onClick={() => setActiveId(f.id)}
-              className={`rounded-full border-2 px-5 py-2.5 text-lg font-bold transition-colors duration-300 ${
+              className={`rounded-full border-2 px-4 py-2 text-base font-bold transition-colors duration-300 sm:px-5 sm:py-2.5 sm:text-lg ${
                 on
-                  ? "border-transparent bg-gradient-to-br from-[#215e93] to-[#2a9d8f] text-white shadow-[0_12px_30px_rgba(33,94,147,0.3)]"
+                  ? "border-transparent bg-gradient-to-br from-[#2f87c9] to-[#2a9d8f] text-white shadow-[0_12px_30px_rgba(33,94,147,0.3)]"
                   : "border-[#0E1A2B]/10 bg-white text-[#0E1A2B] hover:border-[#2a9d8f]/60 hover:text-[#215e93]"
               }`}
             >
@@ -1039,7 +1155,7 @@ function FaqExplorer() {
       </div>
 
       {/* panel */}
-      <div className="mt-6 rounded-[32px] border border-[#0E1A2B]/10 bg-white p-5 shadow-[0_24px_70px_rgba(14,26,43,0.1)] sm:p-8">
+      <div className="mt-6 rounded-[28px] border border-[#0E1A2B]/10 bg-white p-4 shadow-[0_24px_70px_rgba(14,26,43,0.1)] sm:rounded-[32px] sm:p-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={active.id}
@@ -1049,8 +1165,8 @@ function FaqExplorer() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
           >
-            <h3 className="text-2xl font-bold sm:text-3xl">{active.q}</h3>
-            <p className="mt-2 max-w-4xl text-xl font-medium leading-8 text-[#0E1A2B]/90">{active.a}</p>
+            <h3 className="text-2xl font-bold leading-tight sm:text-3xl">{active.q}</h3>
+            <p className="mt-2 max-w-4xl text-lg font-medium leading-7 text-[#0E1A2B]/90 sm:text-xl sm:leading-8">{active.a}</p>
 
             <div className="mt-6">
               <FaqVisual id={active.id} />
@@ -1237,7 +1353,7 @@ function ScoreCalculator() {
         })}
       </div>
 
-      <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#215e93] to-[#2a9d8f] p-6 text-center text-white">
+      <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#2f7fc0] to-[#2a9d8f] p-6 text-center text-white">
         <p className="text-lg font-bold text-[#d6ffb0]">Overall band</p>
         <motion.p
           key={overall}
@@ -1281,11 +1397,11 @@ function DayTimeline() {
               animate={{ opacity: 1, scaleX: 1 }}
               transition={{ delay: i * 0.1, duration: 0.4 }}
               style={{ flexGrow: p.min, flexBasis: 0, transformOrigin: "left" }}
-              className={`min-w-0 rounded-xl bg-gradient-to-br ${p.color} p-3 text-white sm:p-4`}
+              className={`min-w-0 rounded-xl bg-gradient-to-br ${p.color} p-2.5 text-white sm:p-4`}
             >
               <PartIcon size={20} />
-              <p className="mt-1 truncate text-lg font-bold sm:text-xl">{p.name}</p>
-              <p className="text-base font-medium text-white/95">{p.min} min</p>
+              <p className="mt-1 truncate text-base font-bold sm:text-xl">{p.name}</p>
+              <p className="text-sm font-medium text-white/95 sm:text-base">{p.min} min</p>
             </motion.div>
           );
         })}
@@ -1293,7 +1409,7 @@ function DayTimeline() {
 
       <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-dashed border-[#2a9d8f]/60 bg-[#2a9d8f]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#215e93] text-white">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#215e93] text-white">
             <Mic2 size={20} />
           </span>
           <div>
@@ -1365,7 +1481,7 @@ function FormatTable() {
 function MarkingVisual() {
   return (
     <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-      <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#215e93] to-[#2a9d8f] p-6 text-center text-white">
+      <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#2f7fc0] to-[#2a9d8f] p-6 text-center text-white">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20">
           <Check size={30} strokeWidth={3} />
         </span>
@@ -1433,7 +1549,7 @@ function CriteriaVisual() {
               aria-pressed={on}
               onClick={() => setMode(k)}
               className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-lg font-bold transition-colors ${
-                on ? "bg-[#215e93] text-white" : "text-[#0E1A2B] hover:text-[#215e93]"
+                on ? "bg-[#2f87c9] text-white" : "text-[#0E1A2B] hover:text-[#215e93]"
               }`}
             >
               <KIcon size={17} />
