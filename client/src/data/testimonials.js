@@ -85,7 +85,7 @@ const testimonialsData = [
     rating: 5,
     image: student07,
     review:
-      "The interview activities helped me practise answering questions clearly and confidently instead of simply preparing scripted answers.",
+      "I had a really good experience in Jashna Edu.The environment is very positive and supportive for students. I would especially like to appreciate Dr. shivam for his kind and humble nature. He treat every student equally and respectfully.Overall, I am very happy with jashna edu. And would definitely recommend it",
   },
 
   {

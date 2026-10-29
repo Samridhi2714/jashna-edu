@@ -146,7 +146,7 @@ function IeltsNudge() {
 
     const hideTimer = setTimeout(
       () => setVisible(false),
-      NUDGE_START_DELAY + NUDGE_SHOW_MS
+      NUDGE_START_DELAY + NUDGE_SHOW_MS,
     );
 
     return () => {
@@ -302,15 +302,29 @@ function IeltsNudge() {
               <svg
                 viewBox="26 26 286 168"
                 className="absolute inset-0 h-full w-full overflow-visible"
-                style={{ filter: "drop-shadow(0 8px 12px rgba(15,59,92,0.18))" }}
+                style={{
+                  filter: "drop-shadow(0 8px 12px rgba(15,59,92,0.18))",
+                }}
                 aria-hidden="true"
               >
                 <defs>
-                  <linearGradient id="ielts-cloud-fill" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="ielts-cloud-fill"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="0%" stopColor="#FFFFFF" />
                     <stop offset="100%" stopColor="#EEF8F8" />
                   </linearGradient>
-                  <linearGradient id="ielts-cloud-stroke" x1="0" y1="0" x2="1" y2="1">
+                  <linearGradient
+                    id="ielts-cloud-stroke"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
                     <stop offset="0%" stopColor="#1E73B0" />
                     <stop offset="55%" stopColor="#0E8A8C" />
                     <stop offset="100%" stopColor="#84E245" />
@@ -327,7 +341,11 @@ function IeltsNudge() {
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ delay: cloudDelay, duration: 0.3, ease: "easeOut" }}
+                  transition={{
+                    delay: cloudDelay,
+                    duration: 0.3,
+                    ease: "easeOut",
+                  }}
                 />
               </svg>
 
@@ -368,7 +386,7 @@ function IeltsNudge() {
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
 
@@ -451,17 +469,23 @@ function Navbar() {
             className="h-12 w-12 rounded-lg object-contain sm:h-14 sm:w-14 xl:h-[58px] xl:w-[58px] 2xl:h-[64px] 2xl:w-[64px]"
             animate={{ rotateY: [0, 180, 0] }}
             transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
-            style={{ transformStyle: "preserve-3d", backfaceVisibility: "visible" }}
+            style={{
+              transformStyle: "preserve-3d",
+              backfaceVisibility: "visible",
+            }}
           />
 
-          <span className="hidden leading-none sm:block">
-            <span className="block whitespace-nowrap text-[24px] font-bold tracking-[0.01em] text-[#1E73B0] xl:text-[23px] 2xl:text-[26px]">
-              Jashna <span className="text-[#5FC21E]">Edu</span>
-            </span>
-            {/* tagline only on very wide screens (1850px+), so it never collides with the links */}
+          <span className="min-w-0 leading-none">
+            {" "}
+            <span className="block whitespace-nowrap text-[19px] font-bold tracking-[0.01em] text-[#1E73B0] sm:text-[24px] xl:text-[23px] 2xl:text-[26px]">
+              {" "}
+              Jashna <span className="text-[#5FC21E]">Edu</span>{" "}
+            </span>{" "}
+            {/* Tagline only on very wide screens */}{" "}
             <span className="mt-1.5 hidden whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0E8A8C] min-[1850px]:block">
-              Empowering English Language Learners
-            </span>
+              {" "}
+              Empowering English Language Learners{" "}
+            </span>{" "}
           </span>
         </Link>
 
