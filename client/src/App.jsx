@@ -30,7 +30,7 @@ const Resources = lazy(() => import("./pages/Resources"));
 const IELTS = lazy(() => import("./pages/IELTS"));
 const CareersPage = lazy(() => import("./pages/CareersPage"));
 const WeeklyResult = lazy(() => import("./pages/WeeklyResult"));
-const PrivacyPolicy = lazy(() => import("./pages/Privacypolicy"));   
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));   
 
 /* Admin pages (lazy) */
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
