@@ -28,7 +28,7 @@ import adminCareersRoutes from "./routes/adminCareerRoutes.js";
 import careersRoutes from "./routes/careersRoutes.js";
 import faqRoutes from "./routes/faqRoutes.js";
 import assessmentLinksRoutes from "./routes/assessmentLinksRoutes.js";
-
+import privacyPolicyRoutes from "./routes/privacyPolicyRoutes.js";
 const app = express();
 
 /* =========================================================
@@ -264,7 +264,7 @@ app.use("/api/admin/careers", adminCareersRoutes);
 app.use("/api/careers", careersRoutes);
 app.use("/api/faqs", faqRoutes);
 app.use("/api/assessment-links", assessmentLinksRoutes);
-
+app.use("/api/privacy-policy", privacyPolicyRoutes);
 /* =========================================================
    UNKNOWN API ROUTES
 ========================================================= */

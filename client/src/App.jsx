@@ -30,6 +30,7 @@ const Resources = lazy(() => import("./pages/Resources"));
 const IELTS = lazy(() => import("./pages/IELTS"));
 const CareersPage = lazy(() => import("./pages/CareersPage"));
 const WeeklyResult = lazy(() => import("./pages/WeeklyResult"));
+const PrivacyPolicy = lazy(() => import("./pages/Privacypolicy"));   
 
 /* Admin pages (lazy) */
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -164,6 +165,7 @@ function App() {
             <Route path="/weekly-analysis" element={<WeeklyResult />} />
             <Route path="/testimonials" element={<Testimonials />} />
             <Route path="/careers" element={<CareersPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />   
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />

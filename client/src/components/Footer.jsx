@@ -325,10 +325,22 @@ export default function Footer() {
 
         <div className="mt-10 border-t border-[#215e93]/15 pt-6 sm:mt-12 sm:pt-7">
           <div className="flex flex-col gap-5 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-sm leading-6 text-[#173B5E]/75 sm:text-base">
-              © {new Date().getFullYear()} {settings.instituteName}. All rights
-              reserved.
-            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5">
+              <p className="text-sm leading-6 text-[#173B5E]/75 sm:text-base">
+                © {new Date().getFullYear()} {settings.instituteName}. All
+                rights reserved.
+              </p>
+
+              <Link
+                to="/privacy-policy"
+                onClick={() => {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="w-fit text-sm font-bold text-[#215e93] underline decoration-[#84e245] decoration-2 underline-offset-4 transition-colors duration-200 hover:text-[#173B5E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#215e93] sm:text-base"
+              >
+                Privacy Policy
+              </Link>
+            </div>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-bold text-[#215e93] sm:text-base">
               <span>Better Communication</span>
