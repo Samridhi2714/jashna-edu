@@ -29,13 +29,13 @@ const instituteSettingsSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      default: "+91 99530 06751",
+      default: "+91 99530 09947",
     },
 
     whatsappNumber: {
       type: String,
       trim: true,
-      default: "+91 99530 06751",
+      default: "+91 99530 09947",
     },
 
     websiteUrl: {

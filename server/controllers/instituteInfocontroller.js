@@ -4,8 +4,8 @@ const DEFAULT_SETTINGS = {
   key: "main",
   instituteName: "Jashna Edu",
   contactEmail: "info@jashnaedu.com",
-  contactNumber: "+91 99530 06751",
-  whatsappNumber: "+91 99530 06751",
+  contactNumber: "+91 99530 09947",
+  whatsappNumber: "+91 99530 09947",
   websiteUrl: "https://www.jashnaedu.com/",
   address:
     "Jashna Edu, Block D, New Industrial Tw 2, New Industrial Township, Faridabad, Haryana 121001, India",

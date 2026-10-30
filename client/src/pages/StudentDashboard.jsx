@@ -940,7 +940,7 @@ function StudentDashboard() {
 
             <div className="mt-7 grid gap-4 sm:grid-cols-3">
               <HeroInfo
-                label="Course"
+                label="Batch"
                 value={
                   student?.batch || student?.courseName || "Jashna Edu Program"
                 }
