@@ -2080,11 +2080,11 @@ export default function JashnaAiWidget() {
                   <JashnaBrandMark small />
 
                   <p className="mt-1 text-[18px] font-black leading-tight text-[#10233E]">
-                    Meet your Jashna coaches
+                    Do you have any question?
                   </p>
 
                   <span className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-black text-[#2778E8] transition-transform duration-300 group-hover:translate-x-1">
-                    Choose who to talk to
+                    Click to get answered!
                     <ArrowUpRight size={15} strokeWidth={2.8} />
                   </span>
                 </div>

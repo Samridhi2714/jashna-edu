@@ -14,6 +14,7 @@ import {
   FileText,
   GraduationCap,
   Headphones,
+  Info,
   Laptop,
   Mic2,
   Minus,
@@ -60,6 +61,10 @@ const SEO = {
   description:
     "Jashna Edu is an authorized IELTS Test Registration Partner with IDP IELTS. Understand IELTS Academic vs General Training, prepare with a personalised program and register for your IELTS test.",
 };
+
+/* Disclaimer shown under the FAQ tabs and under every FAQ answer */
+const FAQ_NOTE =
+  "Note: IELTS information, fees, score requirements and policies change from time to time and may vary by country, test centre and institution. Please confirm the latest details with IDP IELTS or your institution before you plan or book.";
 
 /* Short answers: shown above each visual and used for the FAQ schema */
 const faqs = [
@@ -1122,6 +1127,22 @@ function DesktopFlowchart({ activePath, setActivePath }) {
 }
 
 /* =========================================================
+   FAQ NOTE — bold, visible disclaimer used in the FAQ section
+========================================================= */
+
+function FaqNote({ className = "" }) {
+  return (
+    <p
+      role="note"
+      className={`flex items-start gap-2.5 rounded-xl border-l-4 border-[#2a9d8f] bg-[#2a9d8f]/10 px-4 py-3 text-base font-bold leading-6 text-[#0E1A2B] sm:text-lg sm:leading-7 ${className}`}
+    >
+      <Info size={20} className="mt-0.5 shrink-0 text-[#2a9d8f]" />
+      <span>{FAQ_NOTE}</span>
+    </p>
+  );
+}
+
+/* =========================================================
    FAQ EXPLORER — tabs + a short answer + a visual per question
 ========================================================= */
 
@@ -1153,6 +1174,9 @@ function FaqExplorer() {
           );
         })}
       </div>
+
+      {/* note below the question tabs */}
+      <FaqNote className="mx-auto mt-5 max-w-4xl" />
 
       {/* panel */}
       <div className="mt-6 rounded-[28px] border border-[#0E1A2B]/10 bg-white p-4 shadow-[0_24px_70px_rgba(14,26,43,0.1)] sm:rounded-[32px] sm:p-8">
