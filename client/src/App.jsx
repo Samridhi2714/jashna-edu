@@ -30,7 +30,7 @@ const Resources = lazy(() => import("./pages/Resources"));
 const IELTS = lazy(() => import("./pages/IELTS"));
 const CareersPage = lazy(() => import("./pages/CareersPage"));
 const WeeklyResult = lazy(() => import("./pages/WeeklyResult"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));   
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 /* Admin pages (lazy) */
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -47,18 +47,25 @@ const AdminTaskLibrary = lazy(() => import("./pages/AdminTaskLibrary"));
 const AdminSubmissions = lazy(() => import("./pages/AdminSubmissions"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminPrograms = lazy(() => import("./pages/AdminPrograms"));
-const AdminRecentAdmissions = lazy(() => import("./pages/AdminRecentAdmissions"));
+const AdminRecentAdmissions = lazy(
+  () => import("./pages/AdminRecentAdmissions"),
+);
 const AdminLearningGoals = lazy(() => import("./pages/AdminLearningGoals"));
 const AdminCareers = lazy(() => import("./pages/AdminCareers"));
 const AdminFAQs = lazy(() => import("./pages/AdminFAQs"));
 const AdminAssessmentLinks = lazy(() => import("./pages/AdminAssessmentLinks"));
+const AdminBatchTransfers = lazy(() => import("./pages/AdminBatchTransfers"));
 
 /* Student pages (lazy) */
 const StudentLogin = lazy(() => import("./pages/StudentLogin"));
-const StudentChangePassword = lazy(() => import("./pages/StudentChangePassword"));
+const StudentChangePassword = lazy(
+  () => import("./pages/StudentChangePassword"),
+);
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const StudentAttendance = lazy(() => import("./pages/StudentAttendance"));
-const StudentMonthlyActivities = lazy(() => import("./pages/StudentMonthlyActivities"));
+const StudentMonthlyActivities = lazy(
+  () => import("./pages/StudentMonthlyActivities"),
+);
 const StudentProfile = lazy(() => import("./pages/StudentProfile"));
 const StudentTasks = lazy(() => import("./pages/StudentTasks"));
 
@@ -106,7 +113,9 @@ function HomePage() {
 function NotFound() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 pt-28 text-center">
-      <p className="text-xs font-bold tracking-[0.24em] text-jashna-gold">404</p>
+      <p className="text-xs font-bold tracking-[0.24em] text-jashna-gold">
+        404
+      </p>
 
       <h1 className="mt-3 font-serif text-3xl text-jashna-navy sm:text-5xl">
         Page not found
@@ -165,7 +174,7 @@ function App() {
             <Route path="/weekly-analysis" element={<WeeklyResult />} />
             <Route path="/testimonials" element={<Testimonials />} />
             <Route path="/careers" element={<CareersPage />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />   
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
@@ -201,6 +210,10 @@ function App() {
                 path="/admin/recent-admissions"
                 element={<AdminRecentAdmissions />}
               />
+              <Route
+                path="/admin/batch-transfers"
+                element={<AdminBatchTransfers />}
+              />
               <Route path="/admin/faqs" element={<AdminFAQs />} />
               <Route
                 path="/admin/assessment-links"
@@ -220,6 +233,7 @@ function App() {
               <Route path="/admin/submissions" element={<AdminSubmissions />} />
               <Route path="/admin/careers" element={<AdminCareers />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
+
             </Route>
           </Route>
 
@@ -228,7 +242,10 @@ function App() {
             <Route element={<StudentPortal />}>
               <Route path="/student/dashboard" element={<StudentDashboard />} />
               <Route path="/student/profile" element={<StudentProfile />} />
-              <Route path="/student/attendance" element={<StudentAttendance />} />
+              <Route
+                path="/student/attendance"
+                element={<StudentAttendance />}
+              />
               <Route
                 path="/student/activities"
                 element={<StudentMonthlyActivities />}

@@ -13,6 +13,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  TrendingUp,
   UserRound,
   Users,
   X,
@@ -211,6 +212,55 @@ const getStatusStyles = (status) => {
 
 /*
 =========================================================
+ATTENDANCE HELPERS
+=========================================================
+Attendance % = present / (present + absent) * 100
+(public holidays and Jashna leave are not counted).
+The backend sends `attendanceStats` with every student.
+*/
+
+const getAttendanceTone = (percentage, countedClasses) => {
+  if (!countedClasses) {
+    return {
+      text: "text-[#10243E]/45",
+      bar: "bg-[#10243E]/20",
+    };
+  }
+
+  if (percentage >= 75) {
+    return {
+      text: "text-[#177A62]",
+      bar: "bg-gradient-to-r from-[#1FA886] to-[#49C4A5]",
+    };
+  }
+
+  if (percentage >= 50) {
+    return {
+      text: "text-amber-600",
+      bar: "bg-gradient-to-r from-amber-500 to-yellow-400",
+    };
+  }
+
+  return {
+    text: "text-red-600",
+    bar: "bg-gradient-to-r from-red-500 to-rose-400",
+  };
+};
+
+/* "Day 12 / 180" using the same numbers as the student's own profile */
+const getJourneyDayLabel = (progress) => {
+  const totalDays = Number(progress?.totalDays || 0);
+  const elapsedDays = Number(progress?.daysElapsed || 0);
+
+  if (!totalDays) return null;
+
+  if (elapsedDays <= 0) return "Not started";
+
+  return `Day ${Math.min(elapsedDays, totalDays)} / ${totalDays}`;
+};
+
+/*
+=========================================================
 MAIN COMPONENT
 =========================================================
 */
@@ -224,6 +274,10 @@ function AdminStudents() {
   const [search, setSearch] = useState("");
 
   const [statusFilter, setStatusFilter] = useState("all");
+
+  /* BATCH FILTER ("all" or the exact batch timing text) */
+
+  const [batchFilter, setBatchFilter] = useState("all");
 
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -376,6 +430,42 @@ function AdminStudents() {
 
   /*
   ========================================================
+  BATCH FILTER OPTIONS
+  ========================================================
+  Every batch that students currently belong to (with a
+  student count), plus active batches that are still empty.
+  */
+
+  const batchOptions = useMemo(() => {
+    const counts = new Map();
+
+    students.forEach((student) => {
+      const timing = student.batch?.trim();
+
+      if (timing) {
+        counts.set(timing, (counts.get(timing) || 0) + 1);
+      }
+    });
+
+    batches.forEach((batch) => {
+      const timing = batch.timing?.trim();
+
+      if (timing && !counts.has(timing)) {
+        counts.set(timing, 0);
+      }
+    });
+
+    return [...counts.entries()]
+      .map(([timing, count]) => ({ timing, count }))
+      .sort((first, second) =>
+        first.timing.localeCompare(second.timing, undefined, {
+          numeric: true,
+        }),
+      );
+  }, [students, batches]);
+
+  /*
+  ========================================================
   FILTER STUDENTS
   ========================================================
   */
@@ -419,9 +509,12 @@ function AdminStudents() {
         matchesStatus = student.courseProgress?.status === "left_early";
       }
 
-      return matchesSearch && matchesStatus;
+      const matchesBatch =
+        batchFilter === "all" || student.batch?.trim() === batchFilter;
+
+      return matchesSearch && matchesStatus && matchesBatch;
     });
-  }, [students, search, statusFilter]);
+  }, [students, search, statusFilter, batchFilter]);
 
   /* STATS */
 
@@ -1100,8 +1193,8 @@ function AdminStudents() {
         <div className="mt-8 overflow-hidden rounded-[30px] border-[3px] border-[#D5E0EE] bg-white shadow-[0_18px_60px_rgba(16,36,62,0.09)]">
           {/* Toolbar */}
 
-          <div className="flex flex-col gap-4 border-b-[3px] border-[#E3EAF3] bg-gradient-to-r from-[#F3F8FF] via-white to-[#F1FBF7] p-6 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:max-w-xl">
+          <div className="flex flex-col gap-4 border-b-[3px] border-[#E3EAF3] bg-gradient-to-r from-[#F3F8FF] via-white to-[#F1FBF7] p-6 2xl:flex-row 2xl:items-center 2xl:justify-between">
+            <div className="relative w-full 2xl:max-w-md">
               <Search
                 size={24}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-[#338DFD]"
@@ -1115,9 +1208,9 @@ function AdminStudents() {
               />
             </div>
 
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex w-full flex-col gap-4 lg:w-auto lg:flex-row lg:items-center">
               {!loading && (
-                <p className="text-[18px] font-bold text-[#10243E]/70">
+                <p className="whitespace-nowrap text-[18px] font-bold text-[#10243E]/70">
                   Showing{" "}
                   <span className="rounded-md bg-[#E3EFFF] px-2.5 py-0.5 font-extrabold text-[#1D6FD8]">
                     {filteredStudents.length}
@@ -1129,10 +1222,32 @@ function AdminStudents() {
                 </p>
               )}
 
+              {/* Batch + status filters, always side by side */}
+
+              <div className="flex w-full flex-col gap-4 sm:flex-row lg:w-auto">
+
+              <select
+                value={batchFilter}
+                onChange={(event) => setBatchFilter(event.target.value)}
+                aria-label="Filter by batch"
+                className={`${fieldClass} sm:w-[240px]`}
+              >
+                <option value="all">All batches</option>
+
+                {batchOptions.map((batch) => (
+                  <option key={batch.timing} value={batch.timing}>
+                    {batch.timing} ({batch.count})
+                  </option>
+                ))}
+              </select>
+
+              {/* Status filter */}
+
               <select
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
-                className={`${fieldClass} md:w-[230px]`}
+                aria-label="Filter by status"
+                className={`${fieldClass} sm:w-[240px]`}
               >
                 <option value="all">All students</option>
                 <option value="active">Active accounts</option>
@@ -1143,6 +1258,7 @@ function AdminStudents() {
                 <option value="completed">Completed courses</option>
                 <option value="left_early">Left early</option>
               </select>
+              </div>
             </div>
           </div>
 
@@ -1186,7 +1302,7 @@ function AdminStudents() {
             </motion.div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1500px]">
+              <table className="w-full min-w-[1720px]">
                 <thead>
                   <tr className="border-b-[3px] border-[#E3EAF3] bg-gradient-to-r from-[#10243E] to-[#17406E]">
                     <TableHeading>#</TableHeading>
@@ -1194,6 +1310,7 @@ function AdminStudents() {
                     <TableHeading>Username</TableHeading>
                     <TableHeading>Batch</TableHeading>
                     <TableHeading>Course</TableHeading>
+                    <TableHeading>Attendance</TableHeading>
                     <TableHeading>Progress</TableHeading>
                     <TableHeading>Status</TableHeading>
 
@@ -1227,6 +1344,25 @@ function AdminStudents() {
                         : `M ${progress?.currentMonth ?? 0}/${
                             progress?.totalMonths ?? duration.value ?? 0
                           }`);
+
+                    /* Attendance (sent by backend as attendanceStats) */
+                    const attendance = student.attendanceStats;
+
+                    const hasAttendanceData = Boolean(attendance);
+
+                    const countedClasses = attendance?.countedClasses ?? 0;
+
+                    const attendancePercentage = Math.min(
+                      100,
+                      Math.max(0, attendance?.percentage ?? 0),
+                    );
+
+                    const attendanceTone = getAttendanceTone(
+                      attendancePercentage,
+                      countedClasses,
+                    );
+
+                    const journeyDayLabel = getJourneyDayLabel(progress);
 
                     return (
                       <motion.tr
@@ -1321,6 +1457,56 @@ function AdminStudents() {
                                 Exit: {formatDate(student.actualExitDate)}
                               </p>
                             )}
+                          </div>
+                        </td>
+
+                        {/* Attendance + journey day */}
+
+                        <td className="px-6 py-6">
+                          <div className="w-[210px]">
+                            <div className="mb-2 flex items-center justify-between gap-3">
+                              <span
+                                className={`inline-flex items-center gap-1.5 text-[18px] font-extrabold ${attendanceTone.text}`}
+                              >
+                                <TrendingUp size={17} strokeWidth={2.8} />
+
+                                {hasAttendanceData && countedClasses > 0
+                                  ? `${attendance.percentage}%`
+                                  : "—"}
+                              </span>
+
+                              <span className="text-[15px] font-bold text-[#10243E]/55">
+                                {hasAttendanceData
+                                  ? countedClasses > 0
+                                    ? `${attendance.present}/${countedClasses} classes`
+                                    : "No classes yet"
+                                  : "No data"}
+                              </span>
+                            </div>
+
+                            <div className="h-3 overflow-hidden rounded-full bg-[#10243E]/8">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{
+                                  width: `${
+                                    countedClasses > 0
+                                      ? attendancePercentage
+                                      : 0
+                                  }%`,
+                                }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                                className={`h-full rounded-full ${attendanceTone.bar}`}
+                              />
+                            </div>
+
+                            <p className="mt-2 flex items-center gap-1.5 text-[15px] font-extrabold text-[#10243E]/70">
+                              <CalendarDays
+                                size={15}
+                                className="text-[#338DFD]"
+                              />
+
+                              {journeyDayLabel || "—"}
+                            </p>
                           </div>
                         </td>
 

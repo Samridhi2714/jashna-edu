@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+  Link,
+} from "react-router-dom";
 import { LearningGoalsBadge } from "../hooks/useLearningGoalsNotifications";
 import {
   CalendarDays,
@@ -22,6 +28,7 @@ import {
   Briefcase,
   MessageCircle,
   Link2,
+  ArrowLeftRight,
 } from "lucide-react";
 
 function AdminLayout() {
@@ -125,11 +132,16 @@ function AdminLayout() {
             <p className="text-[10px] font-extrabold uppercase tracking-[0.32em] text-[#1FA886]">
               JASHNA EDU
             </p>
-
-            <h1 className="mt-1 font-display text-[26px] font-bold leading-tight text-[#102B4E]">
-              Admin Portal
-            </h1>
-
+            <Link
+              to="/"
+              title="Go to website home"
+              aria-label="Go to website home page"
+              className="group block w-fit"
+            >
+              <h1 className="mt-1 font-display text-[26px] font-bold leading-tight text-[#102B4E]">
+                Admin Portal
+              </h1>
+            </Link>
             <p className="mt-1 text-xs font-semibold text-[#102B4E]/55">
               Learning Management Workspace
             </p>
@@ -163,7 +175,13 @@ function AdminLayout() {
                 active={isActive("/admin/students")}
                 onClick={closeMobile}
               />
-
+              <AdminNavItem
+                to="/admin/batch-transfers"
+                label="Batch Transfers"
+                icon={<ArrowLeftRight size={19} />}
+                active={isActive("/admin/batch-transfers")}
+                onClick={closeMobile}
+              />
               <AdminNavItem
                 to="/admin/attendance"
                 label="Attendance"
@@ -190,7 +208,7 @@ function AdminLayout() {
                 badge={<LearningGoalsBadge />}
               />
 
-               <AdminNavItem
+              <AdminNavItem
                 to="/admin/assessments-tasks"
                 label="Assessments & Tasks"
                 icon={<ClipboardList size={18} />}

@@ -29,6 +29,7 @@ import careersRoutes from "./routes/careersRoutes.js";
 import faqRoutes from "./routes/faqRoutes.js";
 import assessmentLinksRoutes from "./routes/assessmentLinksRoutes.js";
 import privacyPolicyRoutes from "./routes/privacyPolicyRoutes.js";
+import studentBatchTransferRoutes from "./routes/studentBatchTransferRoutes.js";
 const app = express();
 
 /* =========================================================
@@ -66,9 +67,7 @@ app.use(compression());
    Multiple origins can be comma-separated.
 ========================================================= */
 
-const allowedOrigins = (
-  process.env.CLIENT_URL || "http://localhost:5173"
-)
+const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -77,7 +76,7 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-  })
+  }),
 );
 
 /* =========================================================
@@ -265,6 +264,7 @@ app.use("/api/careers", careersRoutes);
 app.use("/api/faqs", faqRoutes);
 app.use("/api/assessment-links", assessmentLinksRoutes);
 app.use("/api/privacy-policy", privacyPolicyRoutes);
+app.use("/api/student-batch-transfers", studentBatchTransferRoutes);
 /* =========================================================
    UNKNOWN API ROUTES
 ========================================================= */
