@@ -94,6 +94,9 @@ percentage + label come from utils/courseDuration.js
 
 currentMonth / totalMonths are kept ONLY for months-based
 courses so any old UI that still reads them keeps working.
+
+daysElapsed / totalDays are the same numbers the student
+sees on their own attendance page ("Day X of Y").
 =========================================================
 */
 
@@ -112,6 +115,10 @@ const getCourseProgress = (student) => {
     // Generic position inside the course: Day 12 of 45 / Month 2 of 6
     current: base.current,
     total: base.total,
+
+    // Journey days (joining day -> course end / exit day, inclusive)
+    daysElapsed: base.daysElapsed ?? 0,
+    totalDays: base.totalDays ?? 0,
 
     // Legacy fields (months courses only)
     currentMonth: unit === "months" ? base.current : null,
@@ -142,6 +149,98 @@ const durationFields = (student) => {
 
 /*
 =========================================================
+ATTENDANCE STATS (for the admin students table)
+=========================================================
+
+Same rule as the student's own attendance page:
+
+  percentage = present / (present + absent) * 100
+
+Public holidays and Jashna leave are NOT counted.
+One aggregation for ALL students, so the table does not
+need one request per student.
+=========================================================
+*/
+
+const buildAttendanceCountsMap = async () => {
+  const rows = await Attendance.aggregate([
+    {
+      $group: {
+        _id: {
+          student: "$student",
+          status: "$status",
+        },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const map = new Map();
+
+  for (const row of rows) {
+    const studentKey = String(row._id.student);
+
+    if (!map.has(studentKey)) {
+      map.set(studentKey, {
+        present: 0,
+        absent: 0,
+        publicHoliday: 0,
+        jashnaLeave: 0,
+      });
+    }
+
+    const entry = map.get(studentKey);
+
+    switch (row._id.status) {
+      case "present":
+        entry.present += row.count;
+        break;
+
+      case "absent":
+        entry.absent += row.count;
+        break;
+
+      case "public_holiday":
+        entry.publicHoliday += row.count;
+        break;
+
+      case "jashna_leave":
+        entry.jashnaLeave += row.count;
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  return map;
+};
+
+const buildAttendanceStats = (counts) => {
+  const present = counts?.present || 0;
+  const absent = counts?.absent || 0;
+  const publicHoliday = counts?.publicHoliday || 0;
+  const jashnaLeave = counts?.jashnaLeave || 0;
+
+  const countedClasses = present + absent;
+
+  const percentage =
+    countedClasses > 0
+      ? Number(((present / countedClasses) * 100).toFixed(1))
+      : 0;
+
+  return {
+    present,
+    absent,
+    publicHoliday,
+    jashnaLeave,
+    countedClasses,
+    percentage,
+  };
+};
+
+/*
+=========================================================
 GENERATE TEMPORARY PASSWORD
 =========================================================
 */
@@ -162,10 +261,16 @@ export const getStudents = async (req, res) => {
       .select("-password")
       .sort({ createdAt: -1 });
 
+    const attendanceCounts = await buildAttendanceCountsMap();
+
     const studentsWithProgress = students.map((student) => {
       const studentObject = student.toObject();
 
       const courseProgress = getCourseProgress(student);
+
+      const attendanceStats = buildAttendanceStats(
+        attendanceCounts.get(String(student._id)),
+      );
 
       return {
         ...studentObject,
@@ -174,6 +279,8 @@ export const getStudents = async (req, res) => {
         ...durationFields(student),
 
         courseProgress,
+
+        attendanceStats,
       };
     });
 
