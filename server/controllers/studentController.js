@@ -1041,6 +1041,87 @@ export const updateCourseDuration = async (req, res) => {
 
 /*
 =========================================================
+UPDATE STUDENT NAME
+=========================================================
+
+PATCH /api/students/:id/name
+
+Body: { name }
+
+Changes ONLY the display name (to fix a wrong spelling, etc.).
+
+Nothing else is touched:
+- same _id, so attendance and every other record stays linked
+- same username, so the student logs in exactly as before
+- batch, course dates, progress and history are unchanged
+
+Every page that reads the name from the Student record
+shows the new name automatically.
+=========================================================
+*/
+
+export const updateStudentName = async (req, res) => {
+  try {
+    const name =
+      typeof req.body.name === "string"
+        ? req.body.name.trim().replace(/\s+/g, " ")
+        : "";
+
+    if (!name) {
+      return res.status(400).json({
+        message: "Student name is required",
+      });
+    }
+
+    if (name.length > 80) {
+      return res.status(400).json({
+        message: "Student name cannot be longer than 80 characters",
+      });
+    }
+
+    const student = await Student.findById(req.params.id);
+
+    if (!student) {
+      return res.status(404).json({
+        message: "Student not found",
+      });
+    }
+
+    if (student.name === name) {
+      return res.status(400).json({
+        message: "The new name is the same as the current name",
+      });
+    }
+
+    // Only the name field changes.
+    student.name = name;
+
+    await student.save();
+
+    res.status(200).json({
+      message: "Student name updated successfully",
+
+      student: {
+        id: student._id,
+        _id: student._id,
+        name: student.name,
+        username: student.username,
+        batch: student.batch,
+        isActive: student.isActive,
+        enrollmentStatus: student.enrollmentStatus,
+      },
+    });
+  } catch (error) {
+    console.error("Update student name error:", error);
+
+    res.status(500).json({
+      message: "Failed to update student name",
+    });
+  }
+};
+
+/*
+=========================================================
 DELETE STUDENT
 =========================================================
 

@@ -10,6 +10,7 @@ import {
   pauseStudentCourse,
   resumeStudentCourse,
   updateCourseDuration,
+  updateStudentName,
   deleteStudent,
 } from "../controllers/studentController.js";
 
@@ -111,6 +112,24 @@ becomes
 */
 
 router.patch("/:id/course-duration", updateCourseDuration);
+
+/*
+=========================================================
+STUDENT NAME
+=========================================================
+
+PATCH /api/students/:id/name
+
+Body:
+{
+  name: "Corrected Name"
+}
+
+Changes ONLY the display name. The student keeps the same
+_id, username, batch, attendance and all saved history.
+*/
+
+router.patch("/:id/name", updateStudentName);
 
 /*
 =========================================================

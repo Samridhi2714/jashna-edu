@@ -21,6 +21,7 @@ import {
   RotateCcw,
   Trash2,
   AlertTriangle,
+  Pencil,
 } from "lucide-react";
 
 import { API_URL } from "../config";
@@ -302,6 +303,12 @@ function AdminStudents() {
   const [showExtendModal, setShowExtendModal] = useState(false);
 
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+
+  /* EDIT NAME MODAL STATE */
+
+  const [showEditNameModal, setShowEditNameModal] = useState(false);
+
+  const [editName, setEditName] = useState("");
 
   /* CREATE FORM */
 
@@ -722,6 +729,82 @@ function AdminStudents() {
       setTemporaryPassword(data.temporaryPassword);
 
       setShowMenu(null);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /*
+  ========================================================
+  EDIT STUDENT NAME
+  ========================================================
+  Only the display name changes. Username, batch, dates,
+  attendance and every other saved record stay untouched.
+  */
+
+  const openEditNameModal = (student) => {
+    setSelectedStudent(student);
+
+    setEditName(student.name || "");
+
+    setError("");
+
+    setShowEditNameModal(true);
+
+    setShowMenu(null);
+  };
+
+  const handleEditName = async (event) => {
+    event.preventDefault();
+
+    if (!selectedStudent) return;
+
+    const trimmedName = editName.trim().replace(/\s+/g, " ");
+
+    if (!trimmedName) {
+      setError("Please enter the student's name.");
+      return;
+    }
+
+    if (trimmedName === selectedStudent.name) {
+      setError("The new name is the same as the current name.");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setError("");
+
+      const token = localStorage.getItem("adminToken");
+
+      const response = await fetch(
+        `${API_URL}/api/students/${selectedStudent._id}/name`,
+        {
+          method: "PATCH",
+
+          headers: {
+            "Content-Type": "application/json",
+
+            Authorization: `Bearer ${token}`,
+          },
+
+          body: JSON.stringify({ name: trimmedName }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update name");
+      }
+
+      await fetchStudents();
+
+      setShowEditNameModal(false);
+      setSelectedStudent(null);
+      setEditName("");
     } catch (error) {
       setError(error.message);
     } finally {
@@ -1225,39 +1308,38 @@ function AdminStudents() {
               {/* Batch + status filters, always side by side */}
 
               <div className="flex w-full flex-col gap-4 sm:flex-row lg:w-auto">
+                <select
+                  value={batchFilter}
+                  onChange={(event) => setBatchFilter(event.target.value)}
+                  aria-label="Filter by batch"
+                  className={`${fieldClass} sm:w-[240px]`}
+                >
+                  <option value="all">All batches</option>
 
-              <select
-                value={batchFilter}
-                onChange={(event) => setBatchFilter(event.target.value)}
-                aria-label="Filter by batch"
-                className={`${fieldClass} sm:w-[240px]`}
-              >
-                <option value="all">All batches</option>
+                  {batchOptions.map((batch) => (
+                    <option key={batch.timing} value={batch.timing}>
+                      {batch.timing} ({batch.count})
+                    </option>
+                  ))}
+                </select>
 
-                {batchOptions.map((batch) => (
-                  <option key={batch.timing} value={batch.timing}>
-                    {batch.timing} ({batch.count})
-                  </option>
-                ))}
-              </select>
+                {/* Status filter */}
 
-              {/* Status filter */}
-
-              <select
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                aria-label="Filter by status"
-                className={`${fieldClass} sm:w-[240px]`}
-              >
-                <option value="all">All students</option>
-                <option value="active">Active accounts</option>
-                <option value="inactive">Inactive accounts</option>
-                <option value="upcoming">Upcoming courses</option>
-                <option value="ongoing">Ongoing courses</option>
-                <option value="paused">Paused courses</option>
-                <option value="completed">Completed courses</option>
-                <option value="left_early">Left early</option>
-              </select>
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                  aria-label="Filter by status"
+                  className={`${fieldClass} sm:w-[240px]`}
+                >
+                  <option value="all">All students</option>
+                  <option value="active">Active accounts</option>
+                  <option value="inactive">Inactive accounts</option>
+                  <option value="upcoming">Upcoming courses</option>
+                  <option value="ongoing">Ongoing courses</option>
+                  <option value="paused">Paused courses</option>
+                  <option value="completed">Completed courses</option>
+                  <option value="left_early">Left early</option>
+                </select>
               </div>
             </div>
           </div>
@@ -1583,6 +1665,7 @@ function AdminStudents() {
                               <StudentActionMenu
                                 student={student}
                                 actionLoading={actionLoading}
+                                onEditName={() => openEditNameModal(student)}
                                 onToggleStatus={() =>
                                   handleToggleStatus(student)
                                 }
@@ -1887,6 +1970,74 @@ function AdminStudents() {
         )}
       </AnimatePresence>
 
+      {/* ===================== EDIT NAME MODAL ===================== */}
+
+      <AnimatePresence>
+        {showEditNameModal && selectedStudent && (
+          <Modal
+            key="edit-name-modal"
+            title="Edit student name"
+            onClose={() => {
+              if (!actionLoading) {
+                setShowEditNameModal(false);
+              }
+            }}
+          >
+            <form onSubmit={handleEditName} className="space-y-6">
+              <div className="rounded-2xl border-2 border-[#E3EAF3] bg-gradient-to-br from-[#F8F6EF] to-[#F3F8FF] p-6">
+                <p className="text-[14px] font-extrabold uppercase tracking-[0.15em] text-[#10243E]/55">
+                  Current name
+                </p>
+
+                <p className="mt-2 text-[28px] font-extrabold text-[#10243E]">
+                  {selectedStudent.name}
+                </p>
+
+                <p className="mt-1 text-[18px] font-bold text-[#10243E]/65">
+                  Username: {selectedStudent.username}
+                </p>
+              </div>
+
+              <Input
+                label="New name"
+                name="editName"
+                value={editName}
+                onChange={(event) => setEditName(event.target.value)}
+                placeholder="e.g. Ananya Sharma"
+                maxLength={80}
+                autoFocus
+                required
+              />
+
+              <div className="rounded-2xl border-2 border-[#49C4A5]/30 bg-[#49C4A5]/10 p-5">
+                <div className="flex gap-3">
+                  <ShieldCheck
+                    size={22}
+                    className="mt-0.5 shrink-0 text-[#177A62]"
+                  />
+
+                  <p className="text-[17px] font-bold leading-7 text-[#177A62]">
+                    Only the name changes. Username, batch, attendance, tasks
+                    and all saved history stay exactly as they are. The student
+                    will see the new name everywhere.
+                  </p>
+                </div>
+              </div>
+
+              <motion.button
+                type="submit"
+                disabled={actionLoading}
+                whileHover={{ scale: 1.03, y: -3 }}
+                whileTap={{ scale: 0.96 }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#338DFD] to-[#49C4A5] px-5 py-4 text-[20px] font-extrabold text-white shadow-lg transition-shadow hover:shadow-2xl disabled:opacity-60"
+              >
+                {actionLoading ? "Saving..." : "Save name"}
+              </motion.button>
+            </form>
+          </Modal>
+        )}
+      </AnimatePresence>
+
       {/* ===================== EXTEND COURSE MODAL ===================== */}
 
       <AnimatePresence>
@@ -2165,6 +2316,7 @@ STUDENT ACTION MENU
 function StudentActionMenu({
   student,
   actionLoading,
+  onEditName,
   onToggleStatus,
   onResetPassword,
   onExtend,
@@ -2191,6 +2343,11 @@ function StudentActionMenu({
       transition={{ duration: 0.18 }}
       className="absolute right-5 top-[4.5rem] z-20 w-80 overflow-hidden rounded-2xl border-[3px] border-[#D5E0EE] bg-white p-2 text-left shadow-[0_22px_55px_rgba(16,36,62,0.22)]"
     >
+      <ActionButton disabled={actionLoading} onClick={onEditName} tone="blue">
+        <Pencil size={21} />
+        Edit name
+      </ActionButton>
+
       <ActionButton
         disabled={actionLoading}
         onClick={onToggleStatus}
