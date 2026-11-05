@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Batch from "../models/Batch.js";
+import Student from "../models/Student.js";
 
 /*
 
@@ -23,6 +24,33 @@ whether a batch timing already exists.
 
 const normalizeTiming = (timing) => {
   return timing.trim().replace(/\s+/g, " ").toLowerCase();
+};
+
+/*
+
+# HELPER: SYNC STUDENTS WITH BATCH TIMING
+
+Each student stores a text copy of the timing in `student.batch`
+(next to the `batchId` reference). Whenever a batch is saved,
+every student linked to it by batchId gets the batch's current
+timing. Only students whose text differs are modified, so this
+is safe to run repeatedly. Attendance, tasks and all other
+student data are not touched.
+
+*/
+
+const syncStudentsWithBatch = async (batch) => {
+  const result = await Student.updateMany(
+    {
+      batchId: batch._id,
+      batch: { $ne: batch.timing },
+    },
+    {
+      $set: { batch: batch.timing },
+    },
+  );
+
+  return result.modifiedCount || 0;
 };
 
 /*
@@ -126,6 +154,7 @@ PUT /api/batches/:id
 ====================
 
 # Allows timing and description to be edited.
+# The new timing is copied to every student in this batch.
 
 */
 
@@ -163,14 +192,9 @@ export const updateBatch = async (req, res) => {
       const normalizedTiming = normalizeTiming(trimmedTiming);
 
       // Exclude the current batch from duplicate checking.
-      const existingBatches = await Batch.find(
-        { _id: { $ne: batch._id } },
-        { timing: 1 },
-      );
-      
       const duplicateBatch = await Batch.findOne({
-      normalizedTiming,
-      _id: { $ne: batch._id },
+        normalizedTiming,
+        _id: { $ne: batch._id },
       });
 
       if (duplicateBatch) {
@@ -198,10 +222,19 @@ export const updateBatch = async (req, res) => {
 
     await batch.save();
 
+    // Keep every student's saved timing text in sync with this batch.
+    const updatedStudents = await syncStudentsWithBatch(batch);
+
     return res.status(200).json({
       success: true,
-      message: "Batch updated successfully.",
+      message:
+        updatedStudents > 0
+          ? `Batch updated successfully. ${updatedStudents} student${
+              updatedStudents === 1 ? "" : "s"
+            } updated with the new timing.`
+          : "Batch updated successfully.",
       batch,
+      updatedStudents,
     });
   } catch (error) {
     console.error("Update batch error:", error);

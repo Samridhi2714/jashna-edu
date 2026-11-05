@@ -226,11 +226,6 @@ function RecentAdmissions() {
                         )}
 
                         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/90 to-transparent" />
-
-                        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/90 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[#2563B8] shadow-sm backdrop-blur-md sm:left-4 sm:top-4 sm:px-3 sm:py-1.5 sm:text-[10px]">
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#2FA98A]" />
-                          New Learner
-                        </span>
                       </div>
 
                       {/* Information at the bottom */}
