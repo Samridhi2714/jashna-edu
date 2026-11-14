@@ -25,6 +25,47 @@ const getRecipient = (assignment, studentId) => {
 
 /*
 =========================================================
+HELPER: VALIDATE YOUTUBE LINK
+
+Used by "video" submissions. Students submit an
+(unlisted) YouTube link instead of uploading a file.
+
+Accepted formats:
+- https://youtu.be/VIDEO_ID
+- https://www.youtube.com/watch?v=VIDEO_ID
+- https://www.youtube.com/embed/VIDEO_ID
+- https://www.youtube.com/shorts/VIDEO_ID
+=========================================================
+*/
+
+const isValidYouTubeLink = (value) => {
+  try {
+    const url = new URL(String(value).trim());
+
+    if (url.protocol !== "https:") return false;
+
+    const host = url.hostname.replace(/^(www\.|m\.)/, "");
+
+    if (host === "youtu.be") {
+      return url.pathname.length > 1;
+    }
+
+    if (host === "youtube.com") {
+      return (
+        (url.pathname === "/watch" && url.searchParams.has("v")) ||
+        url.pathname.startsWith("/embed/") ||
+        url.pathname.startsWith("/shorts/")
+      );
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+};
+
+/*
+=========================================================
 HELPER: CHECK STUDENT ELIGIBILITY
 =========================================================
 */
@@ -339,6 +380,11 @@ MCQ:
 - Calculates the score on the server.
 - Does not upload anything to Google Drive.
 
+Video:
+- Student submits an unlisted YouTube link.
+- The link is stored in submissionText.
+- No file upload and no Google Drive usage.
+
 Other submission types:
 - Keep the existing Google Drive upload behaviour.
 - Older Cloudinary submissions remain compatible.
@@ -614,6 +660,66 @@ export const submitStudentTask = async (req, res) => {
           submittedAt: recipient.submittedAt,
           mcqScore: score,
           mcqTotalQuestions: questions.length,
+        },
+      });
+    }
+
+    /*
+    -----------------------------------------------------
+    VIDEO LINK SUBMISSION
+
+    The student pastes an unlisted YouTube link.
+    The link is stored in submissionText, so no new
+    database field is required. Nothing is uploaded.
+    -----------------------------------------------------
+    */
+
+    if (submissionType === "video") {
+      if (files.length > 0) {
+        return res.status(400).json({
+          message:
+            "This task accepts a YouTube video link only. Please do not upload files.",
+        });
+      }
+
+      if (!text) {
+        return res.status(400).json({
+          message: "Please paste your YouTube video link before submitting.",
+        });
+      }
+
+      if (!isValidYouTubeLink(text)) {
+        return res.status(400).json({
+          message:
+            "Please provide a valid YouTube link (youtube.com or youtu.be).",
+        });
+      }
+
+      const submittedAt = new Date();
+
+      recipient.submissionText = text;
+      recipient.submissionFiles = [];
+
+      recipient.submittedAt = submittedAt;
+      recipient.status = isLate ? "late_submitted" : "submitted";
+
+      await assignment.save();
+
+      submissionSaved = true;
+
+      return res.status(200).json({
+        message: isLate
+          ? "Video link submitted successfully after the deadline."
+          : "Video link submitted successfully.",
+
+        task: {
+          assignmentId: assignment._id,
+          title: assignment.taskSnapshot.title,
+          submissionType: "video",
+          status: recipient.status,
+          submittedAt: recipient.submittedAt,
+          submissionText: recipient.submissionText,
+          submissionFiles: [],
         },
       });
     }

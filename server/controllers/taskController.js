@@ -194,6 +194,104 @@ const validateTaskData = (data, isUpdate = false) => {
 
 /*
 =========================================================
+HELPER: SYNC SUBMISSION FORMAT TO ASSIGNMENTS
+
+When an admin edits a template's submission format
+(type, MCQ questions, file limits), assignments that
+were already created from that template keep an old
+copy (taskSnapshot), so students would still see the
+old format.
+
+Rule:
+- The snapshot of EVERY active assignment of this
+  template is updated to the new format.
+- If the submission type or the MCQ questions actually
+  changed, students who already submitted are reset to
+  "assigned" (old submission data, feedback and marks
+  are cleared) so they see the new format and can
+  submit again.
+- If only file limits changed (maxFiles / maxFileSizeMB),
+  snapshots are updated but nobody is reset.
+
+Only the format-related snapshot fields are synced.
+Title, description, instructions, deadline and
+recipients list are not changed.
+=========================================================
+*/
+
+const SUBMITTED_STATUSES = ["submitted", "late_submitted", "reviewed"];
+
+const serializeQuestions = (questions) =>
+  JSON.stringify(
+    (questions || []).map((question) => ({
+      text: question.questionText,
+      options: Array.from(question.options || []),
+      correct: Number(question.correctOptionIndex),
+    })),
+  );
+
+const syncTemplateFormatToAssignments = async (task) => {
+  const assignments = await TaskAssignment.find({
+    template: task._id,
+    status: "active",
+  });
+
+  const newType = task.submissionType;
+
+  const newQuestions =
+    newType === "mcq"
+      ? (task.questions || []).map((question) => ({
+          questionText: question.questionText,
+          options: Array.from(question.options),
+          correctOptionIndex: question.correctOptionIndex,
+        }))
+      : [];
+
+  let syncedCount = 0;
+  let resetCount = 0;
+
+  for (const assignment of assignments) {
+    const oldType = assignment.taskSnapshot.submissionType;
+
+    const formatChanged =
+      oldType !== newType ||
+      serializeQuestions(assignment.taskSnapshot.questions) !==
+        serializeQuestions(newQuestions);
+
+    assignment.taskSnapshot.submissionType = newType;
+    assignment.taskSnapshot.questions = newQuestions;
+    assignment.taskSnapshot.maxFiles = task.maxFiles ?? 1;
+    assignment.taskSnapshot.maxFileSizeMB = task.maxFileSizeMB ?? 10;
+
+    if (formatChanged) {
+      for (const recipient of assignment.recipients || []) {
+        if (!SUBMITTED_STATUSES.includes(recipient.status)) continue;
+
+        recipient.status = "assigned";
+        recipient.submittedAt = null;
+        recipient.reviewedAt = null;
+        recipient.submissionText = "";
+        recipient.submissionFiles = [];
+        recipient.mcqAnswers = [];
+        recipient.mcqScore = null;
+        recipient.mcqTotalQuestions = null;
+        recipient.feedback = "";
+        recipient.marks = null;
+
+        resetCount += 1;
+      }
+    }
+
+    await assignment.save();
+
+    syncedCount += 1;
+  }
+
+  return { syncedCount, resetCount };
+};
+
+/*
+=========================================================
 CREATE TASK TEMPLATE
 
 POST /api/tasks/templates
@@ -293,6 +391,9 @@ export const getTaskTemplates = async (req, res) => {
 UPDATE TASK TEMPLATE
 
 PATCH /api/tasks/templates/:id
+
+If the submission format changes, assignments that
+nobody has submitted yet are synced to the new format.
 =========================================================
 */
 
@@ -390,9 +491,41 @@ export const updateTaskTemplate = async (req, res) => {
 
     await task.save();
 
+    /*
+    -----------------------------------------------------
+    SYNC NEW FORMAT TO ALREADY-ASSIGNED TASKS
+    -----------------------------------------------------
+    A sync failure must never fail the template update,
+    so it is wrapped in its own try/catch.
+    -----------------------------------------------------
+    */
+
+    let syncResult = { syncedCount: 0, resetCount: 0 };
+
+    const formatFields = [
+      "submissionType",
+      "questions",
+      "maxFiles",
+      "maxFileSizeMB",
+    ];
+
+    const formatChanged = formatFields.some(
+      (field) => updates[field] !== undefined,
+    );
+
+    if (formatChanged) {
+      try {
+        syncResult = await syncTemplateFormatToAssignments(task);
+      } catch (syncError) {
+        console.error("Sync template format error:", syncError);
+      }
+    }
+
     return res.status(200).json({
       message: "Task template updated successfully.",
       task,
+      syncedAssignments: syncResult.syncedCount,
+      resetSubmissions: syncResult.resetCount,
     });
   } catch (error) {
     console.error("Update task template error:", error);
@@ -783,6 +916,8 @@ export const createTaskAssignment = async (req, res) => {
 
     The snapshot preserves the task details at the time
     of assignment, even if the original template changes.
+    (Format changes are synced separately by
+    updateTaskTemplate while nobody has submitted.)
     -----------------------------------------------------
     */
 
@@ -1104,7 +1239,15 @@ export const getTaskSubmissions = async (req, res) => {
     });
   }
 };
-/* ========================================================= REVIEW A STUDENT SUBMISSION PATCH /api/tasks/assignments/:assignmentId/recipients/:studentId/review ========================================================= */ export const reviewTaskSubmission =
+/*
+=========================================================
+REVIEW A STUDENT SUBMISSION
+
+PATCH /api/tasks/assignments/:assignmentId/recipients/:studentId/review
+=========================================================
+*/
+
+export const reviewTaskSubmission =
   async (req, res) => {
     try {
       const { assignmentId, studentId } = req.params;

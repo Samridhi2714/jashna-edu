@@ -6,6 +6,7 @@ import {
   ArrowDownToLine,
   CheckCircle2,
   Clock3,
+  ExternalLink,
   Eye,
   FileCheck2,
   FileText,
@@ -709,6 +710,8 @@ function SubmissionModal({ submission, onClose, onSave, saving }) {
 
   const isMcq = submission.submissionType === "mcq";
 
+  const isVideo = submission.submissionType === "video";
+
   const handleFileAction = async (file, index, mode) => {
     const actionKey = `${index}-${mode}`;
 
@@ -894,8 +897,36 @@ function SubmissionModal({ submission, onClose, onSave, saving }) {
           {/* MCQ RESULTS */}
           {isMcq && <McqResults submission={submission} />}
 
+          {/* STUDENT YOUTUBE VIDEO LINK */}
+          {isVideo && (
+            <section>
+              <h3 className="mb-3 flex items-center gap-2.5 border-l-[5px] border-[#102B4E] pl-3 text-[24px] font-extrabold text-[#102B4E]">
+                <ExternalLink size={24} />
+                Student&apos;s video link
+              </h3>
+
+              {submission.submissionText ? (
+                <a
+                  href={submission.submissionText}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-4 rounded-2xl border-2 border-slate-200 bg-slate-50 p-5 text-[18px] font-bold text-[#102B4E] transition-colors hover:border-[#102B4E] hover:bg-white"
+                >
+                  <span className="min-w-0 break-all underline">
+                    {submission.submissionText}
+                  </span>
+                  <ExternalLink size={22} className="shrink-0" />
+                </a>
+              ) : (
+                <p className="rounded-2xl border-2 border-dashed border-slate-300 p-6 text-center text-[18px] font-semibold text-slate-500">
+                  No video link was submitted.
+                </p>
+              )}
+            </section>
+          )}
+
           {/* STUDENT TEXT RESPONSE */}
-          {!isMcq && (
+          {!isMcq && !isVideo && (
             <section>
               <h3 className="mb-3 flex items-center gap-2.5 border-l-[5px] border-[#102B4E] pl-3 text-[24px] font-extrabold text-[#102B4E]">
                 <MessageSquareText size={24} />
@@ -914,8 +945,8 @@ function SubmissionModal({ submission, onClose, onSave, saving }) {
             </section>
           )}
 
-          {/* UPLOADED FILES */}
-          {!isMcq && (
+          {/* UPLOADED FILES (also shown for older file-based video submissions) */}
+          {!isMcq && (!isVideo || files.length > 0) && (
             <section>
               <h3 className="mb-3 flex items-center gap-2.5 border-l-[5px] border-[#102B4E] pl-3 text-[24px] font-extrabold text-[#102B4E]">
                 <FileText size={24} />

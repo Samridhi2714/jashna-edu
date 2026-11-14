@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Clock3,
   Download,
+  ExternalLink,
   FileText,
   LoaderCircle,
   MessageSquare,
@@ -1048,6 +1049,33 @@ const STYLES = `
   }
 `;
 
+/*
+Checks a pasted YouTube link (watch, youtu.be, embed, shorts).
+Must match the validation done by the backend.
+*/
+const isValidYouTubeLink = (value) => {
+  try {
+    const url = new URL(String(value || "").trim());
+
+    if (url.protocol !== "https:") return false;
+
+    const host = url.hostname.toLowerCase().replace(/^(www\.|m\.)/, "");
+
+    if (host === "youtu.be") {
+      return url.pathname.length > 1;
+    }
+
+    if (host === "youtube.com") {
+      if (url.pathname === "/watch") return Boolean(url.searchParams.get("v"));
+      return /^\/(embed|shorts)\/[\w-]+/.test(url.pathname);
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 export default function StudentTasks() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1056,6 +1084,7 @@ export default function StudentTasks() {
   const [selectedTask, setSelectedTask] = useState(null);
 
   const [submissionText, setSubmissionText] = useState("");
+  const [videoLink, setVideoLink] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [mcqAnswers, setMcqAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -1113,6 +1142,7 @@ export default function StudentTasks() {
   const openTask = (task) => {
     setSelectedTask(task);
     setSubmissionText(task.submissionText || "");
+    setVideoLink(task.submissionText || "");
     setSelectedFiles([]);
     setMessage("");
     setMessageType("success");
@@ -1137,6 +1167,7 @@ export default function StudentTasks() {
     setSelectedTask(null);
     setSelectedFiles([]);
     setSubmissionText("");
+    setVideoLink("");
     setMcqAnswers({});
     setMessage("");
     setMessageType("success");
@@ -1229,6 +1260,22 @@ export default function StudentTasks() {
       }));
 
       formData.append("mcqAnswers", JSON.stringify(answers));
+    } else if (type === "video") {
+      if (!videoLink.trim()) {
+        setMessage("Please paste your YouTube video link first.");
+        setMessageType("error");
+        return;
+      }
+
+      if (!isValidYouTubeLink(videoLink)) {
+        setMessage(
+          "Please enter a valid https YouTube link (youtube.com or youtu.be).",
+        );
+        setMessageType("error");
+        return;
+      }
+
+      formData.append("submissionText", videoLink.trim());
     } else if (type === "text") {
       if (!submissionText.trim()) {
         setMessage("Please enter your answer first.");
@@ -1393,6 +1440,12 @@ export default function StudentTasks() {
                 icon={ClipboardCheck}
                 label="Questions"
                 value={`${questions.length} question(s)`}
+              />
+            ) : selectedTask.submissionType === "video" ? (
+              <InfoItem
+                icon={Video}
+                label="Submission"
+                value="YouTube link"
               />
             ) : (
               <InfoItem
@@ -1708,6 +1761,46 @@ export default function StudentTasks() {
                     disabled={readOnly}
                     className="st-textarea"
                   />
+                ) : selectedTask.submissionType === "video" ? (
+                  readOnly ? (
+                    selectedTask.submissionText ? (
+                      <a
+                        href={selectedTask.submissionText}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="st-file-link"
+                      >
+                        <Video size={22} />
+                        <span style={{ flex: 1, overflowWrap: "anywhere" }}>
+                          {selectedTask.submissionText}
+                        </span>
+                        <ExternalLink size={21} />
+                      </a>
+                    ) : null
+                  ) : (
+                    <>
+                      <input
+                        type="url"
+                        value={videoLink}
+                        onChange={(event) => setVideoLink(event.target.value)}
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        maxLength={500}
+                        className="st-textarea"
+                        style={{ minHeight: 0 }}
+                      />
+                      <p
+                        style={{
+                          marginTop: 10,
+                          fontSize: 13,
+                          opacity: 0.8,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        Upload your video to YouTube as <strong>Unlisted</strong>{" "}
+                        and paste the link here.
+                      </p>
+                    </>
+                  )
                 ) : (
                   !readOnly && (
                     <label className="st-upload">

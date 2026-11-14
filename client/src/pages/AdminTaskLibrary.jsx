@@ -52,8 +52,8 @@ const SUBMISSION_TYPES = [
   },
   {
     value: "video",
-    label: "Video",
-    description: "Students upload a video recording.",
+    label: "Video Link",
+    description: "Students paste their unlisted YouTube video link.",
     Icon: Video,
     color: "#E11D58",
     background: "#FFE9F0",
@@ -194,6 +194,8 @@ function getFileLimitText(template) {
   }
 
   if (template.submissionType === "text") return "Text only";
+
+  if (template.submissionType === "video") return "YouTube link";
 
   const count =
     template.submissionType === "multiple_files" ? template.maxFiles || 1 : 1;
@@ -778,7 +780,8 @@ function TemplateCard({
       {template.submissionType !== "mcq" && (
         <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#EAF2FF] px-3.5 py-2 text-[15px] font-extrabold text-[#1D4ED8]">
           <Upload size={16} />
-          {template.submissionType === "text"
+          {template.submissionType === "text" ||
+          template.submissionType === "video"
             ? "No size limit"
             : `${template.maxFileSizeMB || 10} MB / file`}
         </span>
@@ -1621,6 +1624,24 @@ export default function AdminTaskLibrary() {
       return;
     }
 
+    // Warn the admin if the submission type is being changed on an existing template.
+    if (editingId) {
+      const existingTemplate = templates.find(
+        (item) => item._id === editingId,
+      );
+
+      if (
+        existingTemplate &&
+        existingTemplate.submissionType !== form.submissionType
+      ) {
+        const proceed = window.confirm(
+          "You are changing the submission format. This will update all tasks already assigned from this template, and students who have already submitted will have to submit again (their old submission, marks and feedback will be cleared). Do you want to continue?",
+        );
+
+        if (!proceed) return;
+      }
+    }
+
     try {
       setSaving(true);
 
@@ -1640,9 +1661,13 @@ export default function AdminTaskLibrary() {
         throw new Error(data.message || "Unable to save task template.");
       }
 
+      const resetCount = Number(data.resetSubmissions) || 0;
+
       setMessage(
         editingId
-          ? "Task template updated successfully."
+          ? resetCount > 0
+            ? `Task template updated successfully. ${resetCount} student submission(s) were reset so students can submit in the new format.`
+            : "Task template updated successfully."
           : "Task template created successfully.",
       );
 
@@ -2653,7 +2678,6 @@ export default function AdminTaskLibrary() {
                 {/* FILE SETTINGS FOR NON-MCQ TASKS */}
                 {!isMcqForm &&
                   [
-                    "video",
                     "image",
                     "document",
                     "audio",
@@ -3324,10 +3348,11 @@ export default function AdminTaskLibrary() {
             Templates and assignments are managed separately
           </p>
           <p className="mt-1.5 text-[18px] font-semibold leading-7 text-[#3B5272]">
-            Editing a reusable template should not silently change tasks already
-            assigned to students. Your assignment backend should retain a
-            snapshot of the task instructions and submission rules at the time
-            of assignment.
+            Changing a template&apos;s submission format updates the tasks
+            already assigned from it, so students see the new format.
+            Students who had already submitted will be asked to submit again.
+            Title, instructions and deadlines of assigned tasks are not
+            changed.
           </p>
         </div>
       </motion.div>
